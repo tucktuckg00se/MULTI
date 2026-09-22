@@ -381,7 +381,7 @@ Durations assume one or two part-time developers; they are sizing guesses to rev
 
 **Open questions**
 
-- [ ] Final licence: GPL-3.0 or AGPL-3.0?
+- [x] Final licence: GPL-3.0 (decided)
 - [x] Implementation language: Rust (decided)
 - [ ] Pipeline base: FFmpeg libraries or GStreamer (decide after M0 spike)?
 - [ ] Is "MULTI" clear to trademark in software/broadcast classes?
