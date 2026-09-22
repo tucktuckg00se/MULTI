@@ -1,0 +1,6 @@
+# libcaption sei_from_caption_frame(caption_frame_from_text("Ça va? Grüße ÄÄ èè")) -> cc_data (valid,type:pair)
+msg00 type=4 size=86 cc_count=25: 10:94ae 10:9420 10:9140 10:2080 10:9232 10:6120 10:7661 10:bf20 10:c7f2 10:2080 10:9225 10:2080 10:1334 10:e520 10:2080 10:13b0 10:2080 10:13b0 10:2080 10:91ba 10:9420 10:91ba 10:9420 10:942f 10:942f
+rendered 90 bytes, first message payload head: 06 04 56 b5 00 31 47 41 39 34 03 59 ff fc 94 ae fc 94 20 fc 91 40 fc 20
+
+# ours, same text, pop-on CC1 (one pair per frame)
+608 CC1 pop-on (35 pairs = 35 frames at 1 pair/frame): 9420 9420 94ae 94ae 9470 9470 4380 9232 9232 6120 7661 bf20 c7f2 7580 9225 9225 7380 1334 1334 e520 c180 13b0 13b0 c180 13b0 13b0 2080 91ba 91ba 94a4 94a4 91ba 91ba 942f 942f

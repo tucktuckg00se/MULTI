@@ -1,0 +1,81 @@
+# cargo test -p cc (2026-09-22, FFmpeg 9.0.1, ccextractor 0.96.5 @2364994)
+test annexb::tests::picture_starts ... ok
+test annexb::tests::split_handles_3_and_4_byte_start_codes ... ok
+test cea608::tests::accented_characters ... ok
+test cea608::tests::channel_control_bytes ... ok
+test cea608::tests::painton_uses_rdc ... ok
+test cea608::tests::pac_rows_and_indent ... ok
+test cea608::tests::popon_sequence ... ok
+test cea608::tests::rollup_line_layout ... ok
+test cea608::tests::repeated_special_gets_separator ... ok
+test cea608::tests::wraps_at_32_columns ... ok
+test cea708::tests::blocks_never_split_units ... ok
+test cea708::tests::services_range ... ok
+test cea708::tests::first_line_defines_window ... ok
+test mux::tests::double_rate_alternates_fields ... ok
+test mux::tests::idle_frame_is_null_and_padding ... ok
+test mux::tests::dtvcc_packet_structure ... ok
+test tests::a53_layout_matches_ffmpeg ... ok
+test mux::tests::same_field_channels_interleave_by_line ... ok
+test tests::fixture_idles_after_line ... ok
+test tests::parity_is_odd ... ok
+test tests::emulation_prevention ... ok
+test mux::tests::cc_counts ... ok
+test text::tests::every_latin1_letter_maps_in_608 ... ok
+test tests::triple_header_byte ... ok
+test tests::sei_headers ... ok
+test text::tests::unsupported_is_dropped ... ok
+test text::tests::wrapping ... ok
+test mux::tests::many_services_all_drain ... ok
+test cea608::tests::overflow_drops_oldest_lines ... ok
+test cea608::tests::weird_text_never_panics ... ok
+test cea708::tests::weird_text_never_panics ... ok
+test result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+test ccx_h264_all_tracks_30fps ... ignored, needs ccextractor; see module docs
+test ccx_h264_all_tracks_59_94fps ... ignored, needs ccextractor; see module docs
+test ccx_hevc_all_tracks_29_97fps ... ignored, needs ccextractor; see module docs
+test result: ok. 0 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test h264_painton_25 ... ok
+test h264_popon_29_97 ... ok
+test h264_cc3_field2 ... ok
+test h264_repeated_special_and_ascii_remaps ... ok
+test h264_rollup_cc1_30fps ... ok
+test h264_rollup_59_94_alternating_fields ... ok
+test h264_accented_languages ... ok
+test hevc_rollup_cc1_30fps ... ok
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.56s
+test cc/src/mux.rs - mux::CcMux (line 80) ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+# cargo test -p cc --test ccextractor_roundtrip -- --ignored --nocapture --test-threads 1
+test ccx_h264_all_tracks_30fps ... [ccx-h264-30] cc1: English on CC1. Second English line. Second English line. Third line, CC1.
+[ccx-h264-30] cc2: Español en CC2, ¿sí? Segunda línea: niño. Segunda línea: niño. Tercera: ¡adiós!
+[ccx-h264-30] cc3: Français sur CC3, très bien. Deuxième ligne : où ? Deuxième ligne : où ? Troisième, Noël.
+[ccx-h264-30] cc4: Deutsch auf CC4, Grüße. Zweite Zeile: Äpfel. Zweite Zeile: Äpfel. Dritte Zeile, Straße.
+[ccx-h264-30] svc1: English on service 1. Second English line. English on service 1. Second English line. Curly \x13quotes\x14 and dash -
+[ccx-h264-30] svc2: Español en servicio 2. ¿Qué tal? ¡Muy bien! Español en servicio 2. ¿Qué tal? ¡Muy bien! Año, niño, corazón.
+[ccx-h264-30] svc3: Français, service 3. \x0cuvre, c\x1cur, Noël. Français, service 3. \x0cuvre, c\x1cur, Noël. À bientôt, garçon.
+[ccx-h264-30] svc4: Deutsch, Dienst 4. Grüße aus München. Deutsch, Dienst 4. Grüße aus München. Äpfel, Öl, Übung, Straße.
+[ccx-h264-30] svc5: Português, serviço 5. Informação pública. Português, serviço 5. Informação pública. Não, São Paulo.
+[ccx-h264-30] svc6: Service six works too. Ellipsis\x05 and &l music &l Service six works too. Ellipsis\x05 and &l music &l Last line of service 6.
+test ccx_h264_all_tracks_59_94fps ... [ccx-h264-5994] cc1: English on CC1. Second English line. Second English line. Third line, CC1.
+[ccx-h264-5994] cc2: Español en CC2, ¿sí? Segunda línea: niño. Segunda línea: niño. Tercera: ¡adiós!
+[ccx-h264-5994] cc3: Français sur CC3, très bien. Deuxième ligne : où ? Deuxième ligne : où ? Troisième, Noël.
+[ccx-h264-5994] cc4: Deutsch auf CC4, Grüße. Zweite Zeile: Äpfel. Zweite Zeile: Äpfel. Dritte Zeile, Straße.
+[ccx-h264-5994] svc1: English on service 1. Second English line. English on service 1. Second English line. Curly \x13quotes\x14 and dash -
+[ccx-h264-5994] svc2: Español en servicio 2. ¿Qué tal? ¡Muy bien! Español en servicio 2. ¿Qué tal? ¡Muy bien! Año, niño, corazón.
+[ccx-h264-5994] svc3: Français, service 3. \x0cuvre, c\x1cur, Noël. Français, service 3. \x0cuvre, c\x1cur, Noël. À bientôt, garçon.
+[ccx-h264-5994] svc4: Deutsch, Dienst 4. Grüße aus München. Deutsch, Dienst 4. Grüße aus München. Äpfel, Öl, Übung, Straße.
+[ccx-h264-5994] svc5: Português, serviço 5. Informação pública. Português, serviço 5. Informação pública. Não, São Paulo.
+[ccx-h264-5994] svc6: Service six works too. Ellipsis\x05 and &l music &l Service six works too. Ellipsis\x05 and &l music &l Last line of service 6.
+test ccx_hevc_all_tracks_29_97fps ... [ccx-hevc-2997] cc1: English on CC1. Second English line. Second English line. Third line, CC1.
+[ccx-hevc-2997] cc2: Español en CC2, ¿sí? Segunda línea: niño. Segunda línea: niño. Tercera: ¡adiós!
+[ccx-hevc-2997] cc3: Français sur CC3, très bien. Deuxième ligne : où ? Deuxième ligne : où ? Troisième, Noël.
+[ccx-hevc-2997] cc4: Deutsch auf CC4, Grüße. Zweite Zeile: Äpfel. Zweite Zeile: Äpfel. Dritte Zeile, Straße.
+[ccx-hevc-2997] svc1: English on service 1. Second English line. English on service 1. Second English line. Curly \x13quotes\x14 and dash -
+[ccx-hevc-2997] svc2: Español en servicio 2. ¿Qué tal? ¡Muy bien! Español en servicio 2. ¿Qué tal? ¡Muy bien! Año, niño, corazón.
+[ccx-hevc-2997] svc3: Français, service 3. \x0cuvre, c\x1cur, Noël. Français, service 3. \x0cuvre, c\x1cur, Noël. À bientôt, garçon.
+[ccx-hevc-2997] svc4: Deutsch, Dienst 4. Grüße aus München. Deutsch, Dienst 4. Grüße aus München. Äpfel, Öl, Übung, Straße.
+[ccx-hevc-2997] svc5: Português, serviço 5. Informação pública. Português, serviço 5. Informação pública. Não, São Paulo.
+[ccx-hevc-2997] svc6: Service six works too. Ellipsis\x05 and &l music &l Service six works too. Ellipsis\x05 and &l music &l Last line of service 6.
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.82s
