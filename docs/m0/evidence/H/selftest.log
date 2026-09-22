@@ -1,0 +1,82 @@
+== tap2tap
+frames: in=1216 out=1216 matched=899 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 0 ticks (0.000 ms), 1216/1216 content-matched frames agree
+delay ms: p50=0.020 p95=0.026 p99=0.050 max=0.156 mean=0.021 min=0.002
+jitter ms: stddev=0.007 mean|successive diff|=0.004  drift=0.004 ms/min
+  tap: video_pid=0x100 stream_type=0x1b frames=1216 packets=88892 bad_sync=0 bad_bytes=0 tei=0 bad_af=0 crc_err=0 bad_section=0 pat_changes=0 pmt_changes=0 cc_err=0 pes_bad_hdr=0 pes_no_pts=0 pts_wraps=0
+  tap: forward overhead (recv->send return) us: p50=1.4 p99=16.0 max=63.1 mean=2.7 n=13414
+  tap: video_pid=0x100 stream_type=0x1b frames=1216 packets=88892 bad_sync=0 bad_bytes=0 tei=0 bad_af=0 crc_err=0 bad_section=0 pat_changes=0 pmt_changes=0 cc_err=0 pes_bad_hdr=0 pes_no_pts=0 pts_wraps=0
+  tap: forward overhead (recv->send return) us: p50=1.4 p99=13.6 max=75.8 mean=2.5 n=13414
+  tap: video_pid=0x100 stream_type=0x1b frames=1216 packets=88892 bad_sync=0 bad_bytes=0 tei=0 bad_af=0 crc_err=0 bad_section=0 pat_changes=0 pmt_changes=0 cc_err=0 pes_bad_hdr=0 pes_no_pts=0 pts_wraps=0
+  tap: forward overhead (recv->send return) us: p50=1.6 p99=12.8 max=33.0 mean=2.5 n=13414
+== relay
+frames: in=1216 out=1214 matched=898 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 0 ticks (0.000 ms), 1213/1214 content-matched frames agree
+delay ms: p50=133.266 p95=200.247 p99=200.647 max=237.042 mean=125.551 min=61.957
+jitter ms: stddev=46.961 mean|successive diff|=48.862  drift=3.711 ms/min
+  tap: video_pid=0x100 stream_type=0x1b frames=1216 packets=88892 bad_sync=0 bad_bytes=0 tei=0 bad_af=0 crc_err=0 bad_section=0 pat_changes=0 pmt_changes=0 cc_err=0 pes_bad_hdr=0 pes_no_pts=0 pts_wraps=0
+  tap: forward overhead (recv->send return) us: p50=1.9 p99=20.0 max=65.0 mean=3.3 n=13414
+  tap: video_pid=0x100 stream_type=0x1b frames=1214 packets=88640 bad_sync=0 bad_bytes=0 tei=0 bad_af=0 crc_err=0 bad_section=0 pat_changes=0 pmt_changes=0 cc_err=0 pes_bad_hdr=0 pes_no_pts=0 pts_wraps=0
+  tap: forward overhead (recv->send return) us: p50=1.7 p99=12.4 max=101.5 mean=2.1 n=13374
+== relay0
+frames: in=1214 out=1212 matched=896 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 0 ticks (0.000 ms), 1211/1212 content-matched frames agree
+delay ms: p50=133.251 p95=200.193 p99=200.576 max=233.500 mean=125.503 min=62.845
+jitter ms: stddev=47.003 mean|successive diff|=48.873  drift=3.775 ms/min
+  tap: video_pid=0x100 stream_type=0x1b frames=1214 packets=88640 bad_sync=0 bad_bytes=0 tei=0 bad_af=0 crc_err=0 bad_section=0 pat_changes=0 pmt_changes=0 cc_err=0 pes_bad_hdr=0 pes_no_pts=0 pts_wraps=0
+  tap: forward overhead (recv->send return) us: p50=1.7 p99=14.3 max=53.3 mean=2.8 n=13374
+  tap: video_pid=0x100 stream_type=0x1b frames=1212 packets=88489 bad_sync=0 bad_bytes=0 tei=0 bad_af=0 crc_err=0 bad_section=0 pat_changes=0 pmt_changes=0 cc_err=0 pes_bad_hdr=0 pes_no_pts=0 pts_wraps=0
+  tap: forward overhead (recv->send return) us: p50=1.4 p99=10.5 max=34.1 mean=1.8 n=13351
+== delay250
+frames: in=1216 out=1216 matched=899 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 0 ticks (0.000 ms), 1216/1216 content-matched frames agree
+delay ms: p50=250.035 p95=250.056 p99=250.322 max=252.829 mean=250.050 min=250.015
+jitter ms: stddev=0.141 mean|successive diff|=0.033  drift=0.023 ms/min
+  tap: video_pid=0x100 stream_type=0x1b frames=1216 packets=88892 bad_sync=0 bad_bytes=0 tei=0 bad_af=0 crc_err=0 bad_section=0 pat_changes=0 pmt_changes=0 cc_err=0 pes_bad_hdr=0 pes_no_pts=0 pts_wraps=0
+  tap: forward overhead (recv->send return) us: p50=1.6 p99=13.6 max=83.5 mean=2.6 n=13414
+  tap: video_pid=0x100 stream_type=0x1b frames=1216 packets=88892 bad_sync=0 bad_bytes=0 tei=0 bad_af=0 crc_err=0 bad_section=0 pat_changes=0 pmt_changes=0 cc_err=0 pes_bad_hdr=0 pes_no_pts=0 pts_wraps=0
+  tap: forward overhead (recv->send return) us: p50=1.5 p99=11.7 max=54.0 mean=2.3 n=13414
+== offset
+frames: in=1216 out=1214 matched=898 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 900000 ticks (10000.000 ms), 1213/1214 content-matched frames agree
+delay ms: p50=133.252 p95=200.199 p99=200.420 max=233.345 mean=125.475 min=61.426
+jitter ms: stddev=46.937 mean|successive diff|=48.844  drift=3.585 ms/min
+  tap: video_pid=0x100 stream_type=0x1b frames=1216 packets=88886 bad_sync=0 bad_bytes=0 tei=0 bad_af=0 crc_err=0 bad_section=0 pat_changes=0 pmt_changes=0 cc_err=0 pes_bad_hdr=0 pes_no_pts=0 pts_wraps=0
+  tap: forward overhead (recv->send return) us: p50=1.6 p99=15.0 max=252.0 mean=2.7 n=13414
+  tap: video_pid=0x100 stream_type=0x1b frames=1214 packets=88640 bad_sync=0 bad_bytes=0 tei=0 bad_af=0 crc_err=0 bad_section=0 pat_changes=0 pmt_changes=0 cc_err=0 pes_bad_hdr=0 pes_no_pts=0 pts_wraps=0
+  tap: forward overhead (recv->send return) us: p50=1.4 p99=10.9 max=87.1 mean=1.9 n=13374
+== relay-mid1
+frames: in=1216 out=1214 matched=898 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 0 ticks (0.000 ms), 1213/1214 content-matched frames agree
+delay ms: p50=99.966 p95=100.442 p99=100.694 max=105.073 mean=91.252 min=61.809
+jitter ms: stddev=14.673 mean|successive diff|=13.277  drift=1.123 ms/min
+  tap: video_pid=0x100 stream_type=0x1b frames=1216 packets=88892 bad_sync=0 bad_bytes=0 tei=0 bad_af=0 crc_err=0 bad_section=0 pat_changes=0 pmt_changes=0 cc_err=0 pes_bad_hdr=0 pes_no_pts=0 pts_wraps=0
+  tap: forward overhead (recv->send return) us: p50=1.6 p99=13.5 max=57.0 mean=2.5 n=13414
+  tap: video_pid=0x100 stream_type=0x1b frames=1214 packets=88746 bad_sync=0 bad_bytes=0 tei=0 bad_af=0 crc_err=0 bad_section=0 pat_changes=0 pmt_changes=0 cc_err=0 pes_bad_hdr=0 pes_no_pts=0 pts_wraps=0
+  tap: forward overhead (recv->send return) us: p50=1.4 p99=11.6 max=118.8 mean=2.1 n=13392
+== relay-vonly
+frames: in=1214 out=1212 matched=896 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: -1920 ticks (-21.333 ms), 1211/1212 content-matched frames agree
+delay ms: p50=66.745 p95=67.104 p99=67.325 max=71.827 mean=66.746 min=61.954
+jitter ms: stddev=0.417 mean|successive diff|=0.285  drift=0.023 ms/min
+  tap: video_pid=0x100 stream_type=0x1b frames=1214 packets=88640 bad_sync=0 bad_bytes=0 tei=0 bad_af=0 crc_err=0 bad_section=0 pat_changes=0 pmt_changes=0 cc_err=0 pes_bad_hdr=0 pes_no_pts=0 pts_wraps=0
+  tap: forward overhead (recv->send return) us: p50=1.6 p99=14.2 max=76.0 mean=2.7 n=13374
+  tap: video_pid=0x100 stream_type=0x1b frames=1212 packets=84791 bad_sync=0 bad_bytes=0 tei=0 bad_af=0 crc_err=0 bad_section=0 pat_changes=0 pmt_changes=0 cc_err=0 pes_bad_hdr=0 pes_no_pts=0 pts_wraps=0
+  tap: forward overhead (recv->send return) us: p50=1.5 p99=11.6 max=48.1 mean=2.3 n=12645
+== captions (synthetic +2.0 s)
+captions: 122 cues, span 24.570..995.860 s stream time; loop 485.645 s; reference = segment end
+utterances: 120 in span, 120 matched (100.0%)
+lag s: p50=2.000 p95=2.000 max=2.000 mean=1.976 min=0.580
+captions: 122 cues, span 24.570..995.860 s stream time; loop 485.645 s; reference = segment end
+utterances: 120 in span, 112 matched (93.3%)
+lag s: p50=2.000 p95=2.000 max=2.000 mean=2.000 min=2.000
+captions: 122 cues, span 24.570..995.860 s stream time; loop 485.645 s; reference = last word end (--words)
+utterances: 120 in span, 120 matched (100.0%)
+lag s: p50=2.300 p95=2.300 max=2.300 mean=2.276 min=0.880
