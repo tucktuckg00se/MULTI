@@ -1,0 +1,8 @@
+/spikes/target/
+/spikes/harness/media/
+/spikes/**/models/
+*.ts
+*.mkv
+*.wav
+*.flac
+.env
