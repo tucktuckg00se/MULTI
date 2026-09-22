@@ -1,0 +1,129 @@
+# FFmpeg 9.0.1 ccaption decoder: ffmpeg -data_field first|second -f lavfi -i 'movie=captioned.ts[out+subcc]' -map 0:1 out.srt
+
+## h264-ru3-cc1
+1
+00:00:00,100 --> 00:00:02,100
+<font face="Monospace">{\an7}HELLO FROM MULTI</font>
+
+2
+00:00:02,100 --> 00:00:04,100
+<font face="Monospace">{\an7}HELLO FROM MULTI
+Live captions, no re-encode.</font>
+
+3
+00:00:04,100 --> 00:00:04,833
+<font face="Monospace">{\an7}HELLO FROM MULTI
+Live captions, no re-encode.
+This line is long enough that it</font>
+
+4
+00:00:04,833 --> 00:00:06,100
+<font face="Monospace">{\an7}Live captions, no re-encode.
+This line is long enough that it
+must wrap onto a second row.</font>
+
+5
+00:00:06,100 --> 00:00:06,667
+<font face="Monospace">{\an7}This line is long enough that it
+must wrap onto a second row.
+Numbers 0123456789 and</font>
+
+6
+00:00:06,667 --> 00:00:08,034
+<font face="Monospace">{\an7}must wrap onto a second row.
+Numbers 0123456789 and
+(brackets) [ok]</font>
+
+
+## hevc-ru2-cc1
+1
+00:00:00,100 --> 00:00:02,100
+<font face="Monospace">{\an7}HELLO FROM MULTI</font>
+
+2
+00:00:02,100 --> 00:00:04,033
+<font face="Monospace">{\an7}HELLO FROM MULTI
+Live captions, no re-encode.</font>
+
+
+## h264-popon
+1
+00:00:00,534 --> 00:00:02,536
+<font face="Monospace">{\an7}POP-ON CAPTION ONE</font>
+
+2
+00:00:02,536 --> 00:00:04,038
+<font face="Monospace">{\an7}Pop-on caption two</font>
+
+
+## h264-painton
+1
+00:00:00,120 --> 00:00:02,520
+<font face="Monospace">{\an7}PAINT-ON CAPTION</font>
+
+2
+00:00:02,520 --> 00:00:04,840
+<font face="Monospace">{\an7}Second paint-on</font>
+
+
+## h264-5994
+1
+00:00:00,100 --> 00:00:02,102
+<font face="Monospace">{\an7}SIXTY FPS LINE ONE</font>
+
+2
+00:00:02,102 --> 00:00:04,037
+<font face="Monospace">{\an7}SIXTY FPS LINE ONE
+Sixty fps line two</font>
+
+
+## h264-cc3
+1
+00:00:00,100 --> 00:00:02,100
+<font face="Monospace">{\an7}FIELD TWO CC3 TEXT</font>
+
+2
+00:00:02,100 --> 00:00:04,033
+<font face="Monospace">{\an7}FIELD TWO CC3 TEXT
+Second line on CC3</font>
+
+
+## h264-accents
+1
+00:00:00,100 --> 00:00:02,100
+<font face="Monospace">{\an7}¿Qué tal? Señor Muñoz, ¡olé!</font>
+
+2
+00:00:02,100 --> 00:00:04,100
+<font face="Monospace">{\an7}¿Qué tal? Señor Muñoz, ¡olé!
+Ça va très bien, à bientôt.</font>
+
+3
+00:00:04,100 --> 00:00:06,100
+<font face="Monospace">{\an7}¿Qué tal? Señor Muñoz, ¡olé!
+Ça va très bien, à bientôt.
+Grüße aus München: Äpfel, Öl.</font>
+
+4
+00:00:06,100 --> 00:00:08,100
+<font face="Monospace">{\an7}Ça va très bien, à bientôt.
+Grüße aus München: Äpfel, Öl.
+Não, a informação é pública.</font>
+
+5
+00:00:08,100 --> 00:00:10,033
+<font face="Monospace">{\an7}Grüße aus München: Äpfel, Öl.
+Não, a informação é pública.
+Élève, Noël, naïve, où, Übung</font>
+
+
+## h264-repeats
+1
+00:00:00,100 --> 00:00:02,100
+<font face="Monospace">{\an7}Très èè àà ôô ÄÄ</font>
+
+2
+00:00:02,100 --> 00:00:04,033
+<font face="Monospace">{\an7}Très èè àà ôô ÄÄ
+a*b_c~d|e{f}g\h^i</font>
+

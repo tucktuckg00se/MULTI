@@ -1,9 +1,24 @@
 //! Caption bytes for MULTI spikes: CEA-608/708 `cc_data` triples, ATSC A/53
 //! packing, and H.264/HEVC SEI NAL units.
 //!
-//! Phase 0 provides the shared interface plus a fixed caption fixture so the
-//! pipeline spikes (S1, S2) can inject captions before the real encoder (S3)
-//! exists. S3 replaces [`Cc608Encoder`]'s stub and adds CEA-708.
+//! - [`Cc608Encoder`]: CEA-608 roll-up / pop-on / paint-on on CC1–CC4.
+//! - [`Cc708Encoder`]: CEA-708 roll-up window per service (1–6).
+//! - [`CcMux`]: combines them into each frame's `cc_data` for a [`FrameRate`].
+//! - [`a53_payload`], [`h264_sei_nal`], [`hevc_sei_nal`]: wrap a frame's
+//!   triples for the bitstream (validated against FFmpeg and ccextractor, S3).
+//! - [`annexb`]: Annex-B helpers used by the round-trip tests.
+//!
+//! [`fixture_triples`] remains as a fixed CC1 fixture for pipeline spikes.
+
+pub mod annexb;
+pub mod cea608;
+pub mod cea708;
+pub mod mux;
+mod text;
+
+pub use cea608::{Cc608Encoder, Mode608};
+pub use cea708::Cc708Encoder;
+pub use mux::{CcMux, FrameRate};
 
 /// Which caption stream a `cc_data` triple belongs to (A/53 `cc_type`).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -55,27 +70,6 @@ pub enum Channel {
 pub fn odd_parity(b: u8) -> u8 {
     let b = b & 0x7F;
     if b.count_ones().is_multiple_of(2) { b | 0x80 } else { b }
-}
-
-/// CEA-608 encoder for one channel. **Stub: S3 implements this.**
-///
-/// Contract: text is queued with [`push_text`](Self::push_text); every video frame
-/// the caller asks for that frame's byte pair with [`next_pair`](Self::next_pair),
-/// which returns `None` when idle. Pairs already carry parity.
-pub struct Cc608Encoder {
-    pub channel: Channel,
-}
-
-impl Cc608Encoder {
-    pub fn new(channel: Channel) -> Self {
-        Self { channel }
-    }
-
-    pub fn push_text(&mut self, _text: &str) {}
-
-    pub fn next_pair(&mut self) -> Option<[u8; 2]> {
-        None
-    }
 }
 
 /// ATSC A/53 `user_data_registered_itu_t_t35` payload carrying `cc_data`,
