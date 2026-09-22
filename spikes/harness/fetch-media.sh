@@ -38,9 +38,9 @@ while read -r id text; do
   f="$chapter/$id.flac"
   d=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$f")
   printf "file '%s'\n" "$PWD/$f" >>"$list"
-  printf '%.3f\t%.3f\t%s\n' "$t" "$(echo "$t + $d" | bc)" "$text" >>long.segments.tsv
+  printf '%s\t%s\t%s\n' "$t" "$(awk -v a="$t" -v b="$d" 'BEGIN{printf "%.3f", a+b}')" "$text" >>long.segments.tsv
   echo "$text" >>long.txt
-  t=$(echo "$t + $d" | bc)
+  t=$(awk -v a="$t" -v b="$d" 'BEGIN{printf "%.3f", a+b}')
 done < <(cat "$chapter"/*.trans.txt)
 
 ffmpeg -v error -y -f concat -safe 0 -i "$list" -ar 16000 -ac 1 long.wav
