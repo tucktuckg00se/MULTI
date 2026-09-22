@@ -40,4 +40,6 @@ Types: `summary` overview page · `spec` requirements · `decision` ADR · `find
 
 | ID | Type | Title | Status | ~Tokens |
 |---|---|---|---|---|
-| M-00 | summary | [M0 overview: spikes, harness, log](m0/README.md) | current | ~447 |
+| M-00 | summary | [M0 overview: spikes, harness, log](m0/README.md) | current | ~539 |
+| F-S3 | finding | [Rust 608/708 encoder decodes in FFmpeg, ccextractor, libcaption](m0/findings/S3-caption-encoder.md) | current | ~1894 |
+| E-S3 | evidence | [S3 raw outputs](m0/evidence/S3) | current | ~4625 |

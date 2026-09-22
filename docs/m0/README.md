@@ -6,9 +6,9 @@
 
 | ID | Question | Crate | Status | Finding |
 |---|---|---|---|---|
-| S1 | Can FFmpeg libraries pass video through and inject caption SEI without re-encode? | `spikes/s1-ffmpeg-pipe` | not started | — |
+| S1 | Can FFmpeg libraries pass video through and inject caption SEI without re-encode? | `spikes/s1-ffmpeg-pipe` | in progress | — |
 | S2 | Same, with GStreamer | `spikes/s2-gst-pipe` | not started | — |
-| S3 | Pure-Rust CEA-608/708 encoder + SEI builder that real decoders accept | `spikes/cc` | not started | — |
+| S3 | Pure-Rust CEA-608/708 encoder + SEI builder that real decoders accept | `spikes/cc` | done | [S3](findings/S3-caption-encoder.md) |
 | S4 | Which streaming ASR gives the best lag/accuracy/VRAM trade-off? | `spikes/s4-asr` | not started | — |
 | S5 | Can small local models translate a clause in ~500 ms? (stretch) | `spikes/s5-translate` | not started | — |
 | S6 | End to end: OBS mic → SRT → captions → VLC and YouTube | `spikes/s6-e2e` | not started | — |
@@ -30,4 +30,6 @@ Everything in `spikes/harness/`. Run from the repo root.
 
 Newest first. One line per notable event, with a link if there's more.
 
+- 2026-09-22 — S3 done: pure-Rust 608/708 encoder decodes exactly in FFmpeg, ccextractor and libcaption (H.264 + HEVC, CC1–CC4, 708 services 1–6). Found and fixed a repeated-special-character bug. Open: B-frame ordering, real players, no P16 for non-Latin scripts.
+- 2026-09-22 — S1 (FFmpeg pipeline) and the latency tool in progress.
 - 2026-09-22 — M0 started: docs structure, harness and spike workspace set up.
