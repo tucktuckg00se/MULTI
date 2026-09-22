@@ -11,8 +11,10 @@
 #
 # Video: 1280x720 30 fps, 1 s GOP, no B-frames, zero-latency tuning.
 # Audio defaults to $MULTI_MEDIA/long.wav (MULTI_MEDIA defaults to ./media).
-# PTS starts at 0 and audio starts at 0, so stream time t = position in the audio
-# file (mod its length), which the latency tool relies on.
+# Audio and video start together, but the first video PTS is 127920 (1.421333 s:
+# the mpegts muxer's 1.4 s offset plus AAC priming), so audio time =
+# (PTS/90000 - 1.421333) mod the audio length. Pass --pts-origin 1.421333 to
+# `latency captions`.
 set -euo pipefail
 cd "$(dirname "$0")"
 
