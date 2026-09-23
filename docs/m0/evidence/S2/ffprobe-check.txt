@@ -1,0 +1,17 @@
+# ffprobe on each matrix capture (recorded by verify.sh mid-stream, 37 s): video packets vs decoded frames, frames carrying A53 CC side data, decoder messages at -v error. -ours: build 1a2abae; others: c6ec8d3
+h264-srt-gst     udp packets=1088  decoded=1088  frames_with_A53_CC=1088  error_lines=0
+h264-srt-gst     srt packets=1082  decoded=1082  frames_with_A53_CC=1082  error_lines=0
+h264-srt-ours    udp packets=1088  decoded=1088  frames_with_A53_CC=1088  error_lines=0
+h264-srt-ours    srt packets=1082  decoded=1082  frames_with_A53_CC=1082  error_lines=0
+h264-udp-gst     udp packets=1093  decoded=1093  frames_with_A53_CC=1093  error_lines=0
+h264-udp-gst     srt packets=1088  decoded=1088  frames_with_A53_CC=1088  error_lines=0
+h264-udp-ours    udp packets=1093  decoded=1093  frames_with_A53_CC=1093  error_lines=0
+h264-udp-ours    srt packets=1088  decoded=1088  frames_with_A53_CC=1088  error_lines=0
+hevc-srt-gst     udp packets=1088  decoded=1088  frames_with_A53_CC=1088  error_lines=0
+hevc-srt-gst     srt packets=1082  decoded=1082  frames_with_A53_CC=1082  error_lines=0
+hevc-srt-ours    udp packets=1088  decoded=1088  frames_with_A53_CC=1088  error_lines=0
+hevc-srt-ours    srt packets=1082  decoded=1082  frames_with_A53_CC=1082  error_lines=0
+hevc-udp-gst     udp packets=1084  decoded=1084  frames_with_A53_CC=1084  error_lines=0
+hevc-udp-gst     srt packets=1109  decoded=1109  frames_with_A53_CC=1109  error_lines=0
+hevc-udp-ours    udp packets=1093  decoded=1093  frames_with_A53_CC=1093  error_lines=0
+hevc-udp-ours    srt packets=1088  decoded=1088  frames_with_A53_CC=1088  error_lines=0

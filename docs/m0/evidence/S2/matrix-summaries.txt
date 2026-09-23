@@ -1,0 +1,379 @@
+######## calib
+== h264 in=udp captions=calib 
+-- black box: in -> UDP out
+Error: no frames: input 1363 rows, output 0 rows
+-- black box: in -> SRT out (via srtsrc!udpsink bridge)
+frames: in=1363 out=1359 matched=1043 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 0 ticks (0.000 ms), 1359/1359 content-matched frames agree
+delay ms: p50=120.161 p95=121.014 p99=123.317 max=126.472
+jitter ms: stddev=0.561 mean|successive diff|=0.249  drift=0.433 ms/min
+######## h264-srt-gst
+verify udp: exit 0
+verify srt: exit 0
+== h264 in=srt captions=gst 
+-- black box: in -> UDP out
+frames: in=1377 out=1343 matched=1002 (method: pts)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323934141 ticks (3599268.233 ms), 1002/1002 content-matched frames agree
+delay ms: p50=219.879 p95=220.223 p99=220.852 max=226.005
+jitter ms: stddev=12.246 mean|successive diff|=10.444  drift=0.187 ms/min
+-- black box: in -> SRT out (via srtsrc!udpsink bridge)
+frames: in=1377 out=1340 matched=999 (method: pts)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323934141 ticks (3599268.233 ms), 999/999 content-matched frames agree
+delay ms: p50=339.967 p95=340.302 p99=341.199 max=343.863
+jitter ms: stddev=12.240 mean|successive diff|=10.411  drift=0.289 ms/min
+-- internal (tsdemux out -> mpegtsmux in), after 10 s
+entry->mux ms: n=1021 p50=33.405 p95=43.497 p99=66.010 max=66.600
+caption stage ms: n=1021 p50=33.348 p95=43.443 p99=65.932 max=66.522
+out_pts - running_time ms: first=-8.6 last=-0.2 drift=14.73 ms/min sessions=1
+-- ccextractor (UDP capture): lines found per fixture line
+ccx-cc1.srt: "HELLO FROM MULTI"=14 "CAPTION FIXTURE LINE TWO"=0 "ROLL UP TEST 123"=0
+ccx.p1.svc01.srt: "HELLO FROM MULTI"=10 "CAPTION FIXTURE LINE TWO"=0 "ROLL UP TEST 123"=0
+######## h264-srt-none
+== h264 in=srt captions=none 
+-- black box: in -> UDP out
+frames: in=1363 out=1357 matched=1004 (method: pts)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323934132 ticks (3599268.133 ms), 1004/1004 content-matched frames agree
+delay ms: p50=153.733 p95=162.648 p99=163.636 max=167.975
+jitter ms: stddev=3.915 mean|successive diff|=3.835  drift=1.556 ms/min
+-- black box: in -> SRT out (via srtsrc!udpsink bridge)
+frames: in=1363 out=1353 matched=1000 (method: pts)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323934132 ticks (3599268.133 ms), 1000/1000 content-matched frames agree
+delay ms: p50=273.831 p95=282.744 p99=283.783 max=289.682
+jitter ms: stddev=3.931 mean|successive diff|=3.859  drift=1.561 ms/min
+-- internal (tsdemux out -> mpegtsmux in), after 10 s
+entry->mux ms: n=1019 p50=0.051 p95=0.075 p99=0.139 max=1.720
+out_pts - running_time ms: first=-10.0 last=-0.5 drift=16.87 ms/min sessions=1
+######## h264-srt-ours
+verify udp: exit 0
+verify srt: exit 0
+== h264 in=srt captions=ours 
+-- black box: in -> UDP out
+frames: in=1378 out=1364 matched=929 (method: pts)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323934264 ticks (3599269.600 ms), 929/929 content-matched frames agree
+delay ms: p50=153.821 p95=162.911 p99=164.088 max=167.487
+jitter ms: stddev=4.050 mean|successive diff|=4.115  drift=-0.301 ms/min
+-- black box: in -> SRT out (via srtsrc!udpsink bridge)
+frames: in=1378 out=1360 matched=925 (method: pts)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323934264 ticks (3599269.600 ms), 925/925 content-matched frames agree
+delay ms: p50=273.956 p95=283.058 p99=284.297 max=288.039
+jitter ms: stddev=4.067 mean|successive diff|=4.180  drift=-0.103 ms/min
+-- internal (tsdemux out -> mpegtsmux in), after 10 s
+entry->mux ms: n=1019 p50=0.066 p95=0.103 p99=0.326 max=3.744
+caption stage ms: n=1019 p50=0.013 p95=0.021 p99=0.030 max=0.042
+out_pts - running_time ms: first=-8.2 last=-0.2 drift=14.19 ms/min sessions=1
+-- ccextractor (UDP capture): lines found per fixture line
+ccx-cc1.srt: "HELLO FROM MULTI"=16 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+ccx.p1.svc01.srt: "HELLO FROM MULTI"=15 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+######## h264-udp-gst
+verify udp: exit 0
+verify srt: exit 0
+== h264 in=udp captions=gst 
+-- black box: in -> UDP out
+frames: in=1378 out=1365 matched=775 (method: pts)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323923420 ticks (3599149.111 ms), 775/775 content-matched frames agree
+delay ms: p50=99.834 p95=100.081 p99=100.159 max=100.229
+jitter ms: stddev=13.363 mean|successive diff|=10.894  drift=-1.408 ms/min
+-- black box: in -> SRT out (via srtsrc!udpsink bridge)
+frames: in=1378 out=1362 matched=772 (method: pts)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323923420 ticks (3599149.111 ms), 772/772 content-matched frames agree
+delay ms: p50=219.917 p95=220.175 p99=220.261 max=220.397
+jitter ms: stddev=13.357 mean|successive diff|=10.855  drift=-1.184 ms/min
+-- internal (tsdemux out -> mpegtsmux in), after 10 s
+entry->mux ms: n=1020 p50=33.433 p95=33.951 p99=66.444 max=66.582
+caption stage ms: n=1020 p50=33.376 p95=33.884 p99=66.386 max=66.537
+out_pts - running_time ms: first=-0.3 last=-0.2 drift=0.15 ms/min sessions=1
+-- ccextractor (UDP capture): lines found per fixture line
+ccx-cc1.srt: "HELLO FROM MULTI"=14 "CAPTION FIXTURE LINE TWO"=0 "ROLL UP TEST 123"=0
+ccx.p1.svc01.srt: "HELLO FROM MULTI"=10 "CAPTION FIXTURE LINE TWO"=0 "ROLL UP TEST 123"=0
+######## h264-udp-none
+== h264 in=udp captions=none 
+-- black box: in -> UDP out
+frames: in=1363 out=1359 matched=995 (method: pts)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323923930 ticks (3599154.778 ms), 995/995 content-matched frames agree
+delay ms: p50=33.526 p95=33.905 p99=34.165 max=39.581
+jitter ms: stddev=0.398 mean|successive diff|=0.336  drift=0.037 ms/min
+-- black box: in -> SRT out (via srtsrc!udpsink bridge)
+frames: in=1363 out=1355 matched=991 (method: pts)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323923930 ticks (3599154.778 ms), 991/991 content-matched frames agree
+delay ms: p50=153.617 p95=154.009 p99=154.760 max=158.156
+jitter ms: stddev=0.408 mean|successive diff|=0.355  drift=0.126 ms/min
+-- internal (tsdemux out -> mpegtsmux in), after 10 s
+entry->mux ms: n=1019 p50=0.056 p95=0.078 p99=0.097 max=0.991
+out_pts - running_time ms: first=-0.3 last=-0.2 drift=0.20 ms/min sessions=1
+######## h264-udp-ours
+verify udp: exit 0
+verify srt: exit 0
+== h264 in=udp captions=ours 
+-- black box: in -> UDP out
+frames: in=1378 out=1358 matched=1061 (method: pts)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323923457 ticks (3599149.522 ms), 1295/1295 content-matched frames agree
+delay ms: p50=33.551 p95=33.925 p99=34.190 max=35.448
+jitter ms: stddev=0.246 mean|successive diff|=0.297  drift=0.006 ms/min
+-- black box: in -> SRT out (via srtsrc!udpsink bridge)
+frames: in=1378 out=1354 matched=1057 (method: pts)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323923457 ticks (3599149.522 ms), 1291/1291 content-matched frames agree
+delay ms: p50=153.640 p95=154.066 p99=154.625 max=158.207
+jitter ms: stddev=0.311 mean|successive diff|=0.322  drift=0.105 ms/min
+-- internal (tsdemux out -> mpegtsmux in), after 10 s
+entry->mux ms: n=1019 p50=0.073 p95=0.101 p99=0.128 max=0.196
+caption stage ms: n=1019 p50=0.014 p95=0.021 p99=0.028 max=0.103
+out_pts - running_time ms: first=-0.8 last=-0.4 drift=0.69 ms/min sessions=1
+-- ccextractor (UDP capture): lines found per fixture line
+ccx-cc1.srt: "HELLO FROM MULTI"=16 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+ccx.p1.svc01.srt: "HELLO FROM MULTI"=15 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+######## hevc-srt-gst
+verify udp: exit 0
+verify srt: exit 0
+== hevc in=srt captions=gst 
+-- black box: in -> UDP out
+frames: in=1403 out=1377 matched=1081 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323937118 ticks (3599301.311 ms), 778/1377 content-matched frames agree
+delay ms: p50=184.277 p95=186.714 p99=195.871 max=212.318
+jitter ms: stddev=9.431 mean|successive diff|=6.639  drift=-0.952 ms/min
+-- black box: in -> SRT out (via srtsrc!udpsink bridge)
+frames: in=1403 out=1373 matched=1077 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323937118 ticks (3599301.311 ms), 778/1373 content-matched frames agree
+delay ms: p50=304.382 p95=307.173 p99=317.057 max=332.497
+jitter ms: stddev=9.456 mean|successive diff|=6.721  drift=-0.978 ms/min
+-- internal (tsdemux out -> mpegtsmux in), after 10 s
+entry->mux ms: n=1047 p50=0.104 p95=0.938 p99=25.658 max=31.795
+caption stage ms: n=1047 p50=0.045 p95=0.426 p99=25.586 max=31.759
+out_pts - running_time ms: first=-0.8 last=-47.4 drift=-80.10 ms/min sessions=1
+-- ccextractor (UDP capture): lines found per fixture line
+ccx-cc1.srt: "HELLO FROM MULTI"=14 "CAPTION FIXTURE LINE TWO"=0 "ROLL UP TEST 123"=0
+ccx.p1.svc01.srt: "HELLO FROM MULTI"=10 "CAPTION FIXTURE LINE TWO"=0 "ROLL UP TEST 123"=0
+######## hevc-srt-none
+== hevc in=srt captions=none 
+-- black box: in -> UDP out
+frames: in=1363 out=1349 matched=1040 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323935372 ticks (3599281.911 ms), 481/1349 content-matched frames agree
+delay ms: p50=154.765 p95=163.622 p99=195.206 max=202.034
+jitter ms: stddev=9.545 mean|successive diff|=8.195  drift=-0.263 ms/min
+-- black box: in -> SRT out (via srtsrc!udpsink bridge)
+frames: in=1363 out=1345 matched=1036 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323935372 ticks (3599281.911 ms), 481/1345 content-matched frames agree
+delay ms: p50=274.912 p95=284.062 p99=315.294 max=322.124
+jitter ms: stddev=9.553 mean|successive diff|=8.217  drift=-0.589 ms/min
+-- internal (tsdemux out -> mpegtsmux in), after 10 s
+entry->mux ms: n=1017 p50=0.054 p95=0.089 p99=0.606 max=2.384
+out_pts - running_time ms: first=-10.9 last=-40.0 drift=-51.51 ms/min sessions=1
+######## hevc-srt-ours
+verify udp: exit 0
+verify srt: exit 0
+== hevc in=srt captions=ours 
+-- black box: in -> UDP out
+frames: in=1403 out=1373 matched=1080 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323935109 ticks (3599278.989 ms), 497/1373 content-matched frames agree
+delay ms: p50=154.862 p95=164.665 p99=195.150 max=201.864
+jitter ms: stddev=9.634 mean|successive diff|=8.716  drift=0.236 ms/min
+-- black box: in -> SRT out (via srtsrc!udpsink bridge)
+frames: in=1403 out=1370 matched=1077 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323935109 ticks (3599278.989 ms), 494/1370 content-matched frames agree
+delay ms: p50=275.066 p95=285.023 p99=315.249 max=324.276
+jitter ms: stddev=9.666 mean|successive diff|=8.720  drift=0.280 ms/min
+-- internal (tsdemux out -> mpegtsmux in), after 10 s
+entry->mux ms: n=1047 p50=0.073 p95=0.125 p99=0.904 max=2.544
+caption stage ms: n=1047 p50=0.016 p95=0.032 p99=0.052 max=0.129
+out_pts - running_time ms: first=-0.8 last=-36.1 drift=-60.68 ms/min sessions=1
+-- ccextractor (UDP capture): lines found per fixture line
+ccx-cc1.srt: "HELLO FROM MULTI"=16 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+ccx.p1.svc01.srt: "HELLO FROM MULTI"=15 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+######## hevc-udp-gst
+verify udp: exit 0
+verify srt: exit 0
+== hevc in=udp captions=gst 
+-- black box: in -> UDP out
+frames: in=1407 out=1406 matched=1134 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323933042 ticks (3599256.022 ms), 134/1406 content-matched frames agree
+delay ms: p50=43.353 p95=68.894 p99=80.689 max=92.635
+jitter ms: stddev=17.946 mean|successive diff|=8.994  drift=68.273 ms/min
+-- black box: in -> SRT out (via srtsrc!udpsink bridge)
+frames: in=1407 out=1402 matched=1130 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323933042 ticks (3599256.022 ms), 134/1402 content-matched frames agree
+delay ms: p50=164.113 p95=189.662 p99=200.850 max=212.730
+jitter ms: stddev=17.910 mean|successive diff|=9.084  drift=68.266 ms/min
+-- internal (tsdemux out -> mpegtsmux in), after 10 s
+entry->mux ms: n=1091 p50=0.115 p95=1.071 p99=24.218 max=42.693
+caption stage ms: n=1091 p50=0.047 p95=0.191 p99=24.166 max=42.410
+out_pts - running_time ms: first=-1274.5 last=-51.7 drift=2102.88 ms/min sessions=1
+-- ccextractor (UDP capture): lines found per fixture line
+ccx-cc1.srt: "HELLO FROM MULTI"=14 "CAPTION FIXTURE LINE TWO"=0 "ROLL UP TEST 123"=0
+ccx.p1.svc01.srt: "HELLO FROM MULTI"=10 "CAPTION FIXTURE LINE TWO"=0 "ROLL UP TEST 123"=0
+######## hevc-udp-none
+== hevc in=udp captions=none 
+-- black box: in -> UDP out
+frames: in=1363 out=1360 matched=1044 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323924410 ticks (3599160.111 ms), 1080/1360 content-matched frames agree
+delay ms: p50=33.583 p95=38.648 p99=72.902 max=77.638
+jitter ms: stddev=8.843 mean|successive diff|=6.326  drift=0.085 ms/min
+-- black box: in -> SRT out (via srtsrc!udpsink bridge)
+frames: in=1363 out=1356 matched=1040 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323924410 ticks (3599160.111 ms), 1080/1356 content-matched frames agree
+delay ms: p50=153.684 p95=158.914 p99=193.021 max=200.581
+jitter ms: stddev=8.867 mean|successive diff|=6.370  drift=0.023 ms/min
+-- internal (tsdemux out -> mpegtsmux in), after 10 s
+entry->mux ms: n=1018 p50=0.052 p95=0.091 p99=0.548 max=2.628
+out_pts - running_time ms: first=-6.3 last=-40.2 drift=-59.99 ms/min sessions=1
+######## hevc-udp-ours
+verify udp: exit 0
+verify srt: exit 0
+== hevc in=udp captions=ours 
+-- black box: in -> UDP out
+frames: in=1403 out=1386 matched=1084 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323928699 ticks (3599207.767 ms), 480/1386 content-matched frames agree
+delay ms: p50=33.633 p95=39.445 p99=73.869 max=80.795
+jitter ms: stddev=9.067 mean|successive diff|=6.897  drift=0.080 ms/min
+-- black box: in -> SRT out (via srtsrc!udpsink bridge)
+frames: in=1403 out=1382 matched=1080 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323928699 ticks (3599207.767 ms), 480/1382 content-matched frames agree
+delay ms: p50=153.790 p95=159.622 p99=194.023 max=200.846
+jitter ms: stddev=9.097 mean|successive diff|=6.971  drift=-0.020 ms/min
+-- internal (tsdemux out -> mpegtsmux in), after 10 s
+entry->mux ms: n=1047 p50=0.069 p95=0.119 p99=0.614 max=4.549
+caption stage ms: n=1047 p50=0.015 p95=0.030 p99=0.042 max=0.620
+out_pts - running_time ms: first=-1.2 last=-41.0 drift=-68.40 ms/min sessions=1
+-- ccextractor (UDP capture): lines found per fixture line
+ccx-cc1.srt: "HELLO FROM MULTI"=16 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+ccx.p1.svc01.srt: "HELLO FROM MULTI"=15 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+######## h264-udp-gst --cc-latency-ms 100
+verify udp: exit 0
+verify srt: exit 0
+== h264 in=udp captions=gst --cc-latency-ms 100
+-- black box: in -> UDP out
+frames: in=1080 out=1056 matched=530 (method: pts)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323924444 ticks (3599160.489 ms), 575/575 content-matched frames agree
+delay ms: p50=133.345 p95=199.994 p99=201.390 max=203.678
+jitter ms: stddev=46.696 mean|successive diff|=48.035  drift=-4.396 ms/min
+-- black box: in -> SRT out (via srtsrc!udpsink bridge)
+frames: in=1080 out=1055 matched=530 (method: pts)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323924444 ticks (3599160.489 ms), 575/575 content-matched frames agree
+delay ms: p50=253.465 p95=320.233 p99=322.593 max=325.102
+jitter ms: stddev=46.706 mean|successive diff|=48.034  drift=-5.052 ms/min
+-- internal (tsdemux out -> mpegtsmux in), after 10 s
+entry->mux ms: n=719 p50=33.494 p95=38.770 p99=87.945 max=91.062
+caption stage ms: n=719 p50=33.396 p95=38.718 p99=87.878 max=90.947
+out_pts - running_time ms: first=-3.7 last=-4.2 drift=-1.22 ms/min sessions=1
+-- ccextractor (UDP capture): lines found per fixture line
+ccx-cc1.srt: "HELLO FROM MULTI"=9 "CAPTION FIXTURE LINE TWO"=0 "ROLL UP TEST 123"=0
+ccx.p1.svc01.srt: "HELLO FROM MULTI"=7 "CAPTION FIXTURE LINE TWO"=0 "ROLL UP TEST 123"=0
+
+################ (b) re-run on final build 1a2abae (relative caption slots), during soak 2 (host busier)
+######## h264-udp-ours
+verify udp: exit 0
+verify srt: exit 0
+== h264 in=udp captions=ours 
+-- black box: in -> UDP out
+frames: in=1381 out=1372 matched=1064 (method: pts)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323924079 ticks (3599156.433 ms), 1266/1266 content-matched frames agree
+delay ms: p50=33.607 p95=37.762 p99=39.325 max=43.901
+jitter ms: stddev=2.293 mean|successive diff|=2.702  drift=0.068 ms/min
+-- black box: in -> SRT out (via srtsrc!udpsink bridge)
+frames: in=1381 out=1368 matched=1060 (method: pts)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323924079 ticks (3599156.433 ms), 1262/1262 content-matched frames agree
+delay ms: p50=153.809 p95=158.348 p99=160.287 max=165.060
+jitter ms: stddev=2.403 mean|successive diff|=2.845  drift=0.048 ms/min
+-- internal (tsdemux out -> mpegtsmux in), after 10 s
+entry->mux ms: n=1049 p50=0.078 p95=0.156 p99=0.953 max=5.814
+caption stage ms: n=1049 p50=0.015 p95=0.024 p99=0.039 max=0.111
+out_pts - running_time ms: first=-0.4 last=-0.3 drift=0.22 ms/min sessions=1
+-- ccextractor (UDP capture): lines found per fixture line
+ccx-cc1.srt: "HELLO FROM MULTI"=16 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+ccx.p1.svc01.srt: "HELLO FROM MULTI"=15 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+######## h264-srt-ours
+verify udp: exit 0
+verify srt: exit 0
+== h264 in=srt captions=ours 
+-- black box: in -> UDP out
+frames: in=1381 out=1359 matched=1060 (method: pts)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323934718 ticks (3599274.644 ms), 1262/1262 content-matched frames agree
+delay ms: p50=155.982 p95=164.315 p99=166.502 max=172.361
+jitter ms: stddev=4.619 mean|successive diff|=5.131  drift=-0.307 ms/min
+-- black box: in -> SRT out (via srtsrc!udpsink bridge)
+frames: in=1381 out=1356 matched=1057 (method: pts)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323934718 ticks (3599274.644 ms), 1259/1259 content-matched frames agree
+delay ms: p50=276.895 p95=284.687 p99=286.565 max=292.452
+jitter ms: stddev=4.480 mean|successive diff|=5.030  drift=-0.279 ms/min
+-- internal (tsdemux out -> mpegtsmux in), after 10 s
+entry->mux ms: n=1019 p50=0.083 p95=0.607 p99=2.033 max=2.987
+caption stage ms: n=1019 p50=0.016 p95=0.027 p99=0.037 max=0.159
+out_pts - running_time ms: first=-8.7 last=-8.6 drift=0.20 ms/min sessions=1
+-- ccextractor (UDP capture): lines found per fixture line
+ccx-cc1.srt: "HELLO FROM MULTI"=16 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+ccx.p1.svc01.srt: "HELLO FROM MULTI"=15 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+######## hevc-udp-ours
+verify udp: exit 0
+verify srt: exit 0
+== hevc in=udp captions=ours 
+-- black box: in -> UDP out
+frames: in=1409 out=1401 matched=1090 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323924302 ticks (3599158.911 ms), 1196/1401 content-matched frames agree
+delay ms: p50=33.388 p95=43.153 p99=84.730 max=90.472
+jitter ms: stddev=10.853 mean|successive diff|=8.650  drift=-0.311 ms/min
+-- black box: in -> SRT out (via srtsrc!udpsink bridge)
+frames: in=1409 out=1399 matched=1088 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323924302 ticks (3599158.911 ms), 1194/1399 content-matched frames agree
+delay ms: p50=153.890 p95=163.591 p99=204.868 max=213.272
+jitter ms: stddev=10.896 mean|successive diff|=8.826  drift=-0.340 ms/min
+-- internal (tsdemux out -> mpegtsmux in), after 10 s
+entry->mux ms: n=1046 p50=0.077 p95=0.315 p99=2.395 max=3.408
+caption stage ms: n=1046 p50=0.017 p95=0.032 p99=0.050 max=0.166
+out_pts - running_time ms: first=-4.5 last=-54.0 drift=-85.10 ms/min sessions=1
+-- ccextractor (UDP capture): lines found per fixture line
+ccx-cc1.srt: "HELLO FROM MULTI"=16 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+ccx.p1.svc01.srt: "HELLO FROM MULTI"=15 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+######## hevc-srt-ours
+verify udp: exit 0
+verify srt: exit 0
+== hevc in=srt captions=ours 
+-- black box: in -> UDP out
+frames: in=1409 out=1404 matched=1085 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323936035 ticks (3599289.278 ms), 651/1404 content-matched frames agree
+delay ms: p50=156.963 p95=168.559 p99=205.935 max=216.126
+jitter ms: stddev=11.339 mean|successive diff|=10.027  drift=3.478 ms/min
+-- black box: in -> SRT out (via srtsrc!udpsink bridge)
+frames: in=1409 out=1401 matched=1082 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323936035 ticks (3599289.278 ms), 648/1401 content-matched frames agree
+delay ms: p50=277.315 p95=288.754 p99=326.020 max=336.706
+jitter ms: stddev=11.372 mean|successive diff|=10.122  drift=3.335 ms/min
+-- internal (tsdemux out -> mpegtsmux in), after 10 s
+entry->mux ms: n=1047 p50=0.087 p95=1.027 p99=2.777 max=3.538
+caption stage ms: n=1047 p50=0.019 p95=0.034 p99=0.054 max=1.516
+out_pts - running_time ms: first=-7.7 last=-67.1 drift=-102.06 ms/min sessions=1
+-- ccextractor (UDP capture): lines found per fixture line
+ccx-cc1.srt: "HELLO FROM MULTI"=16 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+ccx.p1.svc01.srt: "HELLO FROM MULTI"=15 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16

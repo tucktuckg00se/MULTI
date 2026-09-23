@@ -1,0 +1,26 @@
+# spikes/s2-gst-pipe/reconnect.sh, build c6ec8d3. Output tapped with harness latency tap (stream error counts) and recorded; 'wall gap / PTS step' lists output frame steps that are not ~33 ms (28.3/34.3 ms steps = bridge slew after a (re)start).
+== reconnect udp captions=gst codec=h264
+t=15 s: source killed
+t=20 s: source restarted (PTS from its start again)
+pipeline exit: 0
+-- pipeline warnings/errors/sessions
+2026-09-23T12:10:49.815586Z  INFO s2_gst_pipe::bridge: new input session (holding) session=1 in_pts=3065461954 now_rt=1076412971
+2026-09-23T12:11:06.886526Z  WARN s2_gst_pipe: input silent; restarting input silent_ms=2065
+2026-09-23T12:11:09.801640Z  INFO s2_gst_pipe::bridge: new input session (holding) session=2 in_pts=4660640598 now_rt=21062467314
+2026-09-23T12:11:29.906519Z  WARN s2_gst_pipe: input silent; restarting input silent_ms=2095
+-- stats (uptime_s,rss_kb,video_in,video_out,audio_in,sessions,input_restarts,input_errors,output_errors)
+3,23244,74,73,112,1,0,0,0
+18,23276,465,464,766,1,0,0,0
+33,23408,839,838,1348,2,1,0,0
+-- output tap stderr (last lines)
+tap: video_pid=0x100 stream_type=0x1b frames=779 packets=59171 bad_sync=0 bad_bytes=0 tei=0 bad_af=0 crc_err=0 bad_section=0 pat_changes=0 pmt_changes=0 cc_err=0 pes_bad_hdr=0 pes_no_pts=0 pts_wraps=0
+tap: video_pid=0x100 stream_type=0x1b frames=930 packets=70420 bad_sync=0 bad_bytes=0 tei=0 bad_af=0 crc_err=0 bad_section=0 pat_changes=0 pmt_changes=0 cc_err=0 pes_bad_hdr=0 pes_no_pts=0 pts_wraps=0
+-- output PTS/wall gaps > 100 ms
+frame 450->451: wall gap 0 ms, PTS step 4528.7 ms
+frames 1003
+-- decode check (ffprobe: video packets vs decoded frames, main-decoder errors)
+packets=1019 decoded_frames=1019 ffprobe_error_lines=33
+      1 [h264 @ 0x56157dec6280] error while decoding MB 53 35, bytestream -6
+-- verify.sh (on the recording from 3 s on; see finding for the file-start probe quirk)
+123 HELLO FROM MULTI CAPTION </font>
+PASS: all expected lines present
