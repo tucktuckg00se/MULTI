@@ -198,9 +198,15 @@ fn run(a: RunArgs) -> Result<()> {
         bridge.reset();
         let inp = match input::build(&a.input, a.codec, a.in_parse, a.pcr, bridge.clone(), stamps.clone()) {
             Ok(i) => i,
+            // First build failing is a config error (bad URI, missing plugin);
+            // later failures are retried so the output keeps running.
+            Err(e) if c.input_restarts.load(Ordering::Relaxed) == 0 => bail!(e),
             Err(e) => {
-                error!(err = %e, "input build failed");
-                bail!(e);
+                error!(err = %e, "input rebuild failed; retrying");
+                c.input_errors.fetch_add(1, Ordering::Relaxed);
+                std::thread::sleep(backoff);
+                backoff = (backoff * 2).min(Duration::from_secs(2));
+                continue;
             }
         };
         let started = inp.pipeline.set_state(gst::State::Playing);
