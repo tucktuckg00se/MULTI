@@ -144,6 +144,10 @@ pub fn build(cfg: &OutputCfg, stamps: Arc<Stamps>) -> Result<Output> {
             comb.set_property("latency", cfg.cc_latency_ms * 1_000_000);
             let ins = make(ins_f, "ccinsert")?;
             ins.set_property("remove-caption-meta", true);
+            // cccombiner hands out cc_data per buffer in arrival (= decode)
+            // order. With B-frames that scrambles the text unless the inserter
+            // is told the metas are a display-order sequence and reorders them.
+            ins.set_property_from_str("caption-meta-order", "display");
             let tsrc = gst_app::AppSrc::builder()
                 .name("textsrc")
                 .is_live(true)

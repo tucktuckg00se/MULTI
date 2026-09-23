@@ -23,7 +23,7 @@
 //!   startup is not pushed below zero; it starts late and catches up.
 //! - After that, a video frame that would be early pulls the offset back, and
 //!   one more than [`LATE_TOL_NS`] late pushes it forward, by at most
-//!   [`SLEW_NS`] per frame (clock drift, startup bursts).
+//!   [`SLEW_EARLY_NS`] / [`SLEW_NS`] per frame (clock drift, startup bursts).
 
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
@@ -36,8 +36,13 @@ use crate::stamps::Stamps;
 const SEC: i64 = 1_000_000_000;
 /// Startup hold per session.
 pub const HOLD_NS: i64 = 500_000_000;
-/// Max offset correction per video frame (1 ms/frame = 30 ms/s at 30 fps).
+/// Max offset correction per video frame when frames are late (1 ms/frame =
+/// 30 ms/s at 30 fps).
 pub const SLEW_NS: i64 = 1_000_000;
+/// Max correction per frame when frames are early. Earliness is paid for in
+/// muxer wait (latency), so it is corrected faster: 5 ms/frame shortens the
+/// PTS step to >= 28 ms, still monotonic.
+pub const SLEW_EARLY_NS: i64 = 5_000_000;
 
 /// Lateness tolerated before the slew pushes the offset forward.
 pub const LATE_TOL_NS: i64 = 100_000_000;
@@ -59,6 +64,7 @@ struct Rebase {
     min_off: i64,
     first_in: i64,
     slewed_ns: i64,
+    last_dts: i64,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -107,13 +113,18 @@ impl Rebase {
         self.hold_until = None;
     }
 
-    /// Output PTS for a buffer of the current (non-holding) session.
-    fn out_pts(&mut self, s: usize, in_pts: i64, now_rt: i64) -> i64 {
+    /// Output (PTS, DTS) for a buffer of the current (non-holding) session.
+    /// `dts_shift` = input DTS - input PTS (≤ 0 with B-frames).
+    ///
+    /// Lock and monotonicity work on the *decode* timestamp: that is what the
+    /// muxer schedules on, and with B-frames PTS legitimately go backwards in
+    /// decode order.
+    fn out_ts(&mut self, s: usize, in_pts: i64, dts_shift: i64, now_rt: i64) -> (i64, i64) {
         let mut out = in_pts + self.offset;
         if s == VIDEO {
-            let early = out - now_rt;
+            let early = out + dts_shift - now_rt;
             if early > 0 {
-                let d = early.min(SLEW_NS);
+                let d = early.min(SLEW_EARLY_NS);
                 self.offset -= d;
                 self.slewed_ns += d;
                 out -= d;
@@ -125,14 +136,28 @@ impl Rebase {
                 self.slewed_ns += d;
                 out += d;
             }
-            // Strictly increasing video PTS whatever happens upstream.
-            if out <= self.last_out[VIDEO] {
-                out = self.last_out[VIDEO] + 1_000_000;
+            // Strictly increasing video DTS whatever happens upstream: shift
+            // the offset (not just this frame) so PTS spacing stays intact.
+            let dts = out + dts_shift;
+            if dts <= self.last_dts {
+                let d = self.last_dts + 1_000_000 - dts;
+                self.offset += d;
+                out += d;
             }
+            self.last_dts = out + dts_shift;
         }
         self.last_out[s] = self.last_out[s].max(out);
-        out
+        (out, out + dts_shift)
     }
+
+    #[cfg(test)]
+    fn out_pts(&mut self, s: usize, in_pts: i64, now_rt: i64) -> i64 {
+        self.out_ts(s, in_pts, 0, now_rt).0
+    }
+}
+
+fn dts_shift(buf: &gst::Buffer, in_pts: i64) -> i64 {
+    buf.dts().map(|d| d.nseconds() as i64 - in_pts).unwrap_or(0)
 }
 
 struct Held {
@@ -215,13 +240,14 @@ impl Bridge {
             let held = std::mem::take(&mut st.held);
             let mut first = true;
             for h in held {
-                let out = st.r.out_pts(h.s, h.in_pts, now_rt);
+                let shift = dts_shift(&h.buf, h.in_pts);
+                let out = st.r.out_ts(h.s, h.in_pts, shift, now_rt);
                 self.forward(h.s, h.buf, h.caps.as_ref(), h.in_pts, out, now_rt, st.r.session, first);
                 first = false;
             }
             return Ok(gst::FlowSuccess::Ok);
         }
-        let out = st.r.out_pts(s, in_pts, now_rt);
+        let out = st.r.out_ts(s, in_pts, dts_shift(&buf, in_pts), now_rt);
         let session = st.r.session;
         drop(st);
         self.forward(s, buf, caps.as_ref(), in_pts, out, now_rt, session, false);
@@ -235,20 +261,20 @@ impl Bridge {
         mut buf: gst::Buffer,
         caps: Option<&gst::Caps>,
         in_pts: i64,
-        out_pts: i64,
+        (out_pts, out_dts): (i64, i64),
         now_rt: i64,
         session: u64,
         first: bool,
     ) {
-        if out_pts < 0 {
+        if out_pts < 0 || out_dts < 0 {
             self.stamps.counters.bridge_drops.fetch_add(1, Ordering::Relaxed);
             return;
         }
-        let dts_shift = buf.dts().map(|d| d.nseconds() as i64 - in_pts);
+        let has_dts = buf.dts().is_some();
         {
             let b = buf.make_mut();
             b.set_pts(gst::ClockTime::from_nseconds(out_pts as u64));
-            b.set_dts(dts_shift.and_then(|d| u64::try_from(out_pts + d).ok()).map(gst::ClockTime::from_nseconds));
+            b.set_dts(has_dts.then(|| gst::ClockTime::from_nseconds(out_dts as u64)));
             if first {
                 b.set_flags(gst::BufferFlags::DISCONT);
             }
@@ -353,6 +379,23 @@ mod tests {
             late = rt - r.out_pts(VIDEO, pts, rt);
         }
         assert!((0..=LATE_TOL_NS).contains(&late), "late {late}");
+    }
+
+    #[test]
+    fn b_frames_keep_pts_order() {
+        let mut r = Rebase::default();
+        open(&mut r, &[(0, SEC)]);
+        let f = 33_333_333;
+        // Decode order I0 P3 B1 B2 with DTS = decode slot - 2 frames.
+        let mut pts = Vec::new();
+        for (k, p) in [0i64, 3, 1, 2, 6, 4, 5].into_iter().enumerate() {
+            let in_pts = p * f;
+            let dts = (k as i64 - 2) * f;
+            let (o, _) = r.out_ts(VIDEO, in_pts, dts - in_pts, SEC + k as i64 * f - 2 * f);
+            pts.push(o - SEC);
+        }
+        let want: Vec<i64> = [0i64, 3, 1, 2, 6, 4, 5].iter().map(|p| p * f).collect();
+        assert_eq!(pts, want);
     }
 
     #[test]
