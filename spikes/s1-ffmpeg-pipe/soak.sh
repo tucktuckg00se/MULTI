@@ -9,8 +9,9 @@ export MULTI_MEDIA=${MULTI_MEDIA:-$harness/media}
 mkdir -p "$out"
 bin=$out/s1-ffmpeg-pipe
 cp "$here/../target/release/s1-ffmpeg-pipe" "$bin"
+lat_bin=$here/../target/release/latency
 pids=()
-"$bin" relay --listen 127.0.0.1:9121 --forward 127.0.0.1:9122 --log "$out/src.csv" --duration $((secs + 20)) & pids+=($!)
+"$lat_bin" tap --quiet --listen 127.0.0.1:9121 --forward 127.0.0.1:9122 --out "$out/tap-in.csv" --duration $((secs + 20)) & pids+=($!)
 "$bin" run --input 'udp://127.0.0.1:9122?fifo_size=50000&overrun_nonfatal=1' \
   --output 'udp://127.0.0.1:9123?pkt_size=1316' \
   --output 'srt://127.0.0.1:9124?mode=listener&latency=120000&pkt_size=1316' \
@@ -18,8 +19,8 @@ pids=()
   --csv-dir "$out" --duration $((secs + 10)) >"$out/pipe.log" 2>&1 &
 pipe=$!
 sleep 0.5
-"$bin" relay --listen 127.0.0.1:9123 --log "$out/out-udp.csv" --duration $((secs + 15)) & pids+=($!)
-"$bin" relay --listen 127.0.0.1:9125 --log "$out/out-srt.csv" --duration $((secs + 15)) & pids+=($!)
+"$lat_bin" tap --quiet --listen 127.0.0.1:9123 --out "$out/tap-out-udp.csv" --duration $((secs + 15)) & pids+=($!)
+"$lat_bin" tap --quiet --listen 127.0.0.1:9125 --out "$out/tap-out-srt.csv" --duration $((secs + 15)) & pids+=($!)
 srt-live-transmit -q 'srt://127.0.0.1:9124?mode=caller&latency=120' 'udp://127.0.0.1:9125' & pids+=($!)
 timeout $((secs + 5)) "$harness/source.sh" 'udp://127.0.0.1:9121?pkt_size=1316' >"$out/source.log" 2>&1 &
 src=$!
@@ -40,3 +41,5 @@ wait $src 2>/dev/null
 kill "${pids[@]}" 2>/dev/null
 wait 2>/dev/null
 rm -f "$bin"
+"$lat_bin" report "$out/tap-in.csv" "$out/tap-out-udp.csv" --skip 10 >"$out/report-udp.txt" 2>&1
+"$lat_bin" report "$out/tap-in.csv" "$out/tap-out-srt.csv" --skip 10 >"$out/report-srt.txt" 2>&1

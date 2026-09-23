@@ -1,0 +1,73 @@
+######## rc4-udp: as reconnect.txt but the source restarts as HEVC after the first gap
+2026-09-23T11:26:06.050053Z  INFO input session started session=1 streams=[(Video, H264), (Audio, AAC)] open_ms=731
+2026-09-23T11:26:06.050067Z  INFO timestamp epoch epoch=1 delta=0
+2026-09-23T11:26:06.050115Z  INFO output synced at keyframe url=udp://127.0.0.1:9103?pkt_size=1316 layout=1
+2026-09-23T11:26:06.050122Z  INFO output synced at keyframe url=udp://127.0.0.1:9104?pkt_size=1316 layout=1
+2026-09-23T11:26:06.050125Z  INFO output synced at keyframe url=srt://127.0.0.1:9111?mode=listener&latency=120000&pkt_size=1316 layout=1
+[mpegts @ 0x55ed95c94bc0] DTS 127920 < 1972920 out of order
+2026-09-23T11:26:31.031523Z  WARN input timestamp discontinuity; starting new epoch stream=0 prev=1972920 dts=127920 jump=-1845000
+2026-09-23T11:26:31.031534Z  INFO timestamp epoch epoch=2 delta=2422623
+2026-09-23T11:26:31.048679Z  WARN video NAL headers do not match the probed codec; re-opening input expected=H264
+2026-09-23T11:26:31.503186Z  INFO input session started session=2 streams=[(Video, HEVC), (Audio, AAC)] open_ms=453
+2026-09-23T11:26:31.503202Z  INFO timestamp epoch epoch=3 delta=2505537
+2026-09-23T11:26:31.503223Z  INFO stream layout changed; reopening output url=udp://127.0.0.1:9104?pkt_size=1316
+2026-09-23T11:26:31.503223Z  INFO stream layout changed; reopening output url=udp://127.0.0.1:9103?pkt_size=1316
+2026-09-23T11:26:31.503226Z  INFO stream layout changed; reopening output url=srt://127.0.0.1:9111?mode=listener&latency=120000&pkt_size=1316
+2026-09-23T11:26:31.503491Z  INFO output synced at keyframe url=udp://127.0.0.1:9104?pkt_size=1316 layout=2
+2026-09-23T11:26:31.503495Z  INFO output synced at keyframe url=udp://127.0.0.1:9103?pkt_size=1316 layout=2
+[mpegts @ 0x55ed95c94bc0] DTS 127920 < 1972920 out of order
+2026-09-23T11:26:52.117638Z  WARN input timestamp discontinuity; starting new epoch stream=0 prev=1972920 dts=127920 jump=-1845000
+2026-09-23T11:26:52.117648Z  INFO timestamp epoch epoch=4 delta=4568196
+2026-09-23T11:27:16.442586Z  WARN output open failed: Immediate exit requested; retrying in 1 s url=srt://127.0.0.1:9111?mode=listener&latency=120000&pkt_size=1316
+(+ 54 libavcodec probe warnings while re-probing mid-GOP, removed)
+## downstream ffmpeg -c copy recorders
+rec-udp log:
+      1 [in#0/mpegts @ 0x5602f6a30c80] Packet corrupt (stream = 0, dts = 2550543).
+      1 [in#0/mpegts @ 0x5602f6a30980] Error during demuxing: Input/output error
+      1 [h264 @ 0x5602f6b06940] PPS id out of range: 3
+      1 [h264 @ 0x5602f6b06940] Failed to parse header of NALU (type 4): "Invalid data found when processing input". Skipping NALU.
+rec-srt log:
+      1 [mpegts @ 0x558875572e40] Timestamps are unset in a packet for stream 0. This is deprecated and will stop working in the future. Fix your code to set the timestamps properly
+      1 [in#0/mpegts @ 0x558875467980] Error during demuxing: Input/output error
+      1 [h264 @ 0x55887554c740] SEI type 1 size 80 truncated at 1
+      1 [h264 @ 0x55887554c740] missing picture in access unit with size 30631
+
+######## rc4-srt: as reconnect.txt but the source restarts as HEVC after the first gap
+2026-09-23T11:27:47.113893Z  INFO input session started session=1 streams=[(Video, H264), (Audio, AAC)] open_ms=1077
+2026-09-23T11:27:47.113907Z  INFO timestamp epoch epoch=1 delta=0
+2026-09-23T11:27:47.113963Z  INFO output synced at keyframe url=udp://127.0.0.1:9103?pkt_size=1316 layout=1
+2026-09-23T11:27:47.113965Z  INFO output synced at keyframe url=srt://127.0.0.1:9111?mode=listener&latency=120000&pkt_size=1316 layout=1
+2026-09-23T11:27:47.113963Z  INFO output synced at keyframe url=udp://127.0.0.1:9104?pkt_size=1316 layout=1
+2026-09-23T11:28:06.559334Z  WARN input read error: Input/output error; reconnecting session=1
+[srt @ 0x556fa5dc67c0] Connection to srt://127.0.0.1:9110?mode=caller&latency=120000 failed: Input/output error
+2026-09-23T11:28:09.569640Z  WARN open failed: Input/output error; retry in 250ms input=srt://127.0.0.1:9110?mode=caller&latency=120000
+[srt @ 0x556fa5dc67c0] Connection to srt://127.0.0.1:9110?mode=caller&latency=120000 failed: Input/output error
+2026-09-23T11:28:12.827447Z  WARN open failed: Input/output error; retry in 500ms input=srt://127.0.0.1:9110?mode=caller&latency=120000
+2026-09-23T11:28:13.833681Z  INFO input session started session=2 streams=[(Video, HEVC), (Audio, AAC)] open_ms=506
+2026-09-23T11:28:13.833694Z  INFO timestamp epoch epoch=2 delta=2514687
+2026-09-23T11:28:13.833715Z  INFO stream layout changed; reopening output url=udp://127.0.0.1:9103?pkt_size=1316
+2026-09-23T11:28:13.833721Z  INFO stream layout changed; reopening output url=udp://127.0.0.1:9104?pkt_size=1316
+2026-09-23T11:28:13.833724Z  INFO stream layout changed; reopening output url=srt://127.0.0.1:9111?mode=listener&latency=120000&pkt_size=1316
+2026-09-23T11:28:14.012492Z  INFO output synced at keyframe url=udp://127.0.0.1:9103?pkt_size=1316 layout=2
+2026-09-23T11:28:14.012492Z  INFO output synced at keyframe url=udp://127.0.0.1:9104?pkt_size=1316 layout=2
+2026-09-23T11:28:32.881347Z  WARN input read error: Input/output error; reconnecting session=2
+2026-09-23T11:28:35.659633Z  INFO input session started session=3 streams=[(Video, HEVC), (Audio, AAC)] open_ms=2778
+2026-09-23T11:28:35.659648Z  INFO timestamp epoch epoch=3 delta=4603734
+2026-09-23T11:28:47.194318Z  WARN input read error: Input/output error; reconnecting session=3
+[srt @ 0x556fa5ee54c0] Connection to srt://127.0.0.1:9110?mode=caller&latency=120000 failed: Input/output error
+2026-09-23T11:28:50.202911Z  WARN open failed: Input/output error; retry in 250ms input=srt://127.0.0.1:9110?mode=caller&latency=120000
+[srt @ 0x556fa5ee54c0] Connection to srt://127.0.0.1:9110?mode=caller&latency=120000 failed: Input/output error
+2026-09-23T11:28:53.461755Z  WARN open failed: Input/output error; retry in 500ms input=srt://127.0.0.1:9110?mode=caller&latency=120000
+[srt @ 0x556fa5ee54c0] Connection to srt://127.0.0.1:9110?mode=caller&latency=120000 failed: Immediate exit requested
+2026-09-23T11:28:56.076114Z  WARN open failed: Immediate exit requested; retry in 1s input=srt://127.0.0.1:9110?mode=caller&latency=120000
+2026-09-23T11:28:58.084701Z  WARN output open failed: Immediate exit requested; retrying in 1 s url=srt://127.0.0.1:9111?mode=listener&latency=120000&pkt_size=1316
+(+ 0 libavcodec probe warnings while re-probing mid-GOP, removed)
+## downstream ffmpeg -c copy recorders
+rec-udp log:
+      1     Last message repeated 9 times
+      1     Last message repeated 28 times
+      1 [in#0/mpegts @ 0x5609cb688c80] Packet corrupt (stream = 0, dts = 1939920).
+      1 [in#0/mpegts @ 0x5609cb688980] Error during demuxing: Input/output error
+rec-srt log:
+      1 [in#0/mpegts @ 0x55aacb6bd980] Error during demuxing: Input/output error
+

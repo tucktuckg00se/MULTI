@@ -1,5 +1,5 @@
 //! Black-box timing helpers. `relay` forwards UDP datagrams unchanged and logs
-//! when each video PES (by PTS) first arrives; `tap` only logs; `measure`
+//! when each video PES (by PTS) first arrives (no --forward: only logs); `measure`
 //! reads any FFmpeg URL (e.g. SRT) and logs when each video packet is
 //! returned by the demuxer. `stats` summarises the CSVs.
 

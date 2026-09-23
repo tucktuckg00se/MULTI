@@ -1,0 +1,33 @@
+# B-frame test (bframes.sh): x264 -bf 2 / x265 bframes=2, 1 s GOP, UDP in -> pipe -> file, verify.sh (FFmpeg CC1 decoder)
+
+## bf-h264 (default: reorder depth from FFmpeg video_delay)
+caption reorder depth (frames held for PTS-order captions) depth=2 video_delay=2
+bf-h264/out0.csv: pass-through ms n=1066 p50=99.98 p95=133.41 p99=133.57 max=3534.18 min=0.06
+HELLO FROM MULTI</font>
+CAPTION FIXTURE LINE TWO</font>
+ROLL UP TEST 123</font>
+PASS: all expected lines present
+
+## bf-h264-r0 (--reorder 0: captions assigned in decode order)
+caption reorder depth (frames held for PTS-order captions) depth=0 video_delay=2
+bf-h264-r0/out0.csv: pass-through ms n=1030 p50=0.04 p95=0.06 p99=0.08 max=0.10 min=0.01
+IOPTFIXTN E URNE TLIWO</font>
+MISSING: HELLO FROM MULTI
+MISSING: CAPTION FIXTURE LINE TWO
+MISSING: ROLL UP TEST 123
+
+## bf-hevc (default: reorder depth from FFmpeg video_delay)
+caption reorder depth (frames held for PTS-order captions) depth=2 video_delay=2
+bf-hevc/out0.csv: pass-through ms n=1066 p50=100.05 p95=133.42 p99=133.47 max=3338.13 min=0.06
+HELLO FROM MULTI</font>
+CAPTION FIXTURE LINE TWO</font>
+ROLL UP TEST 123</font>
+PASS: all expected lines present
+
+## bf-hevc-r0 (--reorder 0: captions assigned in decode order)
+caption reorder depth (frames held for PTS-order captions) depth=0 video_delay=2
+bf-hevc-r0/out0.csv: pass-through ms n=1066 p50=0.04 p95=0.07 p99=0.09 max=0.11 min=0.01
+ULLROSTTEP 23 1</font>
+MISSING: HELLO FROM MULTI
+MISSING: CAPTION FIXTURE LINE TWO
+MISSING: ROLL UP TEST 123
