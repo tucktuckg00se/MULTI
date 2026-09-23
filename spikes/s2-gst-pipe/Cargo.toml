@@ -1,0 +1,16 @@
+[package]
+name = "s2-gst-pipe"
+version = "0.0.0"
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+cc = { path = "../cc" }
+gst = { package = "gstreamer", version = "0.25", features = ["v1_24"] }
+gst-app = { package = "gstreamer-app", version = "0.25", features = ["v1_24"] }
+gst-video = { package = "gstreamer-video", version = "0.25", features = ["v1_24"] }
