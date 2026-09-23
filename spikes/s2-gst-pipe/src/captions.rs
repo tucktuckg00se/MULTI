@@ -1,10 +1,13 @@
 //! Approach (b): our `cc` encoder, keyed to each frame's PTS.
 //!
 //! A pad probe on the output parser's src pad calls [`OursCaptioner::meta_for`]
-//! per video buffer. The frame index is `round((pts - base) / frame_duration)`,
-//! and `CcMux::next_frame()` is called once per index in increasing (display)
-//! order, so B-frames arriving in decode order still get the triples for their
-//! display slot. Triples go on the buffer as `GstVideoCaptionMeta`
+//! per video buffer. Each frame's display slot is the previous frame's slot
+//! plus `round((pts - prev_pts) / frame_duration)`, and `CcMux::next_frame()`
+//! is called once per slot in increasing (display) order, so B-frames arriving
+//! in decode order still get the triples for their display slot. Indexing is
+//! relative, not against a fixed grid: the bridge slews PTS by up to 5 ms per
+//! frame, and a fixed grid then maps two frames to one slot (a frame without
+//! captions) or skips a slot (caption bytes lost). Triples go on the buffer as `GstVideoCaptionMeta`
 //! (CEA-708 `cc_data`), which `h264ccinserter`/`h265ccinserter` turn into SEI.
 
 use std::collections::BTreeMap;
@@ -29,7 +32,8 @@ pub struct OursCaptioner {
     lanes: u8,
     mux: Option<CcMux>,
     frame_ns: f64,
-    base: i64,
+    /// (pts, slot) of the previous frame, in arrival order.
+    last: Option<(i64, i64)>,
     next_idx: u64,
     pending: BTreeMap<u64, Vec<CcTriple>>,
     pub reanchors: u64,
@@ -37,7 +41,7 @@ pub struct OursCaptioner {
 
 impl OursCaptioner {
     pub fn new(rx: Receiver<Line>, lanes: u8) -> Self {
-        Self { rx, lanes, mux: None, frame_ns: 0.0, base: 0, next_idx: 0, pending: BTreeMap::new(), reanchors: 0 }
+        Self { rx, lanes, mux: None, frame_ns: 0.0, last: None, next_idx: 0, pending: BTreeMap::new(), reanchors: 0 }
     }
 
     fn init(&mut self, fps: f64) -> bool {
@@ -61,11 +65,8 @@ impl OursCaptioner {
     /// `cc_data` bytes for the frame at `pts` (ns), or `None` if captions are
     /// unavailable (unknown frame rate, duplicate PTS). Never panics.
     pub fn meta_for(&mut self, pts: i64, fps: f64) -> Option<Vec<u8>> {
-        if self.mux.is_none() {
-            if !self.init(fps) {
-                return None;
-            }
-            self.base = pts;
+        if self.mux.is_none() && !self.init(fps) {
+            return None;
         }
         let mux = self.mux.as_mut()?;
         while let Ok(line) = self.rx.try_recv() {
@@ -73,15 +74,18 @@ impl OursCaptioner {
             mux.push_text_608(ch, &line.text);
             mux.push_text_708(svc, &line.text);
         }
-        let mut idx = ((pts - self.base) as f64 / self.frame_ns).round() as i64;
         let next = self.next_idx as i64;
+        let mut idx = match self.last {
+            Some((lp, li)) => li + ((pts - lp) as f64 / self.frame_ns).round() as i64,
+            None => next,
+        };
         if idx >= next + REANCHOR || idx < next - REANCHOR {
             // Gap or timeline jump: this frame becomes the next slot.
-            self.base = pts - (next as f64 * self.frame_ns) as i64;
             self.pending.clear();
             self.reanchors += 1;
             idx = next;
         }
+        self.last = Some((pts, idx));
         if idx < 0 {
             return None;
         }
@@ -125,6 +129,27 @@ mod tests {
         // First frame starts with the RU3 control on CC1 (0x94 0x26).
         assert_eq!(&a.unwrap_or_default()[..3], &[0xFC, 0x94, 0x26]);
         assert_eq!(c.reanchors, 0);
+    }
+
+    #[test]
+    fn slewed_timeline_serves_every_frame_in_order() {
+        let (tx, rx) = channel();
+        let mut c = OursCaptioner::new(rx, 1);
+        let _ = tx.send(Line { lane: 0, text: "HELLO FROM MULTI".into() });
+        // Squeezed (28.3 ms) then stretched (34.3 ms) PTS steps, as the bridge slews.
+        let mut pts = 0i64;
+        let mut first_pairs = Vec::new();
+        for k in 0..200 {
+            let m = c.meta_for(pts, 30.0);
+            assert!(m.is_some(), "frame {k} got no captions");
+            if let Some(v) = m {
+                first_pairs.push([v[1], v[2]]);
+            }
+            pts += if k < 100 { 28_333_333 } else { 34_333_333 };
+        }
+        assert_eq!(c.next_idx, 200);
+        // CC1 stream is contiguous: RU3 control first, text follows without gaps.
+        assert_eq!(first_pairs[0], [0x94, 0x26]);
     }
 
     #[test]

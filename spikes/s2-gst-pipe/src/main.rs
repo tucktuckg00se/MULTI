@@ -5,7 +5,6 @@
 //! s2-gst-pipe run --input 'srt://127.0.0.1:9200?mode=caller' \
 //!     --output udp://127.0.0.1:9210 --output 'srt://:9211?mode=listener' \
 //!     --codec h264 --captions ours --csv delay.csv
-//! s2-gst-pipe tap --input udp://127.0.0.1:9210 --csv out.csv   # black-box receiver
 //! ```
 
 mod bridge;
@@ -13,7 +12,6 @@ mod captions;
 mod input;
 mod output;
 mod stamps;
-mod tap;
 
 use std::path::PathBuf;
 use std::sync::atomic::Ordering;
@@ -52,7 +50,6 @@ struct Cli {
 #[derive(Subcommand)]
 enum Cmd {
     Run(RunArgs),
-    Tap(tap::TapArgs),
 }
 
 #[derive(Parser)]
@@ -124,7 +121,6 @@ fn main() -> Result<()> {
     gst::init()?;
     match Cli::parse().cmd {
         Cmd::Run(a) => run(a),
-        Cmd::Tap(a) => tap::run(a),
     }
 }
 
