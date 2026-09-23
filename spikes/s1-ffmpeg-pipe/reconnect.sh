@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # S1 reconnect test: source runs 20 s, stops 5 s, restarts (PTS from 0) for
 # 20 s, stops 1 s, restarts for 12 s. Downstream records UDP and SRT outputs.
-# Ports 9101-9111.   reconnect.sh CODEC IN(udp|srt) OUTDIR
+# Ports 9101-9111.   reconnect.sh CODEC IN(udp|srt) OUTDIR [CODEC_AFTER_FIRST_GAP]
 set -uo pipefail
-codec=$1 in=$2 out=$3
+codec=$1 in=$2 out=$3 codec2=${4:-$1}
 here=$(cd "$(dirname "$0")" && pwd)
 bin=$here/../target/release/s1-ffmpeg-pipe
 harness=$here/../harness
@@ -13,7 +13,7 @@ if [[ $in == srt ]]; then
   input='srt://127.0.0.1:9110?mode=caller&latency=120000'
   src_url='srt://127.0.0.1:9110?mode=listener&latency=120000'
 else
-  input='udp://127.0.0.1:9102?fifo_size=1000000&overrun_nonfatal=1'
+  input='udp://127.0.0.1:9102?fifo_size=50000&overrun_nonfatal=1'
   src_url='udp://127.0.0.1:9102?pkt_size=1316'
 fi
 "$bin" run --input "$input" \
@@ -29,7 +29,7 @@ ffmpeg -hide_banner -loglevel warning -y -i 'udp://127.0.0.1:9104?timeout=300000
 r1=$!
 ffmpeg -hide_banner -loglevel warning -y -i 'srt://127.0.0.1:9111?mode=caller&latency=120000' -t 64 -c copy -f mpegts "$out/rec-srt.ts" >"$out/rec-srt.log" 2>&1 &
 r2=$!
-run() { echo "$(date +%s.%N) source start $1 s" >>"$out/events.txt"; timeout "$1" "$harness/source.sh" --codec "$codec" "$src_url" >>"$out/source.log" 2>&1; echo "$(date +%s.%N) source stop" >>"$out/events.txt"; }
-run 20; sleep 5; run 20; sleep 1; run 12
+run() { echo "$(date +%s.%N) source start $2 $1 s" >>"$out/events.txt"; timeout "$1" "$harness/source.sh" --codec "$2" "$src_url" >>"$out/source.log" 2>&1; echo "$(date +%s.%N) source stop" >>"$out/events.txt"; }
+run 20 "$codec"; sleep 5; run 20 "$codec2"; sleep 1; run 12 "$codec2"
 wait $r1 $r2 $pipe
 kill $tap 2>/dev/null

@@ -11,7 +11,7 @@ bin=$out/s1-ffmpeg-pipe
 cp "$here/../target/release/s1-ffmpeg-pipe" "$bin"
 pids=()
 "$bin" relay --listen 127.0.0.1:9121 --forward 127.0.0.1:9122 --log "$out/src.csv" --duration $((secs + 20)) & pids+=($!)
-"$bin" run --input 'udp://127.0.0.1:9122?fifo_size=1000000&overrun_nonfatal=1' \
+"$bin" run --input 'udp://127.0.0.1:9122?fifo_size=50000&overrun_nonfatal=1' \
   --output 'udp://127.0.0.1:9123?pkt_size=1316' \
   --output 'srt://127.0.0.1:9124?mode=listener&latency=120000&pkt_size=1316' \
   --output 'udp://127.0.0.1:9126?pkt_size=1316' \

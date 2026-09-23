@@ -61,6 +61,25 @@ pub fn is_keyframe(data: &[u8], codec: VideoCodec) -> bool {
     false
 }
 
+/// Checks the first NAL header against `codec`: `Some(true)` = it is the
+/// other codec, `Some(false)` = it is `codec`, `None` = can't tell (some
+/// headers are valid in both). H.264 headers are 1 byte; HEVC 2 bytes with
+/// layer id 0 and temporal_id_plus1 != 0.
+pub fn looks_like_other_codec(data: &[u8], codec: VideoCodec) -> Option<bool> {
+    let i = (0..data.len().saturating_sub(3)).find(|&i| data[i..i + 3] == [0, 0, 1])?;
+    let (&b0, &b1) = (data.get(i + 3)?, data.get(i + 4)?);
+    let hevc_ok = b0 & 0x81 == 0 && (b1 & 0xF8) == 0 && (b1 & 7) != 0;
+    let hevc_ps = hevc_ok && matches!((b0 >> 1) & 0x3F, 32..=35 | 39);
+    let h264_ok = b0 & 0x80 == 0 && matches!(b0 & 0x1F, 1..=12 | 14 | 15 | 20);
+    match codec {
+        VideoCodec::H264 if hevc_ps => Some(true),
+        VideoCodec::H264 if h264_ok && !hevc_ok => Some(false),
+        VideoCodec::Hevc if h264_ok && !hevc_ok => Some(true),
+        VideoCodec::Hevc if hevc_ok => Some(false),
+        _ => None,
+    }
+}
+
 /// Why an access unit was passed through without a caption SEI.
 #[derive(Debug, PartialEq, Eq)]
 pub enum Skip {
@@ -118,6 +137,20 @@ mod tests {
         assert!(!is_keyframe(&[0, 0, 1, 0x41, 0x9A], VideoCodec::H264));
         // A 3-byte start code preceded by a data byte is not widened.
         assert_eq!(first_vcl_offset(&[0, 0, 1, 0x26, 0x01], VideoCodec::Hevc), Some(0));
+    }
+
+    #[test]
+    fn codec_mismatch() {
+        let hevc_aud = [0, 0, 0, 1, 0x46, 0x01, 0x50];
+        let h264_aud = [0, 0, 0, 1, 0x09, 0xF0];
+        assert_eq!(looks_like_other_codec(&hevc_aud, VideoCodec::H264), Some(true));
+        assert_eq!(looks_like_other_codec(&hevc_aud, VideoCodec::Hevc), Some(false));
+        assert_eq!(looks_like_other_codec(&h264_aud, VideoCodec::Hevc), Some(true));
+        assert_eq!(looks_like_other_codec(&h264_aud, VideoCodec::H264), Some(false));
+        assert_eq!(looks_like_other_codec(&[0, 0, 1, 0x41, 0x9A], VideoCodec::H264), Some(false));
+        assert_eq!(looks_like_other_codec(&[0, 0, 1, 0x02, 0x01], VideoCodec::Hevc), Some(false));
+        // HEVC TRAIL_R slice header is also a valid H.264 header: undecided.
+        assert_eq!(looks_like_other_codec(&[0, 0, 1, 0x02, 0x01], VideoCodec::H264), None);
     }
 
     #[test]

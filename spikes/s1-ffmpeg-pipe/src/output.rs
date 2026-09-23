@@ -2,6 +2,7 @@
 //! `try_send`s into a bounded queue and, if the queue is full, marks the
 //! output as having lost packets so it resyncs on the next keyframe.
 
+use std::ffi::{CString, c_int, c_void};
 use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::sync::Arc;
@@ -13,7 +14,7 @@ use ffmpeg_next as ff;
 use ff::{Dictionary, Packet, Rational, format, media};
 use tracing::{info, warn};
 
-use crate::now_ns;
+use crate::{SHUTDOWN, now_ns};
 
 /// Stream layout of one input session. Outputs keep their muxer (and so a
 /// continuous TS: same PIDs, continuity counters, PCR) across sessions whose
@@ -79,6 +80,9 @@ pub fn run(shared: Arc<OutputShared>, rx: Receiver<PktMsg>, opts: Vec<(String, S
     let stale = Duration::from_millis(300);
 
     loop {
+        if SHUTDOWN.load(Ordering::Relaxed) {
+            break;
+        }
         // Connect (blocks for an SRT listener until a caller arrives).
         if mux.is_none() {
             if Instant::now() < retry_at {
@@ -89,7 +93,7 @@ pub fn run(shared: Arc<OutputShared>, rx: Receiver<PktMsg>, opts: Vec<(String, S
                     Err(RecvTimeoutError::Disconnected) => break,
                 }
             }
-            match format::output_as_with(&shared.url, "mpegts", dict(&opts)) {
+            match open_output(&shared.url, &opts) {
                 Ok(ctx) => {
                     info!(url = %shared.url, "output connected");
                     shared.reconnects.fetch_add(1, Ordering::Relaxed);
@@ -163,6 +167,39 @@ pub fn run(shared: Arc<OutputShared>, rx: Receiver<PktMsg>, opts: Vec<(String, S
     close(&mut mux, &shared.url);
     if let Some(w) = csv.as_mut() {
         let _ = w.flush();
+    }
+}
+
+unsafe extern "C" fn interrupted(_: *mut c_void) -> c_int {
+    c_int::from(SHUTDOWN.load(Ordering::Relaxed))
+}
+
+/// Like `format::output_as_with(url, "mpegts", opts)` but with an interrupt
+/// callback on both the open and the context, so a blocked SRT listen/write
+/// returns at shutdown. ffmpeg-next's helper passes no callback to avio_open2.
+fn open_output(url: &str, opts: &[(String, String)]) -> Result<format::context::Output, ff::Error> {
+    let c_url = CString::new(url).map_err(|_| ff::Error::InvalidData)?;
+    // SAFETY: plain FFmpeg calls; the context is handed to `Output::wrap`
+    // right after allocation, which owns it (and pb) from then on.
+    unsafe {
+        let mut ps = std::ptr::null_mut();
+        let r = ff::ffi::avformat_alloc_output_context2(&mut ps, std::ptr::null(), c"mpegts".as_ptr(), c_url.as_ptr());
+        if r < 0 || ps.is_null() {
+            return Err(ff::Error::from(r.min(-1)));
+        }
+        let cb = ff::ffi::AVIOInterruptCB { callback: Some(interrupted), opaque: std::ptr::null_mut() };
+        (*ps).interrupt_callback = cb;
+        let out = format::context::Output::wrap(ps);
+        let mut d = dict(opts).disown();
+        let r = ff::ffi::avio_open2(&mut (*ps).pb, c_url.as_ptr(), ff::ffi::AVIO_FLAG_WRITE as c_int, &cb, &mut d);
+        let left = Dictionary::own(d);
+        if left.iter().count() > 0 {
+            warn!(url, unused = ?left.iter().map(|(k, _)| k.to_string()).collect::<Vec<_>>(), "unused output options");
+        }
+        if r < 0 {
+            return Err(ff::Error::from(r));
+        }
+        Ok(out)
     }
 }
 

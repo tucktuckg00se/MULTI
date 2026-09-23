@@ -16,15 +16,14 @@ use tracing::{info, warn};
 
 use crate::nal::{self, VideoCodec};
 use crate::output::{self, Layout, Meta, OutputShared, PktMsg};
-use crate::{RunArgs, now_ns, rss_kib};
+use crate::{RunArgs, SHUTDOWN, now_ns, rss_kib};
 
 const TB90K: Rational = Rational(1, 90_000);
-
-static SHUTDOWN: AtomicBool = AtomicBool::new(false);
 
 struct Out {
     shared: Arc<OutputShared>,
     tx: SyncSender<PktMsg>,
+    thread: thread::JoinHandle<()>,
 }
 
 /// Maps input timestamps onto a continuous output timeline (90 kHz).
@@ -157,8 +156,8 @@ pub fn run(args: RunArgs) -> anyhow::Result<()> {
         };
         let opts = parse_opts(&args.out_opt);
         let sh = shared.clone();
-        thread::Builder::new().name(format!("out{i}")).spawn(move || output::run(sh, rx, opts, csv))?;
-        outs.push(Out { shared, tx });
+        let thread = thread::Builder::new().name(format!("out{i}")).spawn(move || output::run(sh, rx, opts, csv))?;
+        outs.push(Out { shared, tx, thread });
     }
 
     let deadline = args.duration.map(|s| Instant::now() + Duration::from_secs(s));
@@ -170,6 +169,7 @@ pub fn run(args: RunArgs) -> anyhow::Result<()> {
     let mut backoff = Duration::from_millis(250);
     let mut last_status = Instant::now();
     let mut counts = Counts::default();
+    let mut mismatches = 0u32;
 
     while !expired() {
         let mut opts = Dictionary::new();
@@ -291,6 +291,21 @@ pub fn run(args: RunArgs) -> anyhow::Result<()> {
 
             if is_video {
                 let vc = video_in.and_then(|(_, vc)| vc);
+                // The TS demuxer keeps the old codec id when a PMT changes a
+                // PID's stream_type (source restarted as HEVC on the same UDP
+                // port). Detect it from the NAL headers and re-probe.
+                if let (Some(vc), Some(d)) = (vc, pkt.data()) {
+                    match nal::looks_like_other_codec(d, vc) {
+                        Some(true) => mismatches += 1,
+                        Some(false) => mismatches = 0,
+                        None => {}
+                    }
+                    if mismatches >= 2 {
+                        warn!(expected = ?vc, "video NAL headers do not match the probed codec; re-opening input");
+                        mismatches = 0;
+                        break;
+                    }
+                }
                 if let (Some(vc), Some(d)) = (vc, pkt.data())
                     && !pkt.is_key()
                     && nal::is_keyframe(d, vc)
@@ -319,10 +334,16 @@ pub fn run(args: RunArgs) -> anyhow::Result<()> {
     }
     SHUTDOWN.store(true, Ordering::Relaxed);
     status(&counts, frame, session, &outs);
-    let handles: Vec<_> = outs.into_iter().map(|o| o.shared).collect();
-    // Dropping the senders ends the output threads; give them a moment to write trailers.
-    thread::sleep(Duration::from_millis(500));
-    drop(handles);
+    // Dropping the senders ends the output threads; SHUTDOWN interrupts any
+    // blocked open/write. Join them all so no thread is inside libsrt/libav
+    // while the process exits (that raced with libsrt's atexit cleanup and
+    // aborted with "double free" before this join existed).
+    for o in outs {
+        drop(o.tx);
+        if o.thread.join().is_err() {
+            warn!(url = %o.shared.url, "output thread panicked");
+        }
+    }
     Ok(())
 }
 

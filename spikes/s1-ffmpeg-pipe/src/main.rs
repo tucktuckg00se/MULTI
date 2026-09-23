@@ -97,6 +97,9 @@ fn default_in_opts() -> Vec<String> {
     ]
 }
 
+/// Set once at shutdown; checked by FFmpeg interrupt callbacks and threads.
+pub static SHUTDOWN: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
 pub fn now_ns() -> u64 {
     SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |d| d.as_nanos() as u64)
 }
