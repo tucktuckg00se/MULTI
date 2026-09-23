@@ -55,13 +55,17 @@ pub fn build(cfg: &OutputCfg, stamps: Arc<Stamps>) -> Result<Output> {
         .name("vsrc")
         .is_live(true)
         .format(gst::Format::Time)
-        .max_time(gst::ClockTime::from_seconds(1))
+        .max_time(gst::ClockTime::from_seconds(2))
+        // The default max-bytes (200 kB) is below one startup hold of 720p
+        // video; with leaky-type=downstream it silently dropped those frames.
+        .max_bytes(32 << 20)
         .build();
     let asrc = gst_app::AppSrc::builder()
         .name("asrc")
         .is_live(true)
         .format(gst::Format::Time)
-        .max_time(gst::ClockTime::from_seconds(1))
+        .max_time(gst::ClockTime::from_seconds(2))
+        .max_bytes(4 << 20)
         .build();
     for s in [&vsrc, &asrc] {
         // Never block the input thread: drop the oldest buffer if the output stalls.
@@ -79,7 +83,13 @@ pub fn build(cfg: &OutputCfg, stamps: Arc<Stamps>) -> Result<Output> {
     let aq = make("queue", "aq")?;
     let tsout = gst_app::AppSink::builder().name("tsout").sync(false).async_(false).build();
     p.add_many([vsrc.upcast_ref(), asrc.upcast_ref(), &vparse, &mux, &aq, tsout.upcast_ref()])?;
-    gst::Element::link_many([asrc.upcast_ref(), &aq, &mux])?;
+    // Fixed PIDs, video first in the PMT (pad name = PID). With request order
+    // left to chance, audio sometimes came first and ffmpeg's probe (and so
+    // verify.sh's movie= filter) then failed on the stream.
+    let mux_v = mux.request_pad_simple("sink_256").context("mux video pad")?;
+    let mux_a = mux.request_pad_simple("sink_257").context("mux audio pad")?;
+    gst::Element::link_many([asrc.upcast_ref(), &aq])?;
+    aq.static_pad("src").context("aq src")?.link(&mux_a)?;
     mux.link(&tsout)?;
     vsrc.link(&vparse)?;
 
@@ -206,7 +216,6 @@ pub fn build(cfg: &OutputCfg, stamps: Arc<Stamps>) -> Result<Output> {
             gst::PadProbeReturn::Ok
         });
     }
-    let mux_v = mux.request_pad_simple("sink_%d").context("mux video pad")?;
     last.static_pad("src").context("video src")?.link(&mux_v)?;
     let st = stamps.clone();
     mux_v.add_probe(gst::PadProbeType::BUFFER, move |_, info| {

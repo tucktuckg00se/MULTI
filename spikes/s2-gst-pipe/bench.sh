@@ -81,4 +81,19 @@ for v in udp srt; do
   [[ -f $ts ]] || continue
   cp "$ts" "$out/capture-$v.ts"
 done
+ccx=${CCEXTRACTOR:-$HOME/.cache/multi-tools/ccx-build/ccextractor}
+if [[ -f $out/capture-udp.ts && -x $ccx ]]; then
+  {
+    echo "-- ccextractor (UDP capture): lines found per fixture line"
+    "$ccx" "$out/capture-udp.ts" -o "$out/ccx-cc1.srt" >"$out/ccx-cc1.log" 2>&1
+    "$ccx" "$out/capture-udp.ts" --service 1,2 -o "$out/ccx.srt" >"$out/ccx-708.log" 2>&1
+    "$ccx" "$out/capture-udp.ts" --output-field 2 -o "$out/ccx-cc3.srt" >"$out/ccx-cc3.log" 2>&1
+    for f in "$out"/ccx-cc1.srt "$out"/ccx-cc3*.srt "$out"/ccx.p1.svc0*.srt; do
+      [[ -f $f ]] || continue
+      printf '%s:' "$(basename "$f")"
+      while IFS= read -r l; do printf ' "%s"=%s' "$l" "$(grep -c "$l" "$f")"; done <"$exp"
+      echo
+    done
+  } >>"$out/summary.txt"
+fi
 cat "$out/summary.txt"

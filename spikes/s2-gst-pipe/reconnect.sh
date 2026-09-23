@@ -57,9 +57,13 @@ for a, b in zip(r, r[1:]):
         print(f"frame {a['frame_seq']}->{b['frame_seq']}: wall gap {dw:.0f} ms, PTS step {dp:.1f} ms")
 print(f"frames {len(r)}")
 PY
-  echo "-- ffmpeg decode of the recording (errors)"
-  ffmpeg -hide_banner -v error -i "$out/capture.ts" -map 0:v -f null - 2>&1 | sort | uniq -c | sort -rn | head -8
-  echo "-- verify.sh"
-  "$spikes/harness/verify.sh" "$out/capture.ts" "$out/expected.txt" 2>&1 | tail -3
+  echo "-- decode check (ffprobe: video packets vs decoded frames, main-decoder errors)"
+  np=$(ffprobe -v quiet -select_streams v -show_entries packet=pts -of csv=p=0 "$out/capture.ts" | wc -l)
+  nf=$(ffprobe -v error -select_streams v -show_entries frame=pts -of csv=p=0 "$out/capture.ts" 2>"$out/ffprobe-err.txt" | wc -l)
+  echo "packets=$np decoded_frames=$nf ffprobe_error_lines=$(grep -vc 'Last message' "$out/ffprobe-err.txt")"
+  sort "$out/ffprobe-err.txt" | uniq -c | sort -rn | head -4
+  echo "-- verify.sh (on the recording from 3 s on; see finding for the file-start probe quirk)"
+  ffmpeg -v error -y -ss 3 -i "$out/capture.ts" -c copy "$out/capture-from3s.ts"
+  "$spikes/harness/verify.sh" "$out/capture-from3s.ts" "$out/expected.txt" 2>&1 | tail -2
 } >"$out/summary.txt" 2>&1
 cat "$out/summary.txt"

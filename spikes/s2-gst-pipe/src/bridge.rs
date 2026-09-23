@@ -19,8 +19,11 @@
 //!   demuxer releases the first frames in a burst, so the first frame alone
 //!   would stamp everything too early. The session never starts before the
 //!   previous one's last output + 40 ms, so output PTS only move forward.
-//! - After that, a video frame that would still be early pulls the offset back
-//!   by at most [`SLEW_NS`] per frame (clock drift between source and us).
+//!   The session also never starts before output PTS 40 ms, so the burst at
+//!   startup is not pushed below zero; it starts late and catches up.
+//! - After that, a video frame that would be early pulls the offset back, and
+//!   one more than [`LATE_TOL_NS`] late pushes it forward, by at most
+//!   [`SLEW_NS`] per frame (clock drift, startup bursts).
 
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
@@ -35,6 +38,9 @@ const SEC: i64 = 1_000_000_000;
 pub const HOLD_NS: i64 = 500_000_000;
 /// Max offset correction per video frame (1 ms/frame = 30 ms/s at 30 fps).
 pub const SLEW_NS: i64 = 1_000_000;
+
+/// Lateness tolerated before the slew pushes the offset forward.
+pub const LATE_TOL_NS: i64 = 100_000_000;
 
 pub const VIDEO: usize = 0;
 pub const AUDIO: usize = 1;
@@ -85,6 +91,7 @@ impl Rebase {
             new = true;
         }
         if s == VIDEO && self.hold_until.is_some() {
+            tracing::debug!(in_pts, now_rt, arrival = now_rt - in_pts, "hold");
             self.min_off = self.min_off.min(now_rt - in_pts);
         }
         self.seen[s] = true;
@@ -96,7 +103,7 @@ impl Rebase {
     /// Ends the hold: fixes the session offset.
     fn finish_hold(&mut self) {
         let floor = self.last_out[VIDEO].max(self.last_out[AUDIO]) + SEC / 25 - self.first_in;
-        self.offset = if self.last_out == [0, 0] { self.min_off } else { self.min_off.max(floor) };
+        self.offset = self.min_off.max(floor);
         self.hold_until = None;
     }
 
@@ -110,6 +117,13 @@ impl Rebase {
                 self.offset -= d;
                 self.slewed_ns += d;
                 out -= d;
+            } else if early < -LATE_TOL_NS {
+                // Behind "now" (e.g. the floor after a startup burst): catch up
+                // slowly; lateness costs nothing in the muxer, earliness does.
+                let d = (-early - LATE_TOL_NS).min(SLEW_NS);
+                self.offset += d;
+                self.slewed_ns += d;
+                out += d;
             }
             // Strictly increasing video PTS whatever happens upstream.
             if out <= self.last_out[VIDEO] {
@@ -290,6 +304,7 @@ mod tests {
         let mut r = Rebase::default();
         // First 3 frames released together 300 ms late, then on time.
         open(&mut r, &[(0, 1300 * MS), (33 * MS, 1300 * MS), (66 * MS, 1300 * MS), (100 * MS, 1100 * MS)]);
+        // (floor is 40 ms, below the 1000 ms steady-state offset)
         assert_eq!(r.offset, 1000 * MS);
         // Steady state: frame at pts 200 ms arrives at rt 1200 ms -> exactly on time.
         assert_eq!(r.out_pts(VIDEO, 200 * MS, 1200 * MS), 1200 * MS);
@@ -323,10 +338,29 @@ mod tests {
     }
 
     #[test]
+    fn burst_below_zero_starts_late_then_catches_up() {
+        let mut r = Rebase::default();
+        // Frames 2.0..2.5 s released at rt 0.08 s, then steady arrival 2.5 s behind PTS.
+        let mut f: Vec<(i64, i64)> = (0..15).map(|k| (2 * SEC + k * 33 * MS, 80 * MS)).collect();
+        f.push((2500 * MS, 10 * MS));
+        open(&mut r, &f);
+        // First frame at the 40 ms floor (+1 ms of catch-up slew).
+        assert_eq!(r.out_pts(VIDEO, 2 * SEC, 500 * MS), 41 * MS);
+        let mut late = 0;
+        for k in 16..1000 {
+            let pts = 2 * SEC + k * 33 * MS;
+            let rt = pts - 2490 * MS;
+            late = rt - r.out_pts(VIDEO, pts, rt);
+        }
+        assert!((0..=LATE_TOL_NS).contains(&late), "late {late}");
+    }
+
+    #[test]
     fn early_frames_slew_monotonic() {
         let mut r = Rebase::default();
         open(&mut r, &[(0, SEC)]);
         let mut last = 0;
+        assert_eq!(r.offset, SEC);
         // Source clock 1% fast: each frame arrives 0.33 ms "earlier".
         for k in 1..300 {
             let pts = k * 33_333_333;
