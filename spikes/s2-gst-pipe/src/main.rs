@@ -9,6 +9,7 @@
 
 mod bridge;
 mod captions;
+mod gstcc;
 mod input;
 mod output;
 mod stamps;
@@ -38,6 +39,8 @@ pub enum CaptionMode {
     Gst,
     /// (b) spikes/cc CcMux -> GstVideoCaptionMeta per frame, keyed by PTS.
     Ours,
+    /// (c, S2b) tttocea708 driven per frame from the video probe, no cccombiner.
+    GstDirect,
 }
 
 #[derive(Parser)]

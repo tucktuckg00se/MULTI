@@ -1,0 +1,1729 @@
+{
+"secs": 100,
+"tracks": [
+{
+"name": "a",
+"gst": {
+"kind": "608",
+"mode": "roll-up3",
+"json": true
+},
+"ours": {
+"cc": "cc1",
+"mode": "ru3"
+}
+}
+],
+"events": [
+{
+"t": 1.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A00 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 1.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A01 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 1.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A02 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 2.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A03 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 2.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A04 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 2.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A05 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 3.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A06 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 3.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A07 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 3.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A08 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 4.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A09 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 4.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A10 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 4.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A11 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 5.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A12 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 5.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A13 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 5.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A14 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 6.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A15 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 6.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A16 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 6.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A17 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 7.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A18 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 7.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A19 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 7.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A20 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 8.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A21 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 8.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A22 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 8.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A23 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 9.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A24 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 9.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A25 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 9.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A26 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 10.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A27 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 10.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A28 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 10.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A29 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 11.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A30 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 11.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A31 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 11.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A32 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 12.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A33 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 12.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A34 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 12.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A35 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 13.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A36 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 13.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A37 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 13.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A38 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 14.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A39 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 14.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A40 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 14.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A41 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 15.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A42 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 15.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A43 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 15.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A44 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 16.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A45 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 16.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A46 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 16.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A47 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 17.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A48 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 17.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A49 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 17.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A50 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 18.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A51 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 18.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A52 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 18.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A53 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 19.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A54 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 19.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A55 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 19.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A56 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 20.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A57 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 20.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A58 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 20.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A59 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 21.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A60 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 21.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A61 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 21.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A62 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 22.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A63 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 22.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A64 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 22.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A65 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 23.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A66 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 23.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A67 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 23.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A68 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 24.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A69 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 24.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A70 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 24.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A71 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 25.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A72 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 25.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A73 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 25.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A74 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 26.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A75 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 26.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A76 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 26.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A77 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 27.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A78 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 27.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A79 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 27.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A80 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 28.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A81 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 28.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A82 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 28.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A83 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 29.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A84 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 29.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A85 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 29.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A86 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 30.0,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A87 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 30.333,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A88 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+},
+{
+"t": 30.667,
+"track": "a",
+"json": {
+"mode": "RollUp3",
+"lines": [
+{
+"carriage_return": true,
+"chunks": [
+{
+"style": "White",
+"underline": false,
+"text": "A89 QUICK BROWN FOX JUMPS OVER"
+}
+]
+}
+]
+}
+}
+]
+}

@@ -1,0 +1,25 @@
+# Q3 several languages in one stream. ccextractor 0.96.5: --output-field 1 (CC1), --output-field 2 (CC3), --service 1,2 (708; raw Latin-1 output).
+# 'exact' = the expected line is a decoded row, byte for byte (708 read as Latin-1).
+
+## multilang4.json: 4 GStreamer tracks into cea708mux: tttocea608 JSON CC1 (EN), tttocea608 JSON + capssetter field=1 CC3 (ES), tttocea708 svc1 (FR), tttocea708 svc2 (DE); ours: CcMux CC1/CC3/svc1/svc2
+  gst  cc1            en: exact (wrapped over 2 rows), exact
+  gst  cc3            es: exact, exact
+  gst  708.p1.svc01   fr: exact, exact
+  gst  708.p1.svc02   de: exact, exact
+  ours cc1            en: exact (wrapped over 2 rows), exact
+  ours cc3            es: exact, exact
+  ours 708.p1.svc01   fr: exact, exact
+  ours 708.p1.svc02   de: exact, exact
+  driver: gst stats: Stats { frames: 300, out_buffers: 300, late_buffers: 211, max_lag: 22, sum_lag: 5465, timeouts: 211, empty_frames: 22, max_wait_us: 502727, sum_wait_us: 105540540 } backlog_at_end=22
+  (With tttocea608 tracks in cea708mux the output trailed the input by 22 frames and the per-frame wait hit its 500 ms limit 211 times; cause not traced, likely tttocea608 stamping a whole line on one frame. Text is still exact. Two tttocea708 lanes (below) do not show this.)
+
+## lanes2.json: the product mapping, 2 x tttocea708 (svc1 + CC1 EN, svc2 + CC3 ES) into cea708mux; ours: CcMux CC1+svc1 EN, CC3+svc2 ES
+  gst  cc1            en: exact (wrapped over 2 rows), exact
+  gst  cc3            es: exact, exact
+  gst  708.p1.svc01   en: exact (wrapped over 2 rows), exact
+  gst  708.p1.svc02   es: exact, exact
+  ours cc1            en: exact (wrapped over 2 rows), exact
+  ours cc3            es: exact, exact
+  ours 708.p1.svc01   en: exact (wrapped over 2 rows), exact
+  ours 708.p1.svc02   es: exact, exact
+  driver: gst stats: Stats { frames: 300, out_buffers: 300, late_buffers: 0, max_lag: 0, sum_lag: 0, timeouts: 0, empty_frames: 0, max_wait_us: 135, sum_wait_us: 4048 } backlog_at_end=0

@@ -1,0 +1,61 @@
+{
+ "secs": 14,
+ "tracks": [
+  {
+   "name": "l1",
+   "gst": {
+    "kind": "708",
+    "service": 1,
+    "cea608_channel": 1,
+    "mode": "roll-up",
+    "roll_up_rows": 2
+   },
+   "ours": {
+    "cc": "cc1",
+    "svc": 1,
+    "mode": "ru2"
+   }
+  }
+ ],
+ "events": [
+  {
+   "t": 1,
+   "track": "l1",
+   "text": "PLAIN TEXT ONE"
+  },
+  {
+   "t": 2,
+   "track": "l1",
+   "text": "PLAIN TEXT TWO"
+  },
+  {
+   "t": 3,
+   "track": "l1",
+   "text": "NEWLINE A\nNEWLINE B"
+  },
+  {
+   "t": 5,
+   "track": "l1",
+   "cr": true,
+   "text": "WITH CR EVENT ONE"
+  },
+  {
+   "t": 6,
+   "track": "l1",
+   "cr": true,
+   "text": "WITH CR EVENT TWO"
+  },
+  {
+   "t": 7,
+   "track": "l1",
+   "cr": true,
+   "text": "WITH CR EVENT THREE"
+  },
+  {
+   "t": 8,
+   "track": "l1",
+   "cr": true,
+   "text": "WITH CR EVENT FOUR"
+  }
+ ]
+}

@@ -1,0 +1,17 @@
+{"secs": 14,
+ "tracks": [{"name": "cc1", "gst": {"kind": "608", "mode": "pop-on", "json": true}, "ours": {"cc": "cc1", "mode": "popon"}}],
+ "events": [
+  {"t": 1, "dur": 2, "track": "cc1", "json": {"mode": "PopOn", "lines": [
+      {"row": 11, "column": 4, "chunks": [{"style": "White", "underline": false, "text": "POP ON ROW 11 COL 4"}]},
+      {"row": 12, "column": 0, "chunks": [{"style": "White", "underline": false, "text": "ROW 12 COL 0"}]}]}},
+  {"t": 4, "dur": 2, "track": "cc1", "json": {"mode": "PopOn", "lines": [
+      {"row": 1, "column": 8, "chunks": [{"style": "White", "underline": false, "text": "TOP ROW 1 COL 8"}]}]}},
+  {"t": 7, "dur": 2, "track": "cc1", "json": {"mode": "PaintOn", "lines": [
+      {"row": 14, "column": 0, "chunks": [{"style": "White", "underline": false, "text": "PAINT ON ROW 14"}]}]}},
+  {"t": 10, "track": "cc1", "json": {"mode": "RollUp4", "lines": [
+      {"row": 9, "carriage_return": true, "chunks": [{"style": "White", "underline": false, "text": "RU4 BASE ROW 9 A"}]},
+      {"carriage_return": true, "chunks": [{"style": "White", "underline": false, "text": "RU4 B"}]},
+      {"carriage_return": true, "chunks": [{"style": "Yellow", "underline": true, "text": "RU4 C YELLOW"}]},
+      {"carriage_return": true, "chunks": [{"style": "White", "underline": false, "text": "RU4 D"}]},
+      {"carriage_return": true, "chunks": [{"style": "White", "underline": false, "text": "RU4 E"}]}]}}
+ ]}

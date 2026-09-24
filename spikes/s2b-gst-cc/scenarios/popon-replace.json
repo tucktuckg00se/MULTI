@@ -1,0 +1,1 @@
+{"secs": 12, "tracks": [{"name": "a", "gst": {"kind": "708", "service": 1, "cea608_channel": 1, "mode": "pop-on"}, "ours": {"cc": "cc1", "svc": 1, "mode": "popon"}}], "events": [{"t": 1, "dur": 5, "track": "a", "text": "FIRST FOR FIVE SECONDS"}, {"t": 2, "dur": 2, "track": "a", "text": "REPLACEMENT AT TWO"}]}

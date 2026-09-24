@@ -1,0 +1,121 @@
+# Q1 line control. Scenarios in spikes/s2b-gst-cc/scenarios; decode.sh prints each SRT cue as 'start | row / row / ...'
+# JSON input (tttocea608 caps application/x-json,format=cea608), as tttojson emits it:
+# {"lines":[{"column":0,"row":13,"chunks":[{"style":"White","underline":false,"text":"Hello world"}],"carriage_return":true}],"mode":"RollUp3","clear":false}
+
+## ru3-json.json (tttocea608 JSON, roll-up). 1s one line; 3s two lines each carriage_return=true; 5s carriage_return=false 'APPENDED'; 7s 45-char line; 9s mode RollUp2
+== gst-ffmpeg-first.srt
+00:00:01,033 | <font face="Monospace">{\an7}FIRST LINE EXACT</font>
+00:00:03,033 | <font face="Monospace">{\an7}FIRST LINE EXACT / SECOND LINE</font>
+00:00:03,333 | <font face="Monospace">{\an7}FIRST LINE EXACT / SECOND LINE / THIRD LINE APPENDED</font>
+00:00:07,033 | <font face="Monospace">{\an7}SECOND LINE / THIRD LINE APPENDED / A LONG LINE THAT HAS FORTY FIVE </font>
+00:00:07,667 | <font face="Monospace">{\an7}THIRD LINE APPENDED / A LONG LINE THAT HAS FORTY FIVE  / CHARACTERS IN IT</font>
+== gst-ccx-cc1.srt
+00:00:03,333 | FIRST LINE EXACT                 / SECOND LINE                      / THIRD LINE APPENDED             
+00:00:07,034 | SECOND LINE                      / THIRD LINE APPENDED              / A LONG LINE THAT HAS FORTY FIVE 
+00:00:07,667 | THIRD LINE APPENDED              / A LONG LINE THAT HAS FORTY FIVE  / CHARACTERS IN IT                
+00:00:09,034 | A LONG LINE THAT HAS FORTY FIVE  / CHARACTERS IN IT                 / NOW ROLL UP TWO                 
+== gst-libcaption.srt
+0:00:02,433 | FI
+--
+== ours-ccx-cc1.srt
+00:00:03,466 | FIRST LINE EXACT                 / SECOND LINE                      / THIRD LINE                      
+00:00:05,067 | SECOND LINE                      / THIRD LINE                       / APPENDED                        
+00:00:07,067 | THIRD LINE                       / APPENDED                         / A LONG LINE THAT HAS FORTY FIVE 
+00:00:07,800 | APPENDED                         / A LONG LINE THAT HAS FORTY FIVE  / CHARACTERS IN IT                
+00:00:09,067 | A LONG LINE THAT HAS FORTY FIVE  / CHARACTERS IN IT                 / NOW ROLL UP TWO                 
+== ours-libcaption.srt
+
+## popon-json.json (tttocea608 JSON): pop-on rows 11+12 (col 4, 0), pop-on row 1 col 8, paint-on row 14, RollUp4 base row 9 with a Yellow underlined chunk
+== gst-ffmpeg-first.srt
+00:00:01,700 | <font face="Monospace">{\an7}\h\h\h\hPOP ON ROW 11 COL 4 / ROW 12 COL 0</font>
+00:00:04,400 | <font face="Monospace">{\an7}TOP ROW 1 COL 8</font>
+00:00:06,033 | <font face="Monospace">{\an7}PAINT ON ROW 14</font>
+00:00:10,033 | <font face="Monospace">{\an7}RU4 BASE ROW 9 A / PAINT ON ROW 14</font>
+00:00:10,400 | <font face="Monospace">{\an7}RU4 BASE ROW 9 A / RU4 B</font>
+00:00:10,600 | <font face="Monospace">{\an7}RU4 BASE ROW 9 A / RU4 B / <u><font color="#ffff00">RU4 C YELLOW</font></u></font>
+00:00:10,900 | <font face="Monospace">{\an7}RU4 BASE ROW 9 A / RU4 B / <u><font color="#ffff00">RU4 C YELLOW / </font></u><font color="#ffffff">RU4 D</font></font>
+== gst-ccx-cc1.srt
+00:00:01,700 |     POP ON ROW 11 COL 4          / ROW 12 COL 0                    
+00:00:04,400 |         TOP ROW 1 COL 8         
+00:00:07,166 | PAINT ON ROW 14                 
+00:00:10,899 | RU4 BASE ROW 9 A                 / RU4 B                            / <font color="#ffff00"><u>RU4 C YELLOW</u></font>                     / RU4 D                           
+00:00:11,100 | RU4 B                            / <font color="#ffff00"><u>RU4 C YELLOW</u></font>                     / RU4 D                            / RU4 E                           
+== gst-libcaption.srt
+0:00:01,433 | 
+-- 608 control codes sent by tttocea608 (pac.py on gst-cc.txt; JSON rows are 0-based, 608 rows 1-based). Each control code is sent once, not doubled.
+31 RCL
+32 ENM
+33 PAC row 12 indent 4
+44 PAC row 13 indent 0
+51 EOC
+121 RCL
+122 ENM
+123 PAC row 2 indent 8
+132 EOC
+212 RDC
+213 PAC row 15 indent 0
+214 DER
+301 CR
+302 RU4
+303 PAC row 10 indent 0
+312 CR
+313 RU4
+314 PAC row 10 indent 0
+318 CR
+319 RU4
+320 PAC row 10
+327 CR
+328 RU4
+329 PAC row 10 indent 0
+333 CR
+334 RU4
+335 PAC row 10 indent 0
+-- idle frames in pop-on mode carry EDM: 61 EDMs in 14 s (a GAP each idle frame re-arms erase_display_frame_no)
+
+## 708-lines.json (tttocea708 svc1 + CC1, roll-up-rows 3, rows re-set after PLAYING). 1s,2s plain buffers; 3s 'NEWLINE A\nNEWLINE B'; 5-8s each buffer preceded by rstranscribe/final-transcript
+== gst-ccx-cc1.srt
+00:00:05,033 | PLAIN TEXT ONE PLAIN TEXT TWO    / NEWLINE A NEWLINE B              / WITH CR EVENT ONE               
+00:00:06,034 | NEWLINE A NEWLINE B              / WITH CR EVENT ONE                / WITH CR EVENT TWO               
+00:00:07,034 | WITH CR EVENT ONE                / WITH CR EVENT TWO                / WITH CR EVENT THREE             
+00:00:08,034 | WITH CR EVENT TWO                / WITH CR EVENT THREE              / WITH CR EVENT FOUR              
+== gst-ccx-708.p1.svc01.srt
+00:00:00,001 |  PLAIN TEXT ONE PLAIN TEXT TWO
+00:00:03,000 |  PLAIN TEXT ONE PLAIN TEXT TWO / NEWLINE A NEWLINE B
+00:00:05,000 |  PLAIN TEXT ONE PLAIN TEXT TWO / NEWLINE A NEWLINE B / WITH CR EVENT ONE
+00:00:06,000 | NEWLINE A NEWLINE B / WITH CR EVENT ONE / WITH CR EVENT TWO
+00:00:07,000 | WITH CR EVENT ONE / WITH CR EVENT TWO / WITH CR EVENT THREE
+00:00:08,000 | WITH CR EVENT TWO / WITH CR EVENT THREE / WITH CR EVENT FOUR
+--
+== ours-ccx-708.p1.svc01.srt
+00:00:02,000 | PLAIN TEXT ONE / PLAIN TEXT TWO
+00:00:03,000 | PLAIN TEXT ONE / PLAIN TEXT TWO / NEWLINE A
+00:00:03,000 | PLAIN TEXT TWO / NEWLINE A / NEWLINE B
+00:00:05,000 | NEWLINE A / NEWLINE B / WITH CR EVENT ONE
+00:00:06,000 | NEWLINE B / WITH CR EVENT ONE / WITH CR EVENT TWO
+00:00:07,000 | WITH CR EVENT ONE / WITH CR EVENT TWO / WITH CR EVENT THREE
+00:00:08,000 | WITH CR EVENT TWO / WITH CR EVENT THREE / WITH CR EVENT FOUR
+-- same file with roll-up-rows 4: service 1
+== gst-ccx-708.p1.svc01.srt
+00:00:00,001 |  PLAIN TEXT ONE PLAIN TEXT TWO
+00:00:03,000 |  PLAIN TEXT ONE PLAIN TEXT TWO / NEWLINE A NEWLINE B
+00:00:05,000 |  PLAIN TEXT ONE PLAIN TEXT TWO / NEWLINE A NEWLINE B / WITH CR EVENT ONE
+00:00:06,000 |  PLAIN TEXT ONE PLAIN TEXT TWO / NEWLINE A NEWLINE B / WITH CR EVENT ONE / WITH CR EVENT TWO
+00:00:07,000 | NEWLINE A NEWLINE B / WITH CR EVENT ONE / WITH CR EVENT TWO / WITH CR EVENT THREE
+00:00:08,000 | WITH CR EVENT ONE / WITH CR EVENT TWO / WITH CR EVENT THREE / WITH CR EVENT FOUR
+-- GStreamer's own renderer (openh264dec ! cea708overlay service=1) at 6.5 s and 8.5 s, rows=3 before the workaround: 2 rows shown for gst, 3 for ours (checked visually, PNGs not kept)
+
+## 708-popon.json (tttocea708 pop-on, '\n' separates rows, 2 s buffers)
+== gst-ccx-cc1.srt
+00:00:01,700 | POP ON LINE ONE                  / POP ON LINE TWO                 
+00:00:04,367 | SECOND CAPTION                  
+00:00:07,667 | A POP ON LINE THAT IS LONGER THA
+== gst-ccx-708.p1.svc01.srt
+00:00:00,001 | POP ON LINE ONE /  POP ON LINE TWO
+00:00:03,999 | SECOND CAPTION
+00:00:07,034 | A POP ON LINE THAT IS LONGER THA
+--
+== ours-ccx-cc1.srt
+00:00:01,800 | POP ON LINE ONE                  / POP ON LINE TWO                 
+00:00:04,434 | SECOND CAPTION                  
+00:00:08,000 | A POP ON LINE THAT IS LONGER     / THAN THIRTY TWO                 
+== ours-ccx-708.p1.svc01.srt

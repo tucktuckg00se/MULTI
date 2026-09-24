@@ -1,0 +1,19 @@
+# Q5 bursts. burst2.json: 2 lanes (tttocea708 svc1+CC1, svc2+CC3 via cea708mux) vs CcMux (CC1+svc1, CC3+svc2);
+# 90 lines of 32 chars per lane at 3 lines/s for 30 s (96 chars/s per lane), then 70 s idle. burst608.json: tttocea608 JSON alone, lane A only.
+# lag = first cue showing the complete line - push time (ccextractor/libcaption SRT)
+-- burst2
+gst-ccx-708.p1.svc01.srt lane A: 90/90 lines exact; lag p50 0.07 s, max 0.07 s; last line on air at 30.7 s; missing 0
+gst-ccx-708.p1.svc02.srt lane B: 90/90 lines exact; lag p50 0.07 s, max 0.07 s; last line on air at 30.7 s; missing 0
+gst-ccx-cc1.srt lane A: 90/90 lines exact; lag p50 11.90 s, max 23.77 s; last line on air at 54.4 s; missing 0
+gst-ccx-cc3.srt lane B: 90/90 lines exact; lag p50 11.90 s, max 23.77 s; last line on air at 54.4 s; missing 0
+gst-libcaption.srt lane A: 90/90 lines exact; lag p50 13.87 s, max 25.73 s; last line on air at 56.4 s; missing 0
+ours-ccx-708.p1.svc01.srt lane A: 90/90 lines exact; lag p50 0.00 s, max 0.33 s; last line on air at 30.7 s; missing 0
+ours-ccx-708.p1.svc02.srt lane B: 90/90 lines exact; lag p50 0.00 s, max 0.33 s; last line on air at 30.7 s; missing 0
+ours-ccx-cc1.srt lane A: 81/90 lines exact; lag p50 14.47 s, max 29.13 s; last line on air at 59.8 s; missing 9 (first [38, 39, 40, 41, 42, 43])
+ours-ccx-cc3.srt lane B: 81/90 lines exact; lag p50 14.47 s, max 29.13 s; last line on air at 59.8 s; missing 9 (first [38, 39, 40, 41, 42, 43])
+ours-libcaption.srt lane A: 81/90 lines exact; lag p50 16.47 s, max 31.13 s; last line on air at 61.8 s; missing 9 (first [38, 39, 40, 41, 42, 43])
+-- burst608
+gst-ccx-cc1.srt lane A: 90/90 lines exact; lag p50 11.90 s, max 23.77 s; last line on air at 54.4 s; missing 0
+gst-libcaption.srt lane A: 90/90 lines exact; lag p50 13.87 s, max 25.73 s; last line on air at 56.4 s; missing 0
+ours-ccx-cc1.srt lane A: 81/90 lines exact; lag p50 14.47 s, max 29.13 s; last line on air at 59.8 s; missing 9 (first [38, 39, 40, 41, 42, 43])
+ours-libcaption.srt lane A: 81/90 lines exact; lag p50 16.47 s, max 31.13 s; last line on air at 61.8 s; missing 9 (first [38, 39, 40, 41, 42, 43])
