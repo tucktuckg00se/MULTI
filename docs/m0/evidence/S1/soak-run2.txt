@@ -1,0 +1,90 @@
+# Soak run 2 (final code, commit e8b3d15 + comment fix; input fifo_size=50000), 3600 s, H.264 720p30, UDP in -> udp:9123 + srt:9124 + udp:9126.
+# Black-box via harness 'latency tap/report --skip 10'. SRT out goes through srt-live-transmit (latency 120 ms) back to UDP; bridge alone = 125 ms p50.
+2026-09-24T02:48:15.183410Z  INFO status session=1 read=129400 frames=108168 sei=108168 sei_skip=0 corrupt=0 rss_kib=40624 outputs=["udp://127.0.0.1:9123?pkt_size=1316: written=129400 dropped_full=0 connects=1", "srt://127.0.0.1:9124?mode=listener&latency=120000&pkt_size=1316: written=129400 dropped_full=0 connects=1", "udp://127.0.0.1:9126?pkt_size=1316: written=129400 dropped_full=0 connects=1"]
+WARN lines: 0
+out0.csv: pass-through ms n=108138 p50=0.07 p95=0.12 p99=0.14 max=0.28 min=0.02
+## UDP out
+frames: in=108167 out=108167 matched=107850 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 0 ticks (0.000 ms), 108167/108167 content-matched frames agree
+delay ms: p50=33.471 p95=33.881 p99=34.067 max=34.781 mean=33.476 min=32.287
+jitter ms: stddev=0.241 mean|successive diff|=0.317  drift=-0.000 ms/min
+## SRT out
+frames: in=108167 out=108166 matched=107849 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 0 ticks (0.000 ms), 108166/108166 content-matched frames agree
+delay ms: p50=153.582 p95=153.992 p99=154.177 max=154.944 mean=153.586 min=152.360
+jitter ms: stddev=0.242 mean|successive diff|=0.317  drift=-0.000 ms/min
+verify.sh on udp:9126 at ~59 min: PASS: all expected lines present
+## pipe delay by 10-min block (out0.csv)
+min 0-10: mean 0.071 ms max 0.694 ms n=18021
+min 10-20: mean 0.066 ms max 0.252 ms n=18000
+min 20-30: mean 0.069 ms max 0.255 ms n=18000
+min 30-40: mean 0.068 ms max 0.231 ms n=18000
+min 40-50: mean 0.067 ms max 0.247 ms n=18000
+min 50-60: mean 0.067 ms max 0.235 ms n=18000
+min 60-70: mean 0.063 ms max 0.143 ms n=147
+## RSS (t_s,rss_kib,threads,fds), every 60 s
+t_s,rss_kib,threads,fds
+0,32064,8,11
+60,50064,8,11
+120,50048,8,11
+180,50048,8,11
+240,50048,8,11
+300,50048,8,11
+360,50048,8,11
+420,50048,8,11
+480,50048,8,11
+540,50048,8,11
+600,50048,8,11
+661,50048,8,11
+721,50048,8,11
+781,50048,8,11
+841,50048,8,11
+901,50048,8,11
+961,50048,8,11
+1021,50048,8,11
+1081,50048,8,11
+1141,50048,8,11
+1201,50048,8,11
+1261,50048,8,11
+1321,50048,8,11
+1381,50048,8,11
+1441,50048,8,11
+1501,50048,8,11
+1561,50048,8,11
+1621,50048,8,11
+1681,50036,8,11
+1741,50036,8,11
+1801,50036,8,11
+1861,50036,8,11
+1921,50036,8,11
+1981,50036,8,11
+2041,50036,8,11
+2101,50036,8,11
+2162,50036,8,11
+2222,50036,8,11
+2282,50036,8,11
+2342,50036,8,11
+2402,50036,8,11
+2462,50036,8,11
+2522,50036,8,11
+2582,50036,8,11
+2642,50036,8,11
+2702,50036,8,11
+2762,50036,8,11
+2822,50036,8,11
+2882,50036,8,11
+2942,50036,8,11
+3002,50036,8,11
+3062,50036,8,11
+3122,50036,8,11
+3182,50036,8,11
+3242,50036,8,11
+3302,50036,8,11
+3362,50036,8,11
+3422,50036,8,11
+3482,50036,8,11
+3542,50036,8,11
+3602,50036,8,11
+3602,50036,8,11
