@@ -1,0 +1,1117 @@
+{
+"secs": 100,
+"tracks": [
+{
+"name": "a",
+"gst": {
+"kind": "708",
+"service": 1,
+"cea608_channel": 1,
+"mode": "roll-up",
+"roll_up_rows": 3
+},
+"ours": {
+"cc": "cc1",
+"svc": 1,
+"mode": "ru3"
+}
+},
+{
+"name": "b",
+"gst": {
+"kind": "708",
+"service": 2,
+"cea608_channel": 3,
+"mode": "roll-up",
+"roll_up_rows": 3
+},
+"ours": {
+"cc": "cc3",
+"svc": 2,
+"mode": "ru3"
+}
+}
+],
+"events": [
+{
+"t": 1.0,
+"track": "a",
+"text": "A00 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 1.333,
+"track": "a",
+"text": "A01 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 1.667,
+"track": "a",
+"text": "A02 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 2.0,
+"track": "a",
+"text": "A03 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 2.333,
+"track": "a",
+"text": "A04 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 2.667,
+"track": "a",
+"text": "A05 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 3.0,
+"track": "a",
+"text": "A06 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 3.333,
+"track": "a",
+"text": "A07 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 3.667,
+"track": "a",
+"text": "A08 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 4.0,
+"track": "a",
+"text": "A09 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 4.333,
+"track": "a",
+"text": "A10 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 4.667,
+"track": "a",
+"text": "A11 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 5.0,
+"track": "a",
+"text": "A12 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 5.333,
+"track": "a",
+"text": "A13 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 5.667,
+"track": "a",
+"text": "A14 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 6.0,
+"track": "a",
+"text": "A15 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 6.333,
+"track": "a",
+"text": "A16 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 6.667,
+"track": "a",
+"text": "A17 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 7.0,
+"track": "a",
+"text": "A18 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 7.333,
+"track": "a",
+"text": "A19 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 7.667,
+"track": "a",
+"text": "A20 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 8.0,
+"track": "a",
+"text": "A21 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 8.333,
+"track": "a",
+"text": "A22 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 8.667,
+"track": "a",
+"text": "A23 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 9.0,
+"track": "a",
+"text": "A24 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 9.333,
+"track": "a",
+"text": "A25 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 9.667,
+"track": "a",
+"text": "A26 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 10.0,
+"track": "a",
+"text": "A27 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 10.333,
+"track": "a",
+"text": "A28 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 10.667,
+"track": "a",
+"text": "A29 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 11.0,
+"track": "a",
+"text": "A30 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 11.333,
+"track": "a",
+"text": "A31 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 11.667,
+"track": "a",
+"text": "A32 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 12.0,
+"track": "a",
+"text": "A33 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 12.333,
+"track": "a",
+"text": "A34 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 12.667,
+"track": "a",
+"text": "A35 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 13.0,
+"track": "a",
+"text": "A36 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 13.333,
+"track": "a",
+"text": "A37 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 13.667,
+"track": "a",
+"text": "A38 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 14.0,
+"track": "a",
+"text": "A39 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 14.333,
+"track": "a",
+"text": "A40 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 14.667,
+"track": "a",
+"text": "A41 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 15.0,
+"track": "a",
+"text": "A42 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 15.333,
+"track": "a",
+"text": "A43 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 15.667,
+"track": "a",
+"text": "A44 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 16.0,
+"track": "a",
+"text": "A45 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 16.333,
+"track": "a",
+"text": "A46 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 16.667,
+"track": "a",
+"text": "A47 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 17.0,
+"track": "a",
+"text": "A48 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 17.333,
+"track": "a",
+"text": "A49 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 17.667,
+"track": "a",
+"text": "A50 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 18.0,
+"track": "a",
+"text": "A51 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 18.333,
+"track": "a",
+"text": "A52 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 18.667,
+"track": "a",
+"text": "A53 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 19.0,
+"track": "a",
+"text": "A54 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 19.333,
+"track": "a",
+"text": "A55 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 19.667,
+"track": "a",
+"text": "A56 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 20.0,
+"track": "a",
+"text": "A57 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 20.333,
+"track": "a",
+"text": "A58 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 20.667,
+"track": "a",
+"text": "A59 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 21.0,
+"track": "a",
+"text": "A60 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 21.333,
+"track": "a",
+"text": "A61 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 21.667,
+"track": "a",
+"text": "A62 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 22.0,
+"track": "a",
+"text": "A63 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 22.333,
+"track": "a",
+"text": "A64 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 22.667,
+"track": "a",
+"text": "A65 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 23.0,
+"track": "a",
+"text": "A66 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 23.333,
+"track": "a",
+"text": "A67 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 23.667,
+"track": "a",
+"text": "A68 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 24.0,
+"track": "a",
+"text": "A69 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 24.333,
+"track": "a",
+"text": "A70 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 24.667,
+"track": "a",
+"text": "A71 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 25.0,
+"track": "a",
+"text": "A72 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 25.333,
+"track": "a",
+"text": "A73 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 25.667,
+"track": "a",
+"text": "A74 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 26.0,
+"track": "a",
+"text": "A75 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 26.333,
+"track": "a",
+"text": "A76 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 26.667,
+"track": "a",
+"text": "A77 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 27.0,
+"track": "a",
+"text": "A78 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 27.333,
+"track": "a",
+"text": "A79 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 27.667,
+"track": "a",
+"text": "A80 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 28.0,
+"track": "a",
+"text": "A81 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 28.333,
+"track": "a",
+"text": "A82 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 28.667,
+"track": "a",
+"text": "A83 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 29.0,
+"track": "a",
+"text": "A84 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 29.333,
+"track": "a",
+"text": "A85 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 29.667,
+"track": "a",
+"text": "A86 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 30.0,
+"track": "a",
+"text": "A87 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 30.333,
+"track": "a",
+"text": "A88 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 30.667,
+"track": "a",
+"text": "A89 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 1.0,
+"track": "b",
+"text": "B00 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 1.333,
+"track": "b",
+"text": "B01 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 1.667,
+"track": "b",
+"text": "B02 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 2.0,
+"track": "b",
+"text": "B03 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 2.333,
+"track": "b",
+"text": "B04 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 2.667,
+"track": "b",
+"text": "B05 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 3.0,
+"track": "b",
+"text": "B06 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 3.333,
+"track": "b",
+"text": "B07 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 3.667,
+"track": "b",
+"text": "B08 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 4.0,
+"track": "b",
+"text": "B09 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 4.333,
+"track": "b",
+"text": "B10 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 4.667,
+"track": "b",
+"text": "B11 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 5.0,
+"track": "b",
+"text": "B12 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 5.333,
+"track": "b",
+"text": "B13 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 5.667,
+"track": "b",
+"text": "B14 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 6.0,
+"track": "b",
+"text": "B15 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 6.333,
+"track": "b",
+"text": "B16 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 6.667,
+"track": "b",
+"text": "B17 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 7.0,
+"track": "b",
+"text": "B18 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 7.333,
+"track": "b",
+"text": "B19 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 7.667,
+"track": "b",
+"text": "B20 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 8.0,
+"track": "b",
+"text": "B21 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 8.333,
+"track": "b",
+"text": "B22 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 8.667,
+"track": "b",
+"text": "B23 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 9.0,
+"track": "b",
+"text": "B24 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 9.333,
+"track": "b",
+"text": "B25 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 9.667,
+"track": "b",
+"text": "B26 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 10.0,
+"track": "b",
+"text": "B27 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 10.333,
+"track": "b",
+"text": "B28 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 10.667,
+"track": "b",
+"text": "B29 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 11.0,
+"track": "b",
+"text": "B30 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 11.333,
+"track": "b",
+"text": "B31 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 11.667,
+"track": "b",
+"text": "B32 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 12.0,
+"track": "b",
+"text": "B33 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 12.333,
+"track": "b",
+"text": "B34 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 12.667,
+"track": "b",
+"text": "B35 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 13.0,
+"track": "b",
+"text": "B36 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 13.333,
+"track": "b",
+"text": "B37 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 13.667,
+"track": "b",
+"text": "B38 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 14.0,
+"track": "b",
+"text": "B39 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 14.333,
+"track": "b",
+"text": "B40 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 14.667,
+"track": "b",
+"text": "B41 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 15.0,
+"track": "b",
+"text": "B42 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 15.333,
+"track": "b",
+"text": "B43 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 15.667,
+"track": "b",
+"text": "B44 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 16.0,
+"track": "b",
+"text": "B45 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 16.333,
+"track": "b",
+"text": "B46 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 16.667,
+"track": "b",
+"text": "B47 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 17.0,
+"track": "b",
+"text": "B48 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 17.333,
+"track": "b",
+"text": "B49 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 17.667,
+"track": "b",
+"text": "B50 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 18.0,
+"track": "b",
+"text": "B51 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 18.333,
+"track": "b",
+"text": "B52 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 18.667,
+"track": "b",
+"text": "B53 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 19.0,
+"track": "b",
+"text": "B54 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 19.333,
+"track": "b",
+"text": "B55 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 19.667,
+"track": "b",
+"text": "B56 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 20.0,
+"track": "b",
+"text": "B57 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 20.333,
+"track": "b",
+"text": "B58 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 20.667,
+"track": "b",
+"text": "B59 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 21.0,
+"track": "b",
+"text": "B60 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 21.333,
+"track": "b",
+"text": "B61 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 21.667,
+"track": "b",
+"text": "B62 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 22.0,
+"track": "b",
+"text": "B63 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 22.333,
+"track": "b",
+"text": "B64 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 22.667,
+"track": "b",
+"text": "B65 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 23.0,
+"track": "b",
+"text": "B66 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 23.333,
+"track": "b",
+"text": "B67 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 23.667,
+"track": "b",
+"text": "B68 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 24.0,
+"track": "b",
+"text": "B69 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 24.333,
+"track": "b",
+"text": "B70 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 24.667,
+"track": "b",
+"text": "B71 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 25.0,
+"track": "b",
+"text": "B72 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 25.333,
+"track": "b",
+"text": "B73 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 25.667,
+"track": "b",
+"text": "B74 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 26.0,
+"track": "b",
+"text": "B75 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 26.333,
+"track": "b",
+"text": "B76 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 26.667,
+"track": "b",
+"text": "B77 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 27.0,
+"track": "b",
+"text": "B78 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 27.333,
+"track": "b",
+"text": "B79 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 27.667,
+"track": "b",
+"text": "B80 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 28.0,
+"track": "b",
+"text": "B81 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 28.333,
+"track": "b",
+"text": "B82 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 28.667,
+"track": "b",
+"text": "B83 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 29.0,
+"track": "b",
+"text": "B84 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 29.333,
+"track": "b",
+"text": "B85 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 29.667,
+"track": "b",
+"text": "B86 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 30.0,
+"track": "b",
+"text": "B87 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 30.333,
+"track": "b",
+"text": "B88 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+},
+{
+"t": 30.667,
+"track": "b",
+"text": "B89 QUICK BROWN FOX JUMPS OVER",
+"cr": true
+}
+]
+}

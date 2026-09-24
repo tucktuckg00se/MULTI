@@ -1,0 +1,186 @@
+{
+ "secs": 22,
+ "tracks": [
+  {
+   "name": "a",
+   "gst": {
+    "kind": "608",
+    "mode": "roll-up3",
+    "json": true
+   }
+  }
+ ],
+ "events": [
+  {
+   "t": 1,
+   "track": "a",
+   "json": {
+    "mode": "RollUp3",
+    "lines": [
+     {
+      "carriage_return": true,
+      "chunks": [
+       {
+        "style": "White",
+        "underline": false,
+        "text": "ES ¿Qué tal? ¡Señor Núñez! ü"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "t": 3,
+   "track": "a",
+   "json": {
+    "mode": "RollUp3",
+    "lines": [
+     {
+      "carriage_return": true,
+      "chunks": [
+       {
+        "style": "White",
+        "underline": false,
+        "text": "ES áéíóú ÁÉÍÓÚ Ññ"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "t": 5,
+   "track": "a",
+   "json": {
+    "mode": "RollUp3",
+    "lines": [
+     {
+      "carriage_return": true,
+      "chunks": [
+       {
+        "style": "White",
+        "underline": false,
+        "text": "FR àâçèéêëîïôùû ÀÂÇÈÉÊË"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "t": 7,
+   "track": "a",
+   "json": {
+    "mode": "RollUp3",
+    "lines": [
+     {
+      "carriage_return": true,
+      "chunks": [
+       {
+        "style": "White",
+        "underline": false,
+        "text": "FR ÎÏÔÙÛÜ œ « »"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "t": 9,
+   "track": "a",
+   "json": {
+    "mode": "RollUp3",
+    "lines": [
+     {
+      "carriage_return": true,
+      "chunks": [
+       {
+        "style": "White",
+        "underline": false,
+        "text": "DE Ä Ö Ü ä ö ü ß"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "t": 11,
+   "track": "a",
+   "json": {
+    "mode": "RollUp3",
+    "lines": [
+     {
+      "carriage_return": true,
+      "chunks": [
+       {
+        "style": "White",
+        "underline": false,
+        "text": "PT ã õ Ã Õ ç Ç à À"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "t": 13,
+   "track": "a",
+   "json": {
+    "mode": "RollUp3",
+    "lines": [
+     {
+      "carriage_return": true,
+      "chunks": [
+       {
+        "style": "White",
+        "underline": false,
+        "text": "ASCII * _ ~ | { } \\ ^ `"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "t": 15,
+   "track": "a",
+   "json": {
+    "mode": "RollUp3",
+    "lines": [
+     {
+      "carriage_return": true,
+      "chunks": [
+       {
+        "style": "White",
+        "underline": false,
+        "text": "èè ÉÉ ññ ** __ ~~ ||"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "t": 17,
+   "track": "a",
+   "json": {
+    "mode": "RollUp3",
+    "lines": [
+     {
+      "carriage_return": true,
+      "chunks": [
+       {
+        "style": "White",
+        "underline": false,
+        "text": "SYM © ® ™ ♪ ½ … € ¢ £"
+       }
+      ]
+     }
+    ]
+   }
+  }
+ ]
+}

@@ -1,0 +1,148 @@
+# Q4 characters: scenarios/chars.json (tttocea708 svc1 + CC1 compat, CR event per line) vs cc::CcMux (CC1 + svc1)
+# expected lines: scenarios/chars-expected.txt; 'ok' = row decoded exactly
+== gst-ccx-708.p1.svc01.srt: 7/9 exact
+  ok   ES ¿Qué tal? ¡Señor Núñez! ü
+  ok   ES áéíóú ÁÉÍÓÚ Ññ
+  ok   FR àâçèéêëîïôùû ÀÂÇÈÉÊË
+  DIFF 'FR ÎÏÔÙÛÜ œ « »'
+       got 'FR ÎÏÔÙÛÜ \x1c « »'
+  ok   DE Ä Ö Ü ä ö ü ß
+  ok   PT ã õ Ã Õ ç Ç à À
+  ok   ASCII * _ ~ | { } \ ^ `
+  ok   èè ÉÉ ññ ** __ ~~ ||
+  DIFF 'SYM © ® ™ ♪ ½ … € ¢ £'
+       got 'SYM ©   \x19 &l ½ \x05   ¢ £'
+== gst-ccx-cc1.srt: 5/9 exact
+  ok   ES ¿Qué tal? ¡Señor Núñez! ü
+  ok   ES áéíóú ÁÉÍÓÚ Ññ
+  ok   FR àâçèéêëîïôùû ÀÂÇÈÉÊË
+  DIFF 'FR ÎÏÔÙÛÜ œ « »'
+       got 'FR ÎÏÔÙÛÜ   « »'
+  ok   DE Ä Ö Ü ä ö ü ß
+  ok   PT ã õ Ã Õ ç Ç à À
+  DIFF 'ASCII * _ ~ | { } \\ ^ `'
+       got 'ASCII * _ ~ ¦ { } \\ ^'
+  DIFF 'èè ÉÉ ññ ** __ ~~ ||'
+       got 'èè ÉÉ ññ ** __ ~~ ¦¦'
+  DIFF 'SYM © ® ™ ♪ ½ … € ¢ £'
+       got 'SYM     ™ ♪ ½     ¢ £'
+== gst-ffmpeg-first.srt: 6/9 exact
+  ok   ES ¿Qué tal? ¡Señor Núñez! ü
+  ok   ES áéíóú ÁÉÍÓÚ Ññ
+  ok   FR àâçèéêëîïôùû ÀÂÇÈÉÊË
+  DIFF 'FR ÎÏÔÙÛÜ œ « »'
+       got 'FR ÎÏÔÙÛÜ   « »'
+  ok   DE Ä Ö Ü ä ö ü ß
+  ok   PT ã õ Ã Õ ç Ç à À
+  DIFF 'ASCII * _ ~ | { } \\ ^ `'
+       got 'ASCII * _ ~ | { } \\ ^'
+  ok   èè ÉÉ ññ ** __ ~~ ||
+  DIFF 'SYM © ® ™ ♪ ½ … € ¢ £'
+       got 'ASCII * _ ~ | { } \\ ^'
+== gst-libcaption.srt: 6/9 exact
+  ok   ES ¿Qué tal? ¡Señor Núñez! ü
+  ok   ES áéíóú ÁÉÍÓÚ Ññ
+  ok   FR àâçèéêëîïôùû ÀÂÇÈÉÊË
+  DIFF 'FR ÎÏÔÙÛÜ œ « »'
+       got 'FR ÎÏÔÙÛÜ   « »'
+  ok   DE Ä Ö Ü ä ö ü ß
+  ok   PT ã õ Ã Õ ç Ç à À
+  DIFF 'ASCII * _ ~ | { } \\ ^ `'
+       got 'ASCII * _ ~ | { } \\ ^'
+  ok   èè ÉÉ ññ ** __ ~~ ||
+  DIFF 'SYM © ® ™ ♪ ½ … € ¢ £'
+       got 'SYM     ™ ♪ ½     ¢ £'
+== ours-ccx-708.p1.svc01.srt: 7/9 exact
+  ok   ES ¿Qué tal? ¡Señor Núñez! ü
+  ok   ES áéíóú ÁÉÍÓÚ Ññ
+  ok   FR àâçèéêëîïôùû ÀÂÇÈÉÊË
+  DIFF 'FR ÎÏÔÙÛÜ œ « »'
+       got 'FR ÎÏÔÙÛÜ \x1c « »'
+  ok   DE Ä Ö Ü ä ö ü ß
+  ok   PT ã õ Ã Õ ç Ç à À
+  ok   ASCII * _ ~ | { } \ ^ `
+  ok   èè ÉÉ ññ ** __ ~~ ||
+  DIFF 'SYM © ® ™ ♪ ½ … € ¢ £'
+       got 'SYM © ® \x19 &l ½ \x05 EUR ¢ £'
+== ours-ccx-cc1.srt: 5/9 exact
+  ok   ES ¿Qué tal? ¡Señor Núñez! ü
+  ok   ES áéíóú ÁÉÍÓÚ Ññ
+  ok   FR àâçèéêëîïôùû ÀÂÇÈÉÊË
+  DIFF 'FR ÎÏÔÙÛÜ œ « »'
+       got 'FR ÎÏÔÙÛÜ oe « »'
+  ok   DE Ä Ö Ü ä ö ü ß
+  ok   PT ã õ Ã Õ ç Ç à À
+  DIFF 'ASCII * _ ~ | { } \\ ^ `'
+       got "ASCII * _ ~ ¦ { } \\ ^ '"
+  DIFF 'èè ÉÉ ññ ** __ ~~ ||'
+       got 'èè ÉÉ ññ ** __ ~~ ¦¦'
+  DIFF 'SYM © ® ™ ♪ ½ … € ¢ £'
+       got 'SYM © ® ™ ♪ ½ ... EUR ¢ £'
+== ours-ffmpeg-first.srt: 6/9 exact
+  ok   ES ¿Qué tal? ¡Señor Núñez! ü
+  ok   ES áéíóú ÁÉÍÓÚ Ññ
+  ok   FR àâçèéêëîïôùû ÀÂÇÈÉÊË
+  DIFF 'FR ÎÏÔÙÛÜ œ « »'
+       got 'FR ÎÏÔÙÛÜ oe « »'
+  ok   DE Ä Ö Ü ä ö ü ß
+  ok   PT ã õ Ã Õ ç Ç à À
+  DIFF 'ASCII * _ ~ | { } \\ ^ `'
+       got 'ASCII * _ ~ | { } \\ ^ ’'
+  ok   èè ÉÉ ññ ** __ ~~ ||
+  DIFF 'SYM © ® ™ ♪ ½ … € ¢ £'
+       got 'ASCII * _ ~ | { } \\ ^ ’'
+== ours-libcaption.srt: 6/9 exact
+  ok   ES ¿Qué tal? ¡Señor Núñez! ü
+  ok   ES áéíóú ÁÉÍÓÚ Ññ
+  ok   FR àâçèéêëîïôùû ÀÂÇÈÉÊË
+  DIFF 'FR ÎÏÔÙÛÜ œ « »'
+       got 'FR ÎÏÔÙÛÜ oe « »'
+  ok   DE Ä Ö Ü ä ö ü ß
+  ok   PT ã õ Ã Õ ç Ç à À
+  DIFF 'ASCII * _ ~ | { } \\ ^ `'
+       got 'ASCII * _ ~ | { } \\ ^ ’'
+  ok   èè ÉÉ ññ ** __ ~~ ||
+  DIFF 'SYM © ® ™ ♪ ½ … € ¢ £'
+       got 'SYM © ® ™ ♪ ½ ... EUR ¢ £'
+
+# chars608.json: tttocea608 JSON input, same lines
+== gst-ccx-cc1.srt: 5/9 exact
+  ok   ES ¿Qué tal? ¡Señor Núñez! ü
+  ok   ES áéíóú ÁÉÍÓÚ Ññ
+  ok   FR àâçèéêëîïôùû ÀÂÇÈÉÊË
+  DIFF 'FR ÎÏÔÙÛÜ œ « »'
+       got 'FR ÎÏÔÙÛÜ   « »'
+  ok   DE Ä Ö Ü ä ö ü ß
+  ok   PT ã õ Ã Õ ç Ç à À
+  DIFF 'ASCII * _ ~ | { } \\ ^ `'
+       got 'ASCII * _ ~ ¦ { } \\ ^'
+  DIFF 'èè ÉÉ ññ ** __ ~~ ||'
+       got 'èè ÉÉ ññ ** __ ~~ ¦¦'
+  DIFF 'SYM © ® ™ ♪ ½ … € ¢ £'
+       got 'SYM     ™ ♪ ½     ¢ £'
+== gst-ffmpeg-first.srt: 6/9 exact
+  ok   ES ¿Qué tal? ¡Señor Núñez! ü
+  ok   ES áéíóú ÁÉÍÓÚ Ññ
+  ok   FR àâçèéêëîïôùû ÀÂÇÈÉÊË
+  DIFF 'FR ÎÏÔÙÛÜ œ « »'
+       got 'FR ÎÏÔÙÛÜ   « »'
+  ok   DE Ä Ö Ü ä ö ü ß
+  ok   PT ã õ Ã Õ ç Ç à À
+  DIFF 'ASCII * _ ~ | { } \\ ^ `'
+       got 'ASCII * _ ~ | { } \\ ^'
+  ok   èè ÉÉ ññ ** __ ~~ ||
+  DIFF 'SYM © ® ™ ♪ ½ … € ¢ £'
+       got 'ASCII * _ ~ | { } \\ ^'
+== gst-libcaption.srt: 6/9 exact
+  ok   ES ¿Qué tal? ¡Señor Núñez! ü
+  ok   ES áéíóú ÁÉÍÓÚ Ññ
+  ok   FR àâçèéêëîïôùû ÀÂÇÈÉÊË
+  DIFF 'FR ÎÏÔÙÛÜ œ « »'
+       got 'FR ÎÏÔÙÛÜ   « »'
+  ok   DE Ä Ö Ü ä ö ü ß
+  ok   PT ã õ Ã Õ ç Ç à À
+  DIFF 'ASCII * _ ~ | { } \\ ^ `'
+       got 'ASCII * _ ~ | { } \\ ^'
+  ok   èè ÉÉ ññ ** __ ~~ ||
+  DIFF 'SYM © ® ™ ♪ ½ … € ¢ £'
+       got 'SYM     ™ ♪ ½     ¢ £'

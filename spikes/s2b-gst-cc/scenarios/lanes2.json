@@ -1,0 +1,61 @@
+{
+ "secs": 10,
+ "tracks": [
+  {
+   "name": "a",
+   "gst": {
+    "kind": "708",
+    "service": 1,
+    "cea608_channel": 1,
+    "mode": "roll-up",
+    "roll_up_rows": 3
+   },
+   "ours": {
+    "cc": "cc1",
+    "svc": 1,
+    "mode": "ru3"
+   }
+  },
+  {
+   "name": "b",
+   "gst": {
+    "kind": "708",
+    "service": 2,
+    "cea608_channel": 3,
+    "mode": "roll-up",
+    "roll_up_rows": 3
+   },
+   "ours": {
+    "cc": "cc3",
+    "svc": 2,
+    "mode": "ru3"
+   }
+  }
+ ],
+ "events": [
+  {
+   "t": 1,
+   "track": "a",
+   "text": "Hello, this is the English track.",
+   "cr": true
+  },
+  {
+   "t": 4,
+   "track": "a",
+   "text": "The weather is fine today.",
+   "cr": true
+  },
+  {
+   "t": 1,
+   "track": "b",
+   "text": "Hola, \u00bfqu\u00e9 tal? Se\u00f1or N\u00fa\u00f1ez.",
+   "cr": true
+  },
+  {
+   "t": 4,
+   "track": "b",
+   "text": "\u00a1Adi\u00f3s! Ma\u00f1ana a las ocho.",
+   "cr": true
+  }
+ ]
+}

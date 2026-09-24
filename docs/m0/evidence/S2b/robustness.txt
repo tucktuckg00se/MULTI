@@ -1,0 +1,75 @@
+# Q6 robustness. robust708.json: tttocea708 svc1+CC1 (single track, own src pad) vs CcMux. Events: 1s '' ; 2s '   '; 3s control chars; 4s emoji; 5s CJK; 6s zero-width; 7s invalid UTF-8 (gst) ; 8-10s one caption per frame (R00-R59); 11s AFTER RAPID; 13s 2000-char text (W000-W399); 100s FINAL LINE
+gst push error at frame 210: push: Error
+gst stats: Stats { frames: 3120, out_buffers: 3120, late_buffers: 0, max_lag: 0, sum_lag: 0, timeouts: 0, empty_frames: 0, max_wait_us: 13, sum_wait_us: 30 } backlog_at_end=0
+ours: idle_at_end=true
+frames=3120
+gst-ccx-cc1: R-lines exact 60/60, W-words 400/400, FINAL cue: 00:01:40,033 --> 00:01:43,997
+gst-ccx-708.p1.svc01: R-lines exact 60/60, W-words 400/400, FINAL cue: 00:01:40,000 --> 00:01:43,998
+ours-ccx-cc1: R-lines exact 18/60, W-words 256/400, FINAL cue: 00:01:40,066 --> 00:01:43,997
+ours-ccx-708.p1.svc01: R-lines exact 60/60, W-words 400/400, FINAL cue: 00:01:40,000 --> 00:01:43,998
+-- first cues (ccextractor)
+== gst-ccx-cc1.srt
+00:00:04,033 |                                  / CTRL   [31mX YZ END              / EMOJI    END             
+00:00:05,034 | CTRL   [31mX YZ END              / EMOJI    END                     / CJK     END              
+00:00:06,034 | EMOJI    END                     / CJK     END                      / ZW    END                
+00:00:08,034 | CJK     END                      / ZW    END                        / R00                      
+00:00:08,200 | ZW    END                        / R00                              / R01                      
+--
+== gst-ccx-708.p1.svc01.srt
+00:00:02,000 |    
+00:00:03,000 |     / CTRL   [31mX YZ END
+00:00:04,000 |     / CTRL   [31mX YZ END / EMOJI    END
+00:00:05,000 | CTRL   [31mX YZ END / EMOJI    END / CJK     END
+00:00:06,000 | EMOJI    END / CJK     END / ZW    END
+--
+== ours-ccx-cc1.srt
+00:00:05,066 | CTRL [31mXY Z END                / EMOJI END                        / CJK END                  
+00:00:06,067 | EMOJI END                        / CJK END                          / ZW END                   
+00:00:07,067 | CJK END                          / ZW END                           / BAD END                  
+00:00:08,067 | ZW END                           / BAD END                          / R00                      
+00:00:08,334 | BAD END                          / R00                              / R01                      
+--
+== ours-ccx-708.p1.svc01.srt
+00:00:04,000 | CTRL [31mXY Z END / EMOJI END
+00:00:05,000 | CTRL [31mXY Z END / EMOJI END / CJK END
+00:00:06,000 | EMOJI END / CJK END / ZW END
+00:00:07,000 | CJK END / ZW END / BAD END
+00:00:08,000 | ZW END / BAD END / R00
+
+# robust608.json: tttocea608 JSON. 1s invalid JSON; 2s {lines:[]}; 3s row 20 col 40; 4s style Purple; 5s pop-on 48 chars; 7s AFTER ERRORS; 9-11s pop-on caption every frame (dur 1 frame) POP 00-59; 12s LAST POP
+gst push error at frame 30: push: Error
+gst push error at frame 120: push: Error
+gst stats: Stats { frames: 480, out_buffers: 699, late_buffers: 153, max_lag: 179, sum_lag: 19205, timeouts: 0, empty_frames: 1, max_wait_us: 7, sum_wait_us: 79 } backlog_at_end=220
+ours: idle_at_end=false
+frames=480
+== gst-ccx-cc1.srt
+00:00:05,700 | POP ON A LINE WAY LONGER THAN TH
+00:00:07,166 | AFTER ERRORS                    
+00:00:09,267 | POP 00                          
+00:00:09,500 | POP 01                          
+30
+00:00:15,567 --> 00:00:15,798
+POP 27                          
+
+31
+00:00:15,800 --> 00:00:15,998
+POP 28                          
+
+
+# lanes2-badutf8.json: 2 appsrc-fed lanes into cea708mux; invalid UTF-8 (ff) on lane A at 2 s; new line on both lanes at 6 s
+gst bus at frame 60: ERROR appsrc0: Internal data stream error. (Some("../gstreamer/subprojects/gstreamer/libs/gst/base/gstbasesrc.c(3187): gst_base_src_loop (): /GstPipeline:pipeline0/GstAppSrc:appsrc0:\nstreaming stopped, reason error (-5)"))
+== gst-ccx-cc1.srt
+00:00:01,133 | Hello, this is the English       / track.                          
+== gst-ccx-cc3.srt
+00:00:01,133 | Hola, Â¿quÃ© tal? SeÃ±or NÃºÃ±ez.     / Â¡AdiÃ³s! MaÃ±ana a las ocho.       / LANE B AFTER BAD UTF8           
+== gst-ccx-708.p1.svc01.srt
+00:00:01,066 | Hello, this is the English
+00:00:01,134 | Hello, this is the English / track.
+== gst-ccx-708.p1.svc02.srt
+00:00:01,066 | Hola, ¿qué tal? Señor Núñez.
+00:00:04,034 | Hola, ¿qué tal? Señor Núñez. / ¡Adiós! Mañana a las ocho.
+00:00:06,034 | Hola, ¿qué tal? Señor Núñez. / ¡Adiós! Mañana a las ocho. / LANE B AFTER BAD UTF8
+# robust608 GST_DEBUG:       1 tttocea608-0:sink> Failed to parse input as json: key must be a string at line 1 column 2
+# robust608 GST_DEBUG:       1 tttocea608-0:sink> Failed to parse input as json: unknown variant `Purple`, expected one of `White`, `Green`, `Blue`, `Cyan`, `Red`, `Yellow`, `Magenta`, `ItalicWhite` at line 1 column 61
+# robust608 GST_DEBUG:       1 tttocea608::translate::TextToCea608::generate: Dropping characters after 32nd column: H
+# robust608 GST_DEBUG:       1 tttocea608::translate::TextToCea608::generate: Dropping line after 15th row: Line { column: Some(40), row: Some(20), chunks: [Chunk { style: White, underline: false, text: "ROW 20 COL 40" }], carriage_return: Some(true) }

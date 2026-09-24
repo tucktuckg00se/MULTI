@@ -139,6 +139,40 @@ pub fn build(cfg: &OutputCfg, stamps: Arc<Stamps>) -> Result<Output> {
             });
             ins
         }
+        CaptionMode::GstDirect => {
+            let ins = make(ins_f, "ccinsert")?;
+            ins.set_property("remove-caption-meta", true);
+            p.add(&ins)?;
+            vparse.link(&ins)?;
+            let (tx, rx) = std::sync::mpsc::channel();
+            ours_tx = Some(tx);
+            let cap = Mutex::new(crate::gstcc::GstCaptioner::new(rx, cfg.lanes, fps)?);
+            let st = stamps.clone();
+            let src = vparse.static_pad("src").context("vparse src")?;
+            let n = std::sync::atomic::AtomicU64::new(0);
+            src.add_probe(gst::PadProbeType::BUFFER, move |_, info| {
+                let Some(pts) = info.buffer().and_then(|b| b.pts()) else { return gst::PadProbeReturn::Ok };
+                let pts = pts.nseconds() as i64;
+                st.on_cc_in(pts);
+                let data = match cap.lock() {
+                    Ok(mut c) => {
+                        if n.fetch_add(1, Ordering::Relaxed) % 900 == 899 {
+                            let (max, avg) = c.wait_us();
+                            info!(max_wait_us = max, avg_wait_us = avg, "gst-direct caption wait");
+                        }
+                        c.meta_for(pts)
+                    }
+                    Err(_) => None,
+                };
+                if let (Some(data), Some(buf)) = (data, info.buffer_mut()) {
+                    let b = buf.make_mut();
+                    gst_video::VideoCaptionMeta::add(b, gst_video::VideoCaptionType::Cea708Raw, &data);
+                    st.counters.cc_frames.fetch_add(1, Ordering::Relaxed);
+                }
+                gst::PadProbeReturn::Ok
+            });
+            ins
+        }
         CaptionMode::Gst => {
             let comb = make("cccombiner", "ccomb")?;
             comb.set_property("latency", cfg.cc_latency_ms * 1_000_000);

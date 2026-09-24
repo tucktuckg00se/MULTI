@@ -1,0 +1,51 @@
+# Q2 black-box delay, same method as S2 (bench.sh, 45 s per cell, latency report --skip 10), H.264/HEVC UDP->UDP, run under flock /tmp/multi-gpu.lock, ports 9240-9254
+# none = no captions; ours = (b) cc::CcMux; gst-direct = tttocea708 (svc1+CC1) driven per frame from the vparse probe, no cccombiner; -l2 = 2 lanes (svc2+CC3 via cea708mux)
+== h264-udp-none
+frames: in=1363 out=1362 matched=884 (method: pts)
+delay ms: p50=33.563 p95=34.833 p99=38.570 max=39.447 mean=33.578 min=27.149
+entry->mux ms: n=1019 p50=0.057 p95=0.104 p99=0.122 max=1.917
+== h264-udp-ours
+frames: in=1378 out=1366 matched=999 (method: pts)
+delay ms: p50=33.572 p95=36.449 p99=38.578 max=41.393 mean=33.588 min=27.585
+verify udp: exit 0
+verify srt: exit 0
+entry->mux ms: n=1019 p50=0.072 p95=0.121 p99=0.171 max=1.176
+caption stage ms: n=1019 p50=0.015 p95=0.021 p99=0.029 max=0.089
+ccx-cc1.srt: "HELLO FROM MULTI"=16 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+ccx.p1.svc01.srt: "HELLO FROM MULTI"=15 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+== h264-udp-gst-direct
+frames: in=1382 out=1364 matched=1000 (method: pts)
+delay ms: p50=33.594 p95=34.485 p99=38.688 max=39.995 mean=33.604 min=27.448
+verify udp: exit 0
+verify srt: exit 0
+entry->mux ms: n=1048 p50=0.089 p95=0.142 p99=0.176 max=2.963
+caption stage ms: n=1048 p50=0.031 p95=0.042 p99=0.063 max=0.140
+ccx-cc1.srt: "HELLO FROM MULTI"=16 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+ccx.p1.svc01.srt: "HELLO FROM MULTI"=18 "CAPTION FIXTURE LINE TWO"=17 "ROLL UP TEST 123"=16
+max_wait_us=5 avg_wait_us=1
+== h264-udp-gst-direct-l2
+frames: in=1378 out=1347 matched=653 (method: pts)
+delay ms: p50=33.648 p95=35.406 p99=37.872 max=39.566 mean=33.655 min=28.475
+verify udp: exit 0
+verify srt: exit 0
+entry->mux ms: n=1019 p50=0.130 p95=0.230 p99=0.304 max=3.413
+caption stage ms: n=1019 p50=0.065 p95=0.145 p99=0.201 max=3.350
+ccx-cc1.srt: "HELLO FROM MULTI"=16 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+ccx-cc3.srt: "HELLO FROM MULTI"=16 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+ccx.p1.svc01.srt: "HELLO FROM MULTI"=18 "CAPTION FIXTURE LINE TWO"=17 "ROLL UP TEST 123"=16
+ccx.p1.svc02.srt: "HELLO FROM MULTI"=18 "CAPTION FIXTURE LINE TWO"=17 "ROLL UP TEST 123"=16
+max_wait_us=1909 avg_wait_us=61
+== hevc-udp-none
+frames: in=1363 out=1358 matched=1044 (method: content hash)
+delay ms: p50=33.559 p95=38.793 p99=70.661 max=79.185 mean=33.592 min=9.509
+entry->mux ms: n=1017 p50=0.055 p95=0.104 p99=0.735 max=2.864
+== hevc-udp-gst-direct
+frames: in=1403 out=1387 matched=1084 (method: content hash)
+delay ms: p50=33.683 p95=39.117 p99=72.564 max=82.106 mean=33.611 min=10.398
+verify udp: exit 0
+verify srt: exit 0
+entry->mux ms: n=1048 p50=0.086 p95=0.139 p99=0.685 max=2.922
+caption stage ms: n=1048 p50=0.032 p95=0.047 p99=0.072 max=0.091
+ccx-cc1.srt: "HELLO FROM MULTI"=16 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+ccx.p1.svc01.srt: "HELLO FROM MULTI"=18 "CAPTION FIXTURE LINE TWO"=17 "ROLL UP TEST 123"=16
+max_wait_us=11 avg_wait_us=1

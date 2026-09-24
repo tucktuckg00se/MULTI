@@ -1,0 +1,76 @@
+{
+ "secs": 22,
+ "tracks": [
+  {
+   "name": "a",
+   "gst": {
+    "kind": "708",
+    "service": 1,
+    "cea608_channel": 1,
+    "mode": "roll-up",
+    "roll_up_rows": 3
+   },
+   "ours": {
+    "cc": "cc1",
+    "svc": 1,
+    "mode": "ru3"
+   }
+  }
+ ],
+ "events": [
+  {
+   "t": 1,
+   "track": "a",
+   "text": "ES ¿Qué tal? ¡Señor Núñez! ü",
+   "cr": true
+  },
+  {
+   "t": 3,
+   "track": "a",
+   "text": "ES áéíóú ÁÉÍÓÚ Ññ",
+   "cr": true
+  },
+  {
+   "t": 5,
+   "track": "a",
+   "text": "FR àâçèéêëîïôùû ÀÂÇÈÉÊË",
+   "cr": true
+  },
+  {
+   "t": 7,
+   "track": "a",
+   "text": "FR ÎÏÔÙÛÜ œ « »",
+   "cr": true
+  },
+  {
+   "t": 9,
+   "track": "a",
+   "text": "DE Ä Ö Ü ä ö ü ß",
+   "cr": true
+  },
+  {
+   "t": 11,
+   "track": "a",
+   "text": "PT ã õ Ã Õ ç Ç à À",
+   "cr": true
+  },
+  {
+   "t": 13,
+   "track": "a",
+   "text": "ASCII * _ ~ | { } \\ ^ `",
+   "cr": true
+  },
+  {
+   "t": 15,
+   "track": "a",
+   "text": "èè ÉÉ ññ ** __ ~~ ||",
+   "cr": true
+  },
+  {
+   "t": 17,
+   "track": "a",
+   "text": "SYM © ® ™ ♪ ½ … € ¢ £",
+   "cr": true
+  }
+ ]
+}

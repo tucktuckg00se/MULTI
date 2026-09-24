@@ -1,0 +1,27 @@
+# tttocea708 roll-up-rows=4 (set before PLAYING), text with rstranscribe/final-transcript before each buffer
+# DefineWindow bytes in the first DTVCC packet (98 = DF0; 5th arg byte 0x71 = anchor 7, row count 1 -> 2 rows):
+30 lag=0 n=20 ff113f fe920e fe008c fefe98 fe38e4 fe3271 fe1f11 fe9201 fe0020 fe504c fe4149 fe4e20 fe5445 fe5854 fe204f f
+
+# ccextractor 708 service 1 (gst): only 2 rows visible although 4 were asked for; the 608 compatibility bytes (CC1) roll 4 rows
+== gst-ccx-cc1.srt
+00:00:06,033 | PLAIN TEXT ONE PLAIN TEXT TWO    / NEWLINE A NEWLINE B              / WITH CR EVENT ONE                / WITH CR EVENT TWO               
+00:00:07,034 | NEWLINE A NEWLINE B              / WITH CR EVENT ONE                / WITH CR EVENT TWO                / WITH CR EVENT THREE             
+00:00:08,034 | WITH CR EVENT ONE                / WITH CR EVENT TWO                / WITH CR EVENT THREE              / WITH CR EVENT FOUR              
+== gst-ccx-708.p1.svc01.srt
+00:00:00,001 |  PLAIN TEXT ONE PLAIN TEXT TWO
+00:00:03,000 |  PLAIN TEXT ONE PLAIN TEXT TWO / NEWLINE A NEWLINE B
+00:00:05,000 | NEWLINE A NEWLINE B / WITH CR EVENT ONE
+00:00:06,000 | WITH CR EVENT ONE / WITH CR EVENT TWO
+00:00:07,000 | WITH CR EVENT TWO / WITH CR EVENT THREE
+00:00:08,000 | WITH CR EVENT THREE / WITH CR EVENT FOUR
+
+# same with roll-up-rows=2
+== gst-ccx-708.p1.svc01.srt
+00:00:00,001 |  PLAIN TEXT ONE PLAIN TEXT TWO
+00:00:03,000 |  PLAIN TEXT ONE PLAIN TEXT TWO / NEWLINE A NEWLINE B
+00:00:05,000 | NEWLINE A NEWLINE B / WITH CR EVENT ONE
+00:00:06,000 | WITH CR EVENT ONE / WITH CR EVENT TWO
+00:00:07,000 | WITH CR EVENT TWO / WITH CR EVENT THREE
+00:00:08,000 | WITH CR EVENT THREE / WITH CR EVENT FOUR
+
+# cause (gst-plugins-rs 0.15.3 video/closedcaption/src/tttocea708/imp.rs change_state ReadyToPaused): State::default() resets the translator (roll_up_count 2) and, unlike FlushStop, never calls set_roll_up_count(settings.roll_up_rows).

@@ -1,0 +1,40 @@
+{
+ "secs": 10,
+ "tracks": [
+  {
+   "name": "l1",
+   "gst": {
+    "kind": "708",
+    "service": 1,
+    "cea608_channel": 1,
+    "mode": "pop-on"
+   },
+   "ours": {
+    "cc": "cc1",
+    "svc": 1,
+    "mode": "popon"
+   }
+  }
+ ],
+ "events": [
+  {
+   "t": 1,
+   "dur": 2,
+   "track": "l1",
+   "text": "POP ON LINE ONE\nPOP ON LINE TWO"
+  },
+  {
+   "t": 4,
+   "dur": 2,
+   "track": "l1",
+   "text": "SECOND CAPTION"
+  },
+  {
+   "t": 7,
+   "dur": 2,
+   "track": "l1",
+   "text": "A POP ON LINE THAT IS LONGER THAN THIRTY TWO"
+  }
+ ],
+ "gap_always": true
+}
