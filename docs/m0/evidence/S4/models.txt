@@ -1,0 +1,58 @@
+S4 models, sources, revisions, licences (downloaded 2026-09-24 to ~/.cache/multi-models/)
+
+Speech models
+-------------
+whisper large-v3-turbo (ggml f16)   MIT (OpenAI weights; ggml conversion by whisper.cpp)   99 languages
+  https://huggingface.co/ggerganov/whisper.cpp @ 5359861c739e955e79d9a303bcbc70fb988958b1  ggml-large-v3-turbo.bin
+  sha256 1fc70f774d38eb169993ac391eea357ef47c88757ef72ee5943879b7e8e2bc69
+whisper small (ggml f16)            MIT                                                   99 languages
+  same repo/revision, ggml-small.bin  sha256 1be3a9b2063867b937e64e2ec7483364a79917e157fa98c5d94b5c1fffea987b
+distil-whisper distil-large-v3.5    MIT                                                   English only
+  https://huggingface.co/distil-whisper/distil-large-v3.5-ggml @ 960ecb5c2ecfba3ebb9ebe485c1032ec266cf436  ggml-model.bin
+  sha256 ec2498919b498c5f6b00041adb45650124b3cd9f26f545fffa8f5d11c28dcf26
+NVIDIA Parakeet TDT 0.6B v3         CC-BY-4.0 (attribution required)                      25 European languages, auto-detect:
+  bg hr cs da nl en et fi fr de el hu it lv lt mt pl pt ro sk sl es sv ru uk
+  upstream https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3 @ 541d1f99c6b0c3cd0b11a95167540bb8edefd82b
+  fp32 sherpa-onnx export  https://huggingface.co/csukuangfj/sherpa-onnx-nemo-parakeet-tdt-0.6b-v3 @ 1a468a35cbba69418f126de829e75261dea4a4e4
+  int8 sherpa-onnx export  https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8.tar.bz2
+NVIDIA Nemotron 3.5 ASR Streaming 0.6B (cache-aware FastConformer-RNNT + language prompt; released 2026-06-04)
+  OpenMDW-1.1 (permissive; model card: "ready for commercial use")
+  40 locales: 19 transcription-ready (en es fr it pt nl de tr ru ar hi ja ko vi uk), 13 broad-coverage
+  (pl sv cs nb da bg fi hr sk zh hu ro et), 8 adaptation-ready (need fine-tuning). Language per stream or "auto".
+  Punctuation + capitalisation built in. Chunk (latency) 80/160/320/560/1120 ms, one export per chunk size.
+  upstream https://huggingface.co/nvidia/nemotron-3.5-asr-streaming-0.6b @ ea30d66debe3740a08b573244286791d423d6b3e
+  fp32 sherpa-onnx exports (csukuangfj2 = sherpa-onnx maintainer):
+    https://huggingface.co/csukuangfj2/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-160ms-2026-06-11 @ 44d1e59cb0f8d6f91dc32cb2af4a76b6130393f6
+    https://huggingface.co/csukuangfj2/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-560ms-2026-06-11 @ 2072aba9fb2d6ee6202b69e441761599ab7520b8
+    https://huggingface.co/csukuangfj2/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-1120ms-2026-06-11 @ 1ecc0a04c7658b6be62b97051fd21f67421392e8
+  int8 exports: https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-{160,560,1120}ms-int8-2026-06-11.tar.bz2
+Silero VAD v5 (onnx)                MIT
+  https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx
+  sha256 9e2449e1087496d8d4caba907f23e0bd3f78d91fa552479bb9c23ac09cbb1fd6
+
+Considered, not run: NVIDIA Canary-1B-v2 / canary-180m-flash (CC-BY-4.0, AED = not streaming),
+Moonshine v2 (English-first; per-language tiny/base models), nemotron-speech-streaming-en-0.6b (English only,
+superseded by 3.5), Qwen3-ASR / Cohere Transcribe (offline LLM-style decoders, larger), Voxtral (~4 GB).
+
+Runtimes
+--------
+whisper-rs 0.16.0 -> whisper.cpp 1.8.3 (MIT), built from source with GGML_CUDA against CUDA 13.4, sm_86.
+sherpa-onnx crate 1.13.8 (Apache-2.0), feature "shared", prebuilt
+  sherpa-onnx-v1.13.8-cuda-13.x-cudnn-9.x-onnxruntime1.28.2-linux-x64-gpu (ONNX Runtime 1.28.2, MIT; CUDA 13 build).
+
+Reference-only tools (not shipped)
+----------------------------------
+facebook/wav2vec2-base-960h @ 22aad52d435eb6dbaf354bdad9b0da84ce7d6156, Apache-2.0: forced alignment for long.words.tsv.
+jiwer + whisper_normalizer (EnglishTextNormalizer / BasicTextNormalizer): WER.
+
+Test data
+---------
+LibriSpeech test-clean (CC-BY-4.0): every 10th utterance in sorted order, 262 utts, 33.5 min.
+Multilingual LibriSpeech test (CC-BY-4.0), facebook/multilingual_librispeech @ 2e83e61823b4c47dcbcb1980bb88601274127609,
+  via datasets-server (opus-transcoded): 40 utts each es/fr/de (rows 0-9,100-109,200-209,300-309), ~10 min each.
+Music: Musopen recordings on Wikimedia Commons, public domain:
+  Rachmaninoff PC2 ii (sha1 cc8dcbba91eb316744973f1973dab23217386259), Mussorgsky Gnomus (sha1 b6e8fb2aff8ece3fc7c50d750e700d59f13df80a).
+Real-world: US Supreme Court oral argument 24-316 Kennedy v. Braidwood (2025-04-21), first 600 s of
+  https://www.supremecourt.gov/media/audio/mp3files/24-316.mp3 (sha1 4de44df71ff13812ad11d6db07d18285c4e5f5cc) and the
+  official transcript argument_transcripts/2024/24-316_1a72.pdf (sha1 9227802070b0c1d9ca011b9cbf702d0fdcd01ba2).
+  US federal court record, published by the Court; used for testing only, not redistributed.
