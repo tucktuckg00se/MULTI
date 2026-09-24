@@ -40,10 +40,12 @@ Types: `summary` overview page · `spec` requirements · `decision` ADR · `find
 
 | ID | Type | Title | Status | ~Tokens |
 |---|---|---|---|---|
-| M-00 | summary | [M0 overview: spikes, harness, log](m0/README.md) | current | ~690 |
+| M-00 | summary | [M0 overview: spikes, harness, log](m0/README.md) | current | ~745 |
 | F-S3 | finding | [Rust 608/708 encoder decodes in FFmpeg, ccextractor, libcaption](m0/findings/S3-caption-encoder.md) | current | ~1894 |
 | E-S3 | evidence | [S3 raw outputs](m0/evidence/S3) | current | ~4625 |
 | H-01 | how-it-works | [How the latency tool measures video delay and caption lag](m0/findings/H-latency-tool.md) | current | ~1698 |
 | E-H | evidence | [Latency tool self-test outputs](m0/evidence/H) | current | ~7196 |
 | F-S2 | finding | [GStreamer SRT/UDP pass-through with SEI captions: works, 33 ms](m0/findings/S2-gstreamer-pipeline.md) | current | ~2331 |
 | E-S2 | evidence | [S2 raw outputs](m0/evidence/S2) | current | ~16643 |
+| F-S1 | finding | [FFmpeg pass-through with caption SEI: works, one-frame latency](m0/findings/S1-ffmpeg-pipeline.md) | current | ~2336 |
+| E-S1 | evidence | [S1 raw outputs](m0/evidence/S1) | current | ~7902 |
