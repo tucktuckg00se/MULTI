@@ -1,0 +1,18 @@
+# ccextractor 0.96.5 on each UDP capture (37 s): cues whose rows, joined, contain each fixture line. 608 CC1 (default) and 708 service 1.
+# -ours rows are from build 1a2abae; -gst rows from c6ec8d3 (same caption path). (a) reflows text across rows, hence the join.
+m/h264-srt-ours/ccx-cc1.srt: cues=16 "HELLO FROM MULTI"=16 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+m/h264-udp-ours/ccx-cc1.srt: cues=16 "HELLO FROM MULTI"=16 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+m/hevc-srt-ours/ccx-cc1.srt: cues=16 "HELLO FROM MULTI"=16 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+m/hevc-udp-ours/ccx-cc1.srt: cues=16 "HELLO FROM MULTI"=16 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+m/h264-srt-ours/ccx.p1.svc01.srt: cues=16 "HELLO FROM MULTI"=15 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+m/h264-udp-ours/ccx.p1.svc01.srt: cues=16 "HELLO FROM MULTI"=15 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+m/hevc-srt-ours/ccx.p1.svc01.srt: cues=16 "HELLO FROM MULTI"=15 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+m/hevc-udp-ours/ccx.p1.svc01.srt: cues=16 "HELLO FROM MULTI"=15 "CAPTION FIXTURE LINE TWO"=16 "ROLL UP TEST 123"=16
+m/h264-srt-gst/ccx-cc1.srt: cues=10 "HELLO FROM MULTI"=10 "CAPTION FIXTURE LINE TWO"=10 "ROLL UP TEST 123"=10
+m/h264-udp-gst/ccx-cc1.srt: cues=10 "HELLO FROM MULTI"=10 "CAPTION FIXTURE LINE TWO"=10 "ROLL UP TEST 123"=10
+m/hevc-srt-gst/ccx-cc1.srt: cues=10 "HELLO FROM MULTI"=10 "CAPTION FIXTURE LINE TWO"=10 "ROLL UP TEST 123"=10
+m/hevc-udp-gst/ccx-cc1.srt: cues=10 "HELLO FROM MULTI"=10 "CAPTION FIXTURE LINE TWO"=10 "ROLL UP TEST 123"=10
+m/h264-srt-gst/ccx.p1.svc01.srt: cues=12 "HELLO FROM MULTI"=10 "CAPTION FIXTURE LINE TWO"=5 "ROLL UP TEST 123"=6
+m/h264-udp-gst/ccx.p1.svc01.srt: cues=12 "HELLO FROM MULTI"=10 "CAPTION FIXTURE LINE TWO"=5 "ROLL UP TEST 123"=6
+m/hevc-srt-gst/ccx.p1.svc01.srt: cues=12 "HELLO FROM MULTI"=10 "CAPTION FIXTURE LINE TWO"=5 "ROLL UP TEST 123"=6
+m/hevc-udp-gst/ccx.p1.svc01.srt: cues=12 "HELLO FROM MULTI"=10 "CAPTION FIXTURE LINE TWO"=5 "ROLL UP TEST 123"=6

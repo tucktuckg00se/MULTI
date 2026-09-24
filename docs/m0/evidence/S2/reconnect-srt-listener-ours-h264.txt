@@ -1,0 +1,28 @@
+# spikes/s2-gst-pipe/reconnect.sh, build c6ec8d3. Output tapped with harness latency tap (stream error counts) and recorded; 'wall gap / PTS step' lists output frame steps that are not ~33 ms (28.3/34.3 ms steps = bridge slew after a (re)start).
+== reconnect srt-listener captions=ours codec=h264
+t=15 s: source killed
+t=20 s: source restarted (PTS from its start again)
+pipeline exit: 0
+-- pipeline warnings/errors/sessions
+2026-09-23T12:09:14.613396Z  INFO s2_gst_pipe::bridge: new input session (holding) session=1 in_pts=3188212618 now_rt=1196389648
+2026-09-23T12:09:29.499687Z  WARN s2_gst_pipe: input warning err=Error on SRT socket: Unknown or erroneous (0)
+2026-09-23T12:09:29.499737Z  WARN s2_gst_pipe: input EOS
+2026-09-23T12:09:34.612384Z  INFO s2_gst_pipe::bridge: new input session (holding) session=2 in_pts=6057309636 now_rt=21195381810
+2026-09-23T12:09:52.496133Z  WARN s2_gst_pipe: input warning err=Error on SRT socket: Unknown or erroneous (0)
+2026-09-23T12:09:52.496196Z  WARN s2_gst_pipe: input EOS
+-- stats (uptime_s,rss_kb,video_in,video_out,audio_in,sessions,input_restarts,input_errors,output_errors)
+8,24044,221,221,345,1,0,0,0
+23,24092,538,538,830,2,1,0,0
+38,24096,985,985,1532,2,1,0,0
+-- output tap stderr (last lines)
+tap: video_pid=0x100 stream_type=0x1b frames=773 packets=59150 bad_sync=0 bad_bytes=0 tei=0 bad_af=0 crc_err=0 bad_section=0 pat_changes=0 pmt_changes=0 cc_err=0 pes_bad_hdr=0 pes_no_pts=0 pts_wraps=0
+tap: video_pid=0x100 stream_type=0x1b frames=925 packets=70399 bad_sync=0 bad_bytes=0 tei=0 bad_af=0 crc_err=0 bad_section=0 pat_changes=0 pmt_changes=0 cc_err=0 pes_bad_hdr=0 pes_no_pts=0 pts_wraps=0
+-- output PTS/wall gaps > 100 ms
+frame 443->444: wall gap 5603 ms, PTS step 4602.9 ms
+frames 995
+-- decode check (ffprobe: video packets vs decoded frames, main-decoder errors)
+packets=1016 decoded_frames=1016 ffprobe_error_lines=23
+      1 [h264 @ 0x560103980700] error while decoding MB 52 30, bytestream -33
+-- verify.sh (on the recording from 3 s on; see finding for the file-start probe quirk)
+HELLO FROM MULTI</font>
+PASS: all expected lines present

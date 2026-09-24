@@ -1,0 +1,29 @@
+# spikes/s2-gst-pipe/reconnect.sh, build c6ec8d3. Output tapped with harness latency tap (stream error counts) and recorded; 'wall gap / PTS step' lists output frame steps that are not ~33 ms (28.3/34.3 ms steps = bridge slew after a (re)start).
+== reconnect srt-caller captions=gst codec=hevc
+t=15 s: source killed
+t=20 s: source restarted (PTS from its start again)
+pipeline exit: 0
+-- pipeline warnings/errors/sessions
+2026-09-23T12:10:01.211477Z  INFO s2_gst_pipe::bridge: new input session (holding) session=1 in_pts=3486151337 now_rt=1511341241
+2026-09-23T12:10:16.002427Z  WARN s2_gst_pipe: input warning err=Error on SRT socket: Unknown or erroneous (0). Trying to reconnect
+2026-09-23T12:10:18.012543Z  WARN s2_gst_pipe: input silent; restarting input silent_ms=2043
+2026-09-23T12:10:21.079222Z  INFO s2_gst_pipe::bridge: new input session (holding) session=2 in_pts=3990048817 now_rt=21379074048
+2026-09-23T12:10:38.867072Z  WARN s2_gst_pipe: input warning err=Error on SRT socket: Unknown or erroneous (0). Trying to reconnect
+2026-09-23T12:10:40.876529Z  WARN s2_gst_pipe: input silent; restarting input silent_ms=2040
+-- stats (uptime_s,rss_kb,video_in,video_out,audio_in,sessions,input_restarts,input_errors,output_errors)
+8,28716,215,215,329,1,0,0,0
+23,29264,529,529,821,2,1,0,0
+38,29248,980,980,1523,2,1,0,0
+-- output tap stderr (last lines)
+tap: video_pid=0x100 stream_type=0x24 frames=788 packets=61250 bad_sync=0 bad_bytes=0 tei=0 bad_af=0 crc_err=0 bad_section=0 pat_changes=0 pmt_changes=0 cc_err=0 pes_bad_hdr=0 pes_no_pts=0 pts_wraps=0
+tap: video_pid=0x100 stream_type=0x24 frames=938 packets=72352 bad_sync=0 bad_bytes=0 tei=0 bad_af=0 crc_err=0 bad_section=0 pat_changes=0 pmt_changes=0 cc_err=0 pes_bad_hdr=0 pes_no_pts=0 pts_wraps=0
+-- output PTS/wall gaps > 100 ms
+frame 454->455: wall gap 5644 ms, PTS step 4673.7 ms
+frames 1004
+-- decode check (ffprobe: video packets vs decoded frames, main-decoder errors)
+packets=1010 decoded_frames=1010 ffprobe_error_lines=1
+      1 [hevc @ 0x55ef1f22c700] PPS id out of range: 0
+-- verify.sh (on the recording from 3 s on; see finding for the file-start probe quirk)
+[hevc @ 0x56085708b6c0] PPS id out of range: 0
+123 HELLO FROM MULTI CAPTION </font>
+PASS: all expected lines present

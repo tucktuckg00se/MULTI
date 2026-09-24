@@ -1,0 +1,37 @@
+# Soak run 1 (build c6ec8d3, grid-indexed captioner), 24 min, stopped early to restart on the fixed build.
+# H.264, source -> latency tap -> SRT (gst bridge, latency 120) -> s2-gst-pipe --captions ours -> UDP + SRT out.
+# At ~6-8 min the host load average hit ~11 (other agents + HEVC matrix runs): the ffmpeg -re source starved and fell 78 s behind schedule,
+# then caught up ~5% faster than real time. Source lateness from the input tap (wall - PTS vs first frame):
+  t=  0.0 min  source behind schedule 0.0 ms
+  t=  2.0 min  source behind schedule -516.3 ms
+  t=  4.0 min  source behind schedule -515.9 ms
+  t=  6.0 min  source behind schedule -512.4 ms
+  t=  9.3 min  source behind schedule 75190.4 ms
+  t= 11.2 min  source behind schedule 69476.8 ms
+  t= 13.1 min  source behind schedule 63762.0 ms
+  t= 15.0 min  source behind schedule 58047.9 ms
+  t= 16.9 min  source behind schedule 52337.7 ms
+  t= 18.8 min  source behind schedule 46619.0 ms
+  t= 20.7 min  source behind schedule 40905.1 ms
+  t= 22.6 min  source behind schedule 35193.2 ms
+  t= 24.5 min  source behind schedule 29476.6 ms
+# Pipeline: 3 watchdog input restarts (2 s silence) during the stall, 4 sessions, 0 input/output errors, 0 bridge drops, process up throughout.
+2026-09-23T11:49:23.220359Z  INFO s2_gst_pipe::bridge: new input session (holding) session=1 in_pts=3172896901 now_rt=1185556774
+2026-09-23T11:49:23.735724Z  INFO s2_gst_pipe::bridge: session offset fixed session=1 offset_ms=-2479 held=71
+2026-09-23T11:55:38.826447Z  WARN s2_gst_pipe: input silent; restarting input silent_ms=2059
+2026-09-23T11:55:58.239776Z  INFO s2_gst_pipe::bridge: new input session (holding) session=2 in_pts=5541817192 now_rt=396201400945
+2026-09-23T11:56:00.137327Z  INFO s2_gst_pipe::bridge: session offset fixed session=2 offset_ms=390659 held=2
+2026-09-23T11:56:02.122217Z  WARN s2_gst_pipe: input silent; restarting input silent_ms=2029
+2026-09-23T11:56:41.678830Z  INFO s2_gst_pipe::bridge: new input session (holding) session=3 in_pts=12662284644 now_rt=439636840275
+2026-09-23T11:56:43.684594Z  WARN s2_gst_pipe: input silent; restarting input silent_ms=2012
+2026-09-23T11:56:43.980876Z  INFO s2_gst_pipe::bridge: session offset fixed session=3 offset_ms=426974 held=2
+2026-09-23T11:56:54.783993Z  INFO s2_gst_pipe::bridge: new input session (holding) session=4 in_pts=2135174343 now_rt=452749185552
+2026-09-23T11:56:55.446088Z  INFO s2_gst_pipe::bridge: session offset fixed session=4 offset_ms=450614 held=2
+# Bug found here: cc_frames < video_out (40741 vs 42190 at 24 min). The captioner mapped PTS on a fixed 33.3 ms grid; the bridge was
+# squeezing PTS (~5%) to follow the fast source, so two frames rounded to one slot and one got no cc_data. Fixed in 1a2abae
+# (relative slot indexing); soak 2 re-run on that build.
+# Per-frame internal delay (tsdemux out -> mpegtsmux in), whole run:
+entry->mux ms: n=43739 p50=0.080 p95=0.695 p99=4.758 max=4017.766
+caption stage ms: n=43739 p50=0.016 p95=0.026 p99=0.040 max=750.998
+out_pts - running_time ms: first=-0.4 last=-5.5 drift=-0.20 ms/min sessions=4
+# (max 4.0 s internal delay and 751 ms caption-stage max are from the same load spike: the pipeline's own threads were starved too.)
