@@ -1,6 +1,6 @@
 # S1: FFmpeg-library pass-through with caption SEI insertion
 
-> **Summary:** It works. A Rust binary using `ffmpeg-next` 9 on FFmpeg 9.0.1 copies H.264/HEVC from SRT or UDP to several outputs without decoding, adding a CEA-608 SEI to every frame. Captions decode in FFmpeg, mpv and VLC. The pipe adds **0.05 ms p50 / 0.1 ms p99**; end to end it adds **33.4 ms p50 / 34 ms p99**, i.e. one frame spent in the TS demuxer. SRT adds only its configured latency. Reconnects and a 60-minute soak ran without errors.
+> **Summary:** It works. A Rust binary using `ffmpeg-next` 9 on FFmpeg 9.0.1 copies H.264/HEVC from SRT or UDP to several outputs without decoding, adding a CEA-608 SEI to every frame. Captions decode in FFmpeg, mpv and VLC. The pipe adds **0.05 ms p50 / 0.1 ms p99**; end to end it adds **33.4 ms p50 / 34 ms p99**, i.e. one frame spent in the TS demuxer. SRT adds only its configured latency. Reconnects and a 60-minute soak ran without errors, with RSS flat at 50 MB and no drift.
 
 ## Design (`spikes/s1-ffmpeg-pipe`)
 
@@ -70,7 +70,14 @@ Test pattern: source on 20 s, off 5 s, on 20 s, off 1 s, on 12 s, with PTS resta
   - **No drift:** the mean for each 10-minute block stayed between 0.046 and 0.054 ms.
   - `verify.sh` passed at 59 minutes.
 - **RSS in run 1:** it rose from 38 to 237 MB in 7 minutes, then stayed flat. The cause was the input URL's `fifo_size=1000000`, a ring of that many 188-byte packets (188 MB). `fifo_size=50000` fixes it.
-- **Run 2** (final code, `fifo_size=50000`): SOAK2.
+- **Run 2** (final code, `fifo_size=50000`, a full 3600 s):
+  - 108,168 frames, 0 warnings, 0 queue drops.
+  - Pipe 0.07 ms p50, 0.14 ms p99, 0.28 ms max.
+  - Black-box: UDP 33.5 / 34.1 ms (p50 / p99, max 34.8 ms), SRT 153.6 / 154.2 ms.
+  - Drift 0.000 ms/min. The mean for each 10-minute block stayed between 0.063 and 0.071 ms.
+  - **RSS was flat at 50 MB from the second minute to the end**, with 8 threads and 11 file descriptors throughout.
+  - `verify.sh` passed at 59 minutes.
+  - An earlier attempt at run 2 was killed at 11 minutes when the agent session was interrupted. Its numbers match run 2 (evidence `soak-run2-partial.txt`).
 
 ## Binding crate: `ffmpeg-next` 9.0.0
 
