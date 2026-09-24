@@ -62,12 +62,15 @@ MULTI supports the formats most TV and web delivery chains actually use. Each ou
 | CEA-708 (DTVCC) | US digital TV (ATSC), cable, most IP broadcast chains | H.264/HEVC SEI, up to 6 standard services | P0 |
 | WebVTT | HLS, browsers, most web players | Sidecar file / HLS subtitle rendition | P1 |
 | SubRip (.srt) + live text feed | Archive, CMS upload, custom overlays | File and WebSocket/JSON per language | P1 |
-| DVB Teletext subtitles | UK, Europe, Australia legacy chains | MPEG-TS Teletext PID | P1 |
+| DVB Teletext subtitles | UK, Europe, Australia legacy chains; most newer services use DVB Subtitles | MPEG-TS Teletext PID; no encoder in FFmpeg or GStreamer, so this is our own work | P2 (low) |
 | DVB Subtitles (EN 300 743) | Europe and other DVB countries | MPEG-TS, bitmaps rendered from text | P2 |
 | IMSC1 / TTML (EBU-TT-D) | MPEG-DASH, CMAF and broadcaster OTT apps | Fragmented MP4 / sidecar | P2 |
 | YouTube live caption HTTP ingest | YouTube streams where embedded 608 is not used | HTTP POST to YouTube | P2 |
+| SCC / MCC caption files | Archive, broadcast deliverables, caption editing tools | Sidecar file | P2 |
 
 CEA-608 only covers Latin-alphabet languages. Other scripts need 708, WebVTT, TTML or DVB.
+
+Burning captions into the picture is **not** part of MULTI: it needs a decode and re-encode, which breaks the pass-through design. It is planned as a separate companion tool that takes a captioned feed (e.g. MULTI's output) and burns the captions in.
 
 | ID | Requirement | Priority |
 | --- | --- | --- |

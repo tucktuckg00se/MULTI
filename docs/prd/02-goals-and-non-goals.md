@@ -22,4 +22,5 @@
 - Recording, VOD processing or file-based captioning (live only, though file input is useful for testing).
 - Replacing a full broadcast playout or encoder: MULTI sits inline and does one job.
 - FCC/Ofcom caption-quality certification (we aim to support compliance, not certify it).
+- Burning captions into the picture (planned as a separate companion tool that takes MULTI's captioned output).
 

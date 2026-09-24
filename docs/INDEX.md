@@ -17,32 +17,32 @@ Types: `summary` overview page · `spec` requirements · `decision` ADR · `find
 |---|---|---|---|---|
 | P-00 | summary | [PRD summary with links to every section](../PRD.md) | current | ~536 |
 | P-01 | spec | [Overview: problem, solution, local vs cloud](prd/01-overview.md) | current | ~629 |
-| P-02 | spec | [Goals, non-goals, reliability-first principle](prd/02-goals-and-non-goals.md) | current | ~455 |
+| P-02 | spec | [Goals, non-goals, reliability-first principle](prd/02-goals-and-non-goals.md) | current | ~483 |
 | P-03 | spec | [Target users and key user stories](prd/03-target-users-and-use-cases.md) | current | ~410 |
-| P-04 | spec | [Functional requirements by ID and priority](prd/04-functional-requirements.md) | current | ~1540 |
+| P-04 | spec | [Functional requirements by ID and priority](prd/04-functional-requirements.md) | current | ~1655 |
 | P-05 | spec | [Configuration settings, defaults and presets](prd/05-configuration-and-tuning.md) | current | ~764 |
 | P-06 | spec | [Latency budget, platforms, reliability, security](prd/06-non-functional-requirements.md) | current | ~886 |
 | P-07 | spec | [Architecture, candidate libraries and Rust crates](prd/07-proposed-architecture-and-technology.md) | current | ~1004 |
 | P-08 | spec | [Licensing, distribution, paid binaries, warranty draft](prd/08-licensing-distribution-and-business-model.md) | current | ~752 |
-| P-09 | spec | [Milestones M0 to v1.0](prd/09-milestones.md) | current | ~399 |
+| P-09 | spec | [Milestones M0 to v1.0](prd/09-milestones.md) | current | ~409 |
 | P-10 | spec | [Risks, mitigations and open questions](prd/10-risks-and-open-questions.md) | current | ~478 |
 
 ## Decisions
 
 | ID | Type | Title | Status | ~Tokens |
 |---|---|---|---|---|
-| D-00 | summary | [All decisions, newest first](decisions/README.md) | current | ~180 |
+| D-00 | summary | [All decisions, newest first](decisions/README.md) | current | ~187 |
 | D-01 | decision | [ADR-0001: build in Rust](decisions/ADR-0001-rust.md) | accepted | ~355 |
 | D-02 | decision | [ADR-0002: GPL-3.0 with trademarked name](decisions/ADR-0002-gpl-3.md) | accepted | ~270 |
-| D-03 | decision | [ADR-0003: own 608/708 encoder, SEI in display order](decisions/ADR-0003-caption-insertion.md) | accepted | ~592 |
-| D-04 | decision | [ADR-0004: pipeline base FFmpeg vs GStreamer (proposed)](decisions/ADR-0004-pipeline-base.md) | proposed | ~830 |
+| D-03 | decision | [ADR-0003: SEI in display order; encoder choice pending S2b](decisions/ADR-0003-caption-insertion.md) | accepted in part | ~590 |
+| D-04 | decision | [ADR-0004: pipeline base GStreamer vs FFmpeg (proposed)](decisions/ADR-0004-pipeline-base.md) | proposed | ~1133 |
 | D-T | guide | [ADR template](decisions/TEMPLATE.md) | current | ~132 |
 
 ## M0 spikes
 
 | ID | Type | Title | Status | ~Tokens |
 |---|---|---|---|---|
-| M-00 | summary | [M0 overview: spikes, harness, log](m0/README.md) | current | ~791 |
+| M-00 | summary | [M0 overview: spikes, harness, log](m0/README.md) | current | ~871 |
 | F-S3 | finding | [Rust 608/708 encoder decodes in FFmpeg, ccextractor, libcaption](m0/findings/S3-caption-encoder.md) | current | ~1894 |
 | E-S3 | evidence | [S3 raw outputs](m0/evidence/S3) | current | ~4625 |
 | H-01 | how-it-works | [How the latency tool measures video delay and caption lag](m0/findings/H-latency-tool.md) | current | ~1698 |
