@@ -31,10 +31,10 @@ Types: `summary` overview page · `spec` requirements · `decision` ADR · `find
 
 | ID | Type | Title | Status | ~Tokens |
 |---|---|---|---|---|
-| D-00 | summary | [All decisions, newest first](decisions/README.md) | current | ~187 |
+| D-00 | summary | [All decisions, newest first](decisions/README.md) | current | ~184 |
 | D-01 | decision | [ADR-0001: build in Rust](decisions/ADR-0001-rust.md) | accepted | ~355 |
 | D-02 | decision | [ADR-0002: GPL-3.0 with trademarked name](decisions/ADR-0002-gpl-3.md) | accepted | ~270 |
-| D-03 | decision | [ADR-0003: SEI in display order; encoder choice pending S2b](decisions/ADR-0003-caption-insertion.md) | accepted in part | ~590 |
+| D-03 | decision | [ADR-0003: GStreamer caption encoders, SEI in display order](decisions/ADR-0003-caption-insertion.md) | accepted | ~839 |
 | D-04 | decision | [ADR-0004: pipeline base GStreamer vs FFmpeg (proposed)](decisions/ADR-0004-pipeline-base.md) | proposed | ~1133 |
 | D-T | guide | [ADR template](decisions/TEMPLATE.md) | current | ~132 |
 
@@ -42,7 +42,7 @@ Types: `summary` overview page · `spec` requirements · `decision` ADR · `find
 
 | ID | Type | Title | Status | ~Tokens |
 |---|---|---|---|---|
-| M-00 | summary | [M0 overview: spikes, harness, log](m0/README.md) | current | ~871 |
+| M-00 | summary | [M0 overview: spikes, harness, log](m0/README.md) | current | ~947 |
 | F-S3 | finding | [Rust 608/708 encoder decodes in FFmpeg, ccextractor, libcaption](m0/findings/S3-caption-encoder.md) | current | ~1894 |
 | E-S3 | evidence | [S3 raw outputs](m0/evidence/S3) | current | ~4625 |
 | H-01 | how-it-works | [How the latency tool measures video delay and caption lag](m0/findings/H-latency-tool.md) | current | ~1698 |
@@ -51,3 +51,5 @@ Types: `summary` overview page · `spec` requirements · `decision` ADR · `find
 | E-S2 | evidence | [S2 raw outputs](m0/evidence/S2) | current | ~16643 |
 | F-S1 | finding | [FFmpeg pass-through with caption SEI: works, one-frame latency](m0/findings/S1-ffmpeg-pipeline.md) | current | ~2336 |
 | E-S1 | evidence | [S1 raw outputs](m0/evidence/S1) | current | ~7902 |
+| F-S2b | finding | [GStreamer caption encoders: per-line control, no added delay, use them](m0/findings/S2b-gstreamer-caption-encoders.md) | current | ~1667 |
+| E-S2b | evidence | [S2b raw outputs](m0/evidence/S2b) | current | ~7395 |
