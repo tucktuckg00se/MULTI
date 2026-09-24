@@ -31,16 +31,18 @@ Types: `summary` overview page · `spec` requirements · `decision` ADR · `find
 
 | ID | Type | Title | Status | ~Tokens |
 |---|---|---|---|---|
-| D-00 | summary | [All decisions, newest first](decisions/README.md) | current | ~137 |
+| D-00 | summary | [All decisions, newest first](decisions/README.md) | current | ~180 |
 | D-01 | decision | [ADR-0001: build in Rust](decisions/ADR-0001-rust.md) | accepted | ~355 |
 | D-02 | decision | [ADR-0002: GPL-3.0 with trademarked name](decisions/ADR-0002-gpl-3.md) | accepted | ~270 |
+| D-03 | decision | [ADR-0003: own 608/708 encoder, SEI in display order](decisions/ADR-0003-caption-insertion.md) | accepted | ~592 |
+| D-04 | decision | [ADR-0004: pipeline base FFmpeg vs GStreamer (proposed)](decisions/ADR-0004-pipeline-base.md) | proposed | ~830 |
 | D-T | guide | [ADR template](decisions/TEMPLATE.md) | current | ~132 |
 
 ## M0 spikes
 
 | ID | Type | Title | Status | ~Tokens |
 |---|---|---|---|---|
-| M-00 | summary | [M0 overview: spikes, harness, log](m0/README.md) | current | ~745 |
+| M-00 | summary | [M0 overview: spikes, harness, log](m0/README.md) | current | ~791 |
 | F-S3 | finding | [Rust 608/708 encoder decodes in FFmpeg, ccextractor, libcaption](m0/findings/S3-caption-encoder.md) | current | ~1894 |
 | E-S3 | evidence | [S3 raw outputs](m0/evidence/S3) | current | ~4625 |
 | H-01 | how-it-works | [How the latency tool measures video delay and caption lag](m0/findings/H-latency-tool.md) | current | ~1698 |
