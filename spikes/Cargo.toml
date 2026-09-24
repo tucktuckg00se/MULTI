@@ -1,7 +1,7 @@
 # Throwaway M0 experiments. Nothing here ships; see docs/m0/README.md.
 [workspace]
 resolver = "3"
-members = ["harness", "cc", "s1-ffmpeg-pipe", "s2-gst-pipe", "s2b-gst-cc"]
+members = ["harness", "cc", "s1-ffmpeg-pipe", "s2-gst-pipe", "s2b-gst-cc", "s5-translate"]
 
 [workspace.package]
 edition = "2024"

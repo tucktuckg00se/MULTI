@@ -1,0 +1,16 @@
+[package]
+name = "s5-translate"
+version = "0.0.0"
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+# Needs CUDA 13 at /opt/cuda; build with ./build.sh (sets CUDA_PATH and archs).
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+llama-cpp-2 = { version = "=0.1.157", features = ["cuda"] }
+ct2rs = { version = "=0.10.1", default-features = false, features = ["cuda", "ruy", "sentencepiece", "tokenizers", "whisper"] }
+sentencepiece = "0.13"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
