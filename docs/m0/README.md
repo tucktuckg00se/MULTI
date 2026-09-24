@@ -7,7 +7,7 @@
 | ID | Question | Crate | Status | Finding |
 |---|---|---|---|---|
 | S1 | Can FFmpeg libraries pass video through and inject caption SEI without re-encode? | `spikes/s1-ffmpeg-pipe` | in progress | — |
-| S2 | Same, with GStreamer | `spikes/s2-gst-pipe` | in progress | — |
+| S2 | Same, with GStreamer | `spikes/s2-gst-pipe` | done | [S2](findings/S2-gstreamer-pipeline.md) |
 | S3 | Pure-Rust CEA-608/708 encoder + SEI builder that real decoders accept | `spikes/cc` | done | [S3](findings/S3-caption-encoder.md) |
 | S4 | Which streaming ASR gives the best lag/accuracy/VRAM trade-off? | `spikes/s4-asr` | not started | — |
 | S5 | Can small local models translate a clause in ~500 ms? (stretch) | `spikes/s5-translate` | not started | — |
@@ -33,5 +33,6 @@ Newest first. One line per notable event, with a link if there's more.
 
 - 2026-09-22 — S3 done: pure-Rust 608/708 encoder decodes exactly in FFmpeg, ccextractor and libcaption (H.264 + HEVC, CC1–CC4, 708 services 1–6). Found and fixed a repeated-special-character bug. Open: B-frame ordering, real players, no P16 for non-Latin scripts.
 - 2026-09-22 — Latency tool done and self-tested: tap overhead 0.02 ms, known 250 ms delay read as 250.035 ms, 2.0 s caption offset read exactly. Note: source PTS starts at 1.421 s, not 0.
-- 2026-09-22 — S1 (FFmpeg) and S2 (GStreamer) pipelines in progress.
+- 2026-09-23 — S2 done: GStreamer pass-through adds 33 ms (one frame) with our encoder, 100 ms with GStreamer's own caption elements. 60-min soak clean (0 errors, RSS flat 25.6 MB). Our `cc` encoder beats GStreamer's on control, delay and dependencies.
+- 2026-09-22 — S1 (FFmpeg pipeline) in progress.
 - 2026-09-22 — M0 started: docs structure, harness and spike workspace set up.
