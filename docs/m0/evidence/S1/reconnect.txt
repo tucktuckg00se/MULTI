@@ -1,0 +1,66 @@
+######## rc5-udp: source 20 s on, 5 s off, 20 s on, 1 s off, 12 s on (PTS restarts at 127920 each time), H.264
+## events (unix s)
+1790162970.707857501 source start h264 20 s
+1790162990.795705322 source stop
+1790162995.797478503 source start h264 20 s
+1790163015.884733122 source stop
+1790163016.886519070 source start h264 12 s
+1790163028.973141477 source stop
+## pipe log (status lines removed)
+2026-09-23T11:29:30.957952Z  INFO input session started session=1 streams=[(Video, H264), (Audio, AAC)] open_ms=735
+2026-09-23T11:29:30.957967Z  INFO timestamp epoch epoch=1 delta=0
+2026-09-23T11:29:30.958024Z  INFO output synced at keyframe url=udp://127.0.0.1:9104?pkt_size=1316 layout=1
+2026-09-23T11:29:30.958032Z  INFO output synced at keyframe url=srt://127.0.0.1:9111?mode=listener&latency=120000&pkt_size=1316 layout=1
+2026-09-23T11:29:30.958024Z  INFO output synced at keyframe url=udp://127.0.0.1:9103?pkt_size=1316 layout=1
+[mpegts @ 0x5630e8876bc0] DTS 127920 < 1972920 out of order
+2026-09-23T11:29:55.867069Z  WARN input timestamp discontinuity; starting new epoch stream=0 prev=1972920 dts=127920 jump=-1845000
+2026-09-23T11:29:55.867084Z  INFO timestamp epoch epoch=2 delta=2416152
+[mpegts @ 0x5630e8876bc0] DTS 127920 < 1972920 out of order
+2026-09-23T11:30:16.947005Z  WARN input timestamp discontinuity; starting new epoch stream=0 prev=1972920 dts=127920 jump=-1845000
+2026-09-23T11:30:16.947018Z  INFO timestamp epoch epoch=3 delta=4471467
+## output PTS vs wall gaps at udp:9103
+gap: wall 5 ms, pts 6346 ms (pts 1972920 -> 2544072)
+gap: wall 2 ms, pts 2337 ms (pts 4389072 -> 4599387)
+## downstream recordings (ffmpeg -c copy over the whole run)
+rec-udp: duration 62.973633 s, ffmpeg decode errors: 0, verify: PASS: all expected lines present
+rec-srt: duration 62.973633 s, ffmpeg decode errors: 0, verify: PASS: all expected lines present
+
+######## rc5-srt: source 20 s on, 5 s off, 20 s on, 1 s off, 12 s on (PTS restarts at 127920 each time), H.264
+## events (unix s)
+1790163073.224141541 source start h264 20 s
+1790163094.534253998 source stop
+1790163099.535990712 source start h264 20 s
+1790163120.829691483 source stop
+1790163121.831536620 source start h264 12 s
+1790163135.127557119 source stop
+## pipe log (status lines removed)
+2026-09-23T11:31:13.814391Z  INFO input session started session=1 streams=[(Video, H264), (Audio, AAC)] open_ms=1076
+2026-09-23T11:31:13.814405Z  INFO timestamp epoch epoch=1 delta=0
+2026-09-23T11:31:13.814467Z  INFO output synced at keyframe url=udp://127.0.0.1:9103?pkt_size=1316 layout=1
+2026-09-23T11:31:13.814467Z  INFO output synced at keyframe url=udp://127.0.0.1:9104?pkt_size=1316 layout=1
+2026-09-23T11:31:13.814468Z  INFO output synced at keyframe url=srt://127.0.0.1:9111?mode=listener&latency=120000&pkt_size=1316 layout=1
+2026-09-23T11:31:33.526374Z  WARN input read error: Input/output error; reconnecting session=1
+[srt @ 0x55b1ef43d7c0] Connection to srt://127.0.0.1:9110?mode=caller&latency=120000 failed: Input/output error
+2026-09-23T11:31:36.530910Z  WARN open failed: Input/output error; retry in 250ms input=srt://127.0.0.1:9110?mode=caller&latency=120000
+[srt @ 0x55b1ef43d7c0] Connection to srt://127.0.0.1:9110?mode=caller&latency=120000 failed: Input/output error
+2026-09-23T11:31:39.787797Z  WARN open failed: Input/output error; retry in 500ms input=srt://127.0.0.1:9110?mode=caller&latency=120000
+2026-09-23T11:31:40.610297Z  INFO input session started session=2 streams=[(Video, H264), (Audio, AAC)] open_ms=322
+2026-09-23T11:31:40.610308Z  INFO timestamp epoch epoch=2 delta=2521560
+2026-09-23T11:31:59.822835Z  WARN input read error: Input/output error; reconnecting session=2
+2026-09-23T11:32:02.407759Z  INFO input session started session=3 streams=[(Video, H264), (Audio, AAC)] open_ms=2584
+2026-09-23T11:32:02.407772Z  INFO timestamp epoch epoch=3 delta=4593201
+2026-09-23T11:32:14.120088Z  WARN input read error: Input/output error; reconnecting session=3
+[srt @ 0x55b1ef43d7c0] Connection to srt://127.0.0.1:9110?mode=caller&latency=120000 failed: Input/output error
+2026-09-23T11:32:17.128160Z  WARN open failed: Input/output error; retry in 250ms input=srt://127.0.0.1:9110?mode=caller&latency=120000
+[srt @ 0x55b1ef43d7c0] Connection to srt://127.0.0.1:9110?mode=caller&latency=120000 failed: Input/output error
+2026-09-23T11:32:20.387169Z  WARN open failed: Input/output error; retry in 500ms input=srt://127.0.0.1:9110?mode=caller&latency=120000
+[srt @ 0x55b1ef43d7c0] Connection to srt://127.0.0.1:9110?mode=caller&latency=120000 failed: Immediate exit requested
+2026-09-23T11:32:22.800211Z  WARN open failed: Immediate exit requested; retry in 1s input=srt://127.0.0.1:9110?mode=caller&latency=120000
+## output PTS vs wall gaps at udp:9103
+gap: wall 7084 ms, pts 7617 ms (pts 1963920 -> 2649480)
+gap: wall 2585 ms, pts 3118 ms (pts 4440480 -> 4721121)
+gap: wall 33 ms, pts 400 ms (pts 4748121 -> 4784121)
+## downstream recordings (ffmpeg -c copy over the whole run)
+rec-udp: duration 63.490233 s, ffmpeg decode errors: 0, verify: PASS: all expected lines present
+rec-srt: duration 63.490233 s, ffmpeg decode errors: 0, verify: PASS: all expected lines present
+
