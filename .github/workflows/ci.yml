@@ -1,0 +1,44 @@
+# CPU-only checks for every push and pull request. GPU tests (ASR, translation
+# benchmarks) run locally; see docs/m1/README.md.
+#
+# Runs in an Arch Linux container so GStreamer matches the dev machine
+# (h264ccinserter needs GStreamer >= 1.26; Ubuntu LTS ships older).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Install toolchain and media libraries
+        run: |
+          pacman -Syu --noconfirm --needed \
+            base-devel git rust clang pkgconf \
+            gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad \
+            gst-plugin-rsclosedcaption gst-libav ffmpeg
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
+          restore-keys: cargo-${{ runner.os }}-
+      - name: Format
+        run: cargo fmt --all --check
+      - name: Lint
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - name: Test
+        run: cargo test --workspace --locked
+      - name: Docs index is current
+        run: scripts/docs-index.sh --check

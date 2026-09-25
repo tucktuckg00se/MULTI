@@ -8,7 +8,7 @@ Types: `summary` overview page · `spec` requirements · `decision` ADR · `find
 
 | ID | Type | Title | Status | ~Tokens |
 |---|---|---|---|---|
-| G-01 | guide | [Agent guide: rules and how to read docs](../CLAUDE.md) | current | ~404 |
+| G-01 | guide | [Agent guide: rules and how to read docs](../CLAUDE.md) | current | ~520 |
 | G-02 | summary | [README: what MULTI is, licence](../README.md) | current | ~472 |
 
 ## Product (PRD)
@@ -39,6 +39,12 @@ Types: `summary` overview page · `spec` requirements · `decision` ADR · `find
 | D-05 | decision | [ADR-0005: Nemotron streaming ASR default, Whisper turbo option](decisions/ADR-0005-asr-backend.md) | accepted | ~466 |
 | D-06 | decision | [ADR-0006: CTranslate2 + opus-mt translation, LLMs optional](decisions/ADR-0006-translation-backend.md) | accepted | ~431 |
 | D-T | guide | [ADR template](decisions/TEMPLATE.md) | current | ~132 |
+
+## M1 first real version
+
+| ID | Type | Title | Status | ~Tokens |
+|---|---|---|---|---|
+| M1-00 | summary | [M1 overview: work packages, exit criteria, code layout](m1/README.md) | current | ~526 |
 
 ## M0 spikes
 
