@@ -1,0 +1,58 @@
+codec,input,captions,measure,n,p50_ms,p95_ms,p99_ms,max_ms
+h264,srt,gst,blackbox_udp_out,1002,219.879,220.223,220.852,226.005
+h264,srt,gst,blackbox_srt_out,999,339.967,340.302,341.199,343.863
+h264,srt,gst,internal_demux_to_mux,1021,33.405,43.497,66.010,66.600
+h264,srt,gst,internal_caption_stage,1021,33.348,43.443,65.932,66.522
+h264,srt,none,blackbox_udp_out,1004,153.733,162.648,163.636,167.975
+h264,srt,none,blackbox_srt_out,1000,273.831,282.744,283.783,289.682
+h264,srt,none,internal_demux_to_mux,1019,0.051,0.075,0.139,1.720
+h264,srt,ours,blackbox_udp_out,929,153.821,162.911,164.088,167.487
+h264,srt,ours,blackbox_srt_out,925,273.956,283.058,284.297,288.039
+h264,srt,ours,internal_demux_to_mux,1019,0.066,0.103,0.326,3.744
+h264,srt,ours,internal_caption_stage,1019,0.013,0.021,0.030,0.042
+h264,udp,gst,blackbox_udp_out,775,99.834,100.081,100.159,100.229
+h264,udp,gst,blackbox_srt_out,772,219.917,220.175,220.261,220.397
+h264,udp,gst,internal_demux_to_mux,1020,33.433,33.951,66.444,66.582
+h264,udp,gst,internal_caption_stage,1020,33.376,33.884,66.386,66.537
+h264,udp,none,blackbox_udp_out,995,33.526,33.905,34.165,39.581
+h264,udp,none,blackbox_srt_out,991,153.617,154.009,154.760,158.156
+h264,udp,none,internal_demux_to_mux,1019,0.056,0.078,0.097,0.991
+h264,udp,ours,blackbox_udp_out,1061,33.551,33.925,34.190,35.448
+h264,udp,ours,blackbox_srt_out,1057,153.640,154.066,154.625,158.207
+h264,udp,ours,internal_demux_to_mux,1019,0.073,0.101,0.128,0.196
+h264,udp,ours,internal_caption_stage,1019,0.014,0.021,0.028,0.103
+hevc,srt,gst,blackbox_udp_out,1081,184.277,186.714,195.871,212.318
+hevc,srt,gst,blackbox_srt_out,1077,304.382,307.173,317.057,332.497
+hevc,srt,gst,internal_demux_to_mux,1047,0.104,0.938,25.658,31.795
+hevc,srt,gst,internal_caption_stage,1047,0.045,0.426,25.586,31.759
+hevc,srt,none,blackbox_udp_out,1040,154.765,163.622,195.206,202.034
+hevc,srt,none,blackbox_srt_out,1036,274.912,284.062,315.294,322.124
+hevc,srt,none,internal_demux_to_mux,1017,0.054,0.089,0.606,2.384
+hevc,srt,ours,blackbox_udp_out,1080,154.862,164.665,195.150,201.864
+hevc,srt,ours,blackbox_srt_out,1077,275.066,285.023,315.249,324.276
+hevc,srt,ours,internal_demux_to_mux,1047,0.073,0.125,0.904,2.544
+hevc,srt,ours,internal_caption_stage,1047,0.016,0.032,0.052,0.129
+hevc,udp,gst,blackbox_udp_out,1134,43.353,68.894,80.689,92.635
+hevc,udp,gst,blackbox_srt_out,1130,164.113,189.662,200.850,212.730
+hevc,udp,gst,internal_demux_to_mux,1091,0.115,1.071,24.218,42.693
+hevc,udp,gst,internal_caption_stage,1091,0.047,0.191,24.166,42.410
+hevc,udp,none,blackbox_udp_out,1044,33.583,38.648,72.902,77.638
+hevc,udp,none,blackbox_srt_out,1040,153.684,158.914,193.021,200.581
+hevc,udp,none,internal_demux_to_mux,1018,0.052,0.091,0.548,2.628
+hevc,udp,ours,blackbox_udp_out,1084,33.633,39.445,73.869,80.795
+hevc,udp,ours,blackbox_srt_out,1080,153.790,159.622,194.023,200.846
+hevc,udp,ours,internal_demux_to_mux,1047,0.069,0.119,0.614,4.549
+hevc,udp,ours,internal_caption_stage,1047,0.015,0.030,0.042,0.620
+h264,udp,calib,srt_bridge_pair_only (udpsrc!srtsink -> srtsrc!udpsink; latency=120),1043,120.161,121.014,123.317,126.472
+h264,udp,gst+cc-latency-100ms,blackbox_udp_out,530,133.345,199.994,201.390,203.678
+h264,udp,gst+cc-latency-100ms,blackbox_srt_out,530,253.465,320.233,322.593,325.102
+h264,udp,gst+cc-latency-100ms,internal_demux_to_mux,719,33.494,38.770,87.945,91.062
+h264,udp,gst+cc-latency-100ms,internal_caption_stage,719,33.396,38.718,87.878,90.947
+h264,udp,ours@1a2abae(rerun during soak),blackbox_udp_out,1064,33.607,37.762,39.325,43.901
+h264,udp,ours@1a2abae(rerun during soak),blackbox_srt_out,1060,153.809,158.348,160.287,165.060
+h264,srt,ours@1a2abae(rerun during soak),blackbox_udp_out,1060,155.982,164.315,166.502,172.361
+h264,srt,ours@1a2abae(rerun during soak),blackbox_srt_out,1057,276.895,284.687,286.565,292.452
+hevc,udp,ours@1a2abae(rerun during soak),blackbox_udp_out,1090,33.388,43.153,84.730,90.472
+hevc,udp,ours@1a2abae(rerun during soak),blackbox_srt_out,1088,153.890,163.591,204.868,213.272
+hevc,srt,ours@1a2abae(rerun during soak),blackbox_udp_out,1085,156.963,168.559,205.935,216.126
+hevc,srt,ours@1a2abae(rerun during soak),blackbox_srt_out,1082,277.315,288.754,326.020,336.706

@@ -1,0 +1,27 @@
+# Soak run 2, first attempt (final code, fifo_size=50000): killed after ~11.5 min when the agent session was interrupted (not a pipe failure). Kept as partial evidence.
+2026-09-23T11:37:00.851622Z  INFO status session=1 read=24442 frames=20435 sei=20435 sei_skip=0 corrupt=0 rss_kib=62740 outputs=["udp://127.0.0.1:9123?pkt_size=1316: written=24441 dropped_full=0 connects=1", "srt://127.0.0.1:9124?mode=listener&latency=120000&pkt_size=1316: written=24441 dropped_full=0 connects=1", "udp://127.0.0.1:9126?pkt_size=1316: written=24441 dropped_full=0 connects=1"]
+WARN lines: 0
+out0.csv: pass-through ms n=20411 p50=0.05 p95=0.08 p99=0.11 max=2.35 min=0.02
+## UDP out
+frames: in=20449 out=20448 matched=20132 (method: content hash)
+delay ms: p50=33.404 p95=33.815 p99=34.836 max=48.437 mean=33.411 min=18.101
+jitter ms: stddev=0.584 mean|successive diff|=0.423  drift=0.000 ms/min
+## SRT out (via bridge)
+frames: in=20449 out=20445 matched=20129 (method: content hash)
+delay ms: p50=153.518 p95=153.952 p99=155.468 max=168.750 mean=153.532 min=138.229
+jitter ms: stddev=0.603 mean|successive diff|=0.437  drift=0.000 ms/min
+## RSS
+t_s,rss_kib,threads,fds
+0,38352,8,11
+60,62740,8,11
+120,62740,8,11
+180,62740,8,11
+240,62740,8,11
+300,62740,8,11
+360,62740,8,11
+420,62740,8,11
+480,62740,8,11
+540,62740,8,11
+600,62740,8,11
+660,62740,8,11
+680,62740,8,11

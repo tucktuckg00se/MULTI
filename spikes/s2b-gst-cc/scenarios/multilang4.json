@@ -1,0 +1,157 @@
+{
+ "secs": 10,
+ "tracks": [
+  {
+   "name": "cc1",
+   "gst": {
+    "kind": "608",
+    "field": 0,
+    "mode": "roll-up3",
+    "json": true
+   },
+   "ours": {
+    "cc": "cc1",
+    "mode": "ru3"
+   }
+  },
+  {
+   "name": "cc3",
+   "gst": {
+    "kind": "608",
+    "field": 1,
+    "mode": "roll-up3",
+    "json": true
+   },
+   "ours": {
+    "cc": "cc3",
+    "mode": "ru3"
+   }
+  },
+  {
+   "name": "s1",
+   "gst": {
+    "kind": "708",
+    "service": 1,
+    "mode": "roll-up",
+    "roll_up_rows": 3
+   },
+   "ours": {
+    "svc": 1
+   }
+  },
+  {
+   "name": "s2",
+   "gst": {
+    "kind": "708",
+    "service": 2,
+    "mode": "roll-up",
+    "roll_up_rows": 3
+   },
+   "ours": {
+    "svc": 2
+   }
+  }
+ ],
+ "events": [
+  {
+   "t": 1,
+   "track": "cc1",
+   "json": {
+    "mode": "RollUp3",
+    "lines": [
+     {
+      "carriage_return": true,
+      "chunks": [
+       {
+        "style": "White",
+        "underline": false,
+        "text": "Hello, this is the English track."
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "t": 4,
+   "track": "cc1",
+   "json": {
+    "mode": "RollUp3",
+    "lines": [
+     {
+      "carriage_return": true,
+      "chunks": [
+       {
+        "style": "White",
+        "underline": false,
+        "text": "The weather is fine today."
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "t": 1,
+   "track": "cc3",
+   "json": {
+    "mode": "RollUp3",
+    "lines": [
+     {
+      "carriage_return": true,
+      "chunks": [
+       {
+        "style": "White",
+        "underline": false,
+        "text": "Hola, \u00bfqu\u00e9 tal? Se\u00f1or N\u00fa\u00f1ez."
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "t": 4,
+   "track": "cc3",
+   "json": {
+    "mode": "RollUp3",
+    "lines": [
+     {
+      "carriage_return": true,
+      "chunks": [
+       {
+        "style": "White",
+        "underline": false,
+        "text": "\u00a1Adi\u00f3s! Ma\u00f1ana a las ocho."
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "t": 1,
+   "track": "s1",
+   "text": "Bonjour, \u00e7a va tr\u00e8s bien.",
+   "cr": true
+  },
+  {
+   "t": 4,
+   "track": "s1",
+   "text": "O\u00f9 est la for\u00eat? No\u00ebl \u00e0 Paris.",
+   "cr": true
+  },
+  {
+   "t": 1,
+   "track": "s2",
+   "text": "Guten Tag, sch\u00f6ne Gr\u00fc\u00dfe.",
+   "cr": true
+  },
+  {
+   "t": 4,
+   "track": "s2",
+   "text": "Stra\u00dfe, M\u00e4dchen, \u00dcbung.",
+   "cr": true
+  }
+ ]
+}

@@ -1,0 +1,156 @@
+# ffmpeg (verify.sh) CC1, run600, cues 60-64
+60
+01:01:57,786 --> 01:01:59,353
+A mirror
+Yellow billed ducks who are 
+seizing the opportunity of 
+
+61
+01:01:59,353 --> 01:02:00,820
+Yellow billed ducks who are 
+seizing the opportunity of 
+getting a drink
+
+62
+01:02:00,820 --> 01:02:01,920
+seizing the opportunity of 
+getting a drink
+There‘s much body in it as 
+
+63
+01:02:01,920 --> 01:02:03,387
+getting a drink
+There‘s much body in it as 
+possible
+
+64
+01:02:03,386 --> 01:02:04,986
+There‘s much body in it as 
+possible
+For the great barn doors are 
+
+# ccextractor ccx-cc3.srt, cues 60-63
+60
+00:01:47,700 --> 00:01:48,332
+musgo verde vívido en las       
+baldosas rojas del establo      
+Y girando hasta el agua fangosa 
+
+61
+00:01:48,334 --> 00:01:48,932
+baldosas rojas del establo      
+Y girando hasta el agua fangosa 
+que se está apresurando a lo    
+
+62
+00:01:48,934 --> 00:01:49,465
+Y girando hasta el agua fangosa 
+que se está apresurando a lo    
+largo del canal hasta el        
+
+63
+00:01:49,467 --> 00:01:49,765
+que se está apresurando a lo    
+largo del canal hasta el        
+desagüe                         
+
+# ccextractor ccx.p1.svc01.srt, cues 60-63
+251
+00:01:51,100 --> 00:01:52,799
+A mirror
+Yellow billed ducks who are
+seizing the opportunity of
+
+261
+00:01:52,800 --> 00:01:54,299
+Yellow billed ducks who are
+seizing the opportunity of
+getting a drink
+
+262
+00:01:54,300 --> 00:01:55,366
+seizing the opportunity of
+getting a drink
+There's much body in it as
+
+269
+00:01:55,367 --> 00:01:56,866
+getting a drink
+There's much body in it as
+possible
+
+# ccextractor ccx.p1.svc02.srt, cues 60-63
+231
+00:01:42,767 --> 00:01:42,833
+brilla entre la paja húmeda
+E iluminando cada trozo de musgo
+verde vívido en las baldosas
+
+236
+00:01:42,834 --> 00:01:47,833
+E iluminando cada trozo de musgo
+verde vívido en las baldosas
+rojas del establo
+
+240
+00:01:47,834 --> 00:01:47,933
+verde vívido en las baldosas
+rojas del establo
+Y girando hasta el agua fangosa
+
+243
+00:01:47,934 --> 00:01:47,999
+rojas del establo
+Y girando hasta el agua fangosa
+que se está apresurando a lo
+
+# ccextractor ccx.p1.svc03.srt, cues 60-63
+237
+00:01:42,834 --> 00:01:47,833
+Et illuminer chaque patch de
+mousse verte vif sur les
+carreaux rouges de l'étable
+
+241
+00:01:47,834 --> 00:01:47,933
+mousse verte vif sur les
+carreaux rouges de l'étable
+Et tourner même l'eau boueuse
+
+244
+00:01:47,934 --> 00:01:47,999
+carreaux rouges de l'étable
+Et tourner même l'eau boueuse
+qui se dépêche le long du canal
+
+247
+00:01:48,000 --> 00:01:49,066
+Et tourner même l'eau boueuse
+qui se dépêche le long du canal
+vers le drain
+
+# ccextractor ccx.p1.svc04.srt, cues 60-63
+230
+00:01:42,767 --> 00:01:42,833
+Stroh
+Und zündet jeden Fleck von
+lebendigem grünem Moos auf den
+
+238
+00:01:42,834 --> 00:01:47,833
+Und zündet jeden Fleck von
+lebendigem grünem Moos auf den
+roten Fliesen des Kuhstalls an
+
+239
+00:01:47,834 --> 00:01:47,933
+lebendigem grünem Moos auf den
+roten Fliesen des Kuhstalls an
+Und sogar das schlammige Wasser,
+
+242
+00:01:47,934 --> 00:01:47,999
+roten Fliesen des Kuhstalls an
+Und sogar das schlammige Wasser,
+das sich entlang des Kanals zum
+

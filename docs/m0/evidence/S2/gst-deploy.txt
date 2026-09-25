@@ -1,0 +1,29 @@
+# Runtime GStreamer pieces s2-gst-pipe uses (Arch, GStreamer 1.28.7, gst-plugins-rs 0.15.3)
+plugin             module                 licence    size_kb  elements used
+coreelements       gstreamer              LGPL       440      queue tee capsfilter fakesink
+app                gst-plugins-base       LGPL       13       appsrc appsink
+udp                gst-plugins-good       LGPL       94       udpsrc udpsink
+audioparsers       gst-plugins-good       LGPL       142      aacparse (ac3parse mpegaudioparse)
+mpegtsdemux        gst-plugins-bad        LGPL       190      tsdemux
+mpegtsmux          gst-plugins-bad        LGPL       130      mpegtsmux
+videoparsersbad    gst-plugins-bad        LGPL       348      h264parse h265parse
+closedcaption      gst-plugins-bad        LGPL       215      h264ccinserter h265ccinserter cccombiner ccconverter [(b) needs only the inserters]
+rsclosedcaption    gst-plugin-closedcaption MPL        2322     tttocea608 tttocea708 cea708mux [(a) only]
+srt                gst-plugins-bad        LGPL       67       srtsrc srtsink
+
+# Core libraries (size on disk)
+1.5M	/usr/lib/libgstreamer-1.0.so
+540K	/usr/lib/libgstbase-1.0.so
+884K	/usr/lib/libgstvideo-1.0.so
+100K	/usr/lib/libgstapp-1.0.so
+888K	/usr/lib/libgstcodecparsers-1.0.so
+204K	/usr/lib/libgstmpegts-1.0.so
+1.4M	/usr/lib/libglib-2.0.so
+392K	/usr/lib/libgobject-2.0.so
+920K	/usr/lib/libsrt.so
+
+# Shared libs pulled in by libgstrsclosedcaption.so (approach a) beyond glib/gstreamer:
+libpangocairo-1.0.so.0 libpango-1.0.so.0 libcairo.so.2 libpangoft2-1.0.so.0 libharfbuzz.so.0 libfontconfig.so.1 libfribidi.so.0 libthai.so.0 libz.so.1 libpng16.so.16 libfreetype.so.6 libX11.so.6 libXext.so.6 libXrender.so.1 libxcb.so.1 libxcb-render.so.0 libxcb-shm.so.0 libpixman-1.so.0 libffi.so.8 libpcre2-8.so.0 liborc-0.4.so.0 libunwind.so.8 libdw.so.1 libmount.so.1 libgraphite2.so.3 libexpat.so.1 libdatrie.so.1 libbz2.so.1.0 libbrotlidec.so.1 libXau.so.6 libXdmcp.so.6 libdrm.so.2 liblzma.so.5 libelf.so.1 libzstd.so.1 libblkid.so.1 libsystemd.so.0 libbrotlicommon.so.1 
+
+# s2-gst-pipe binary: 2947 KB release; links: libgstvideo-1.0.so.0 libgstbase-1.0.so.0 libgstreamer-1.0.so.0 libgobject-2.0.so.0 libglib-2.0.so.0 libgstapp-1.0.so.0 libgstallocators-1.0.so.0 
+# unsafe blocks in s2-gst-pipe: 0; Rust lines: 1532

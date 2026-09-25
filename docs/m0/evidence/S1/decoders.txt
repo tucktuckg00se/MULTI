@@ -1,0 +1,33 @@
+# ffprobe -show_frames: video frames carrying ATSC A53 CC side data (decoder-level check)
+rc5-udp/rec-udp.ts: frames 1608, with 'ATSC A53 Part 4 Closed Captions' 1608, ffmpeg -v error decode messages: 0
+bf-h264/out.ts: frames 1096, with 'ATSC A53 Part 4 Closed Captions' 1096, ffmpeg -v error decode messages: 0
+bf-hevc/out.ts: frames 1096, with 'ATSC A53 Part 4 Closed Captions' 1096, ffmpeg -v error decode messages: 0
+frame|pts=132000|side_datum/atsc_a53_part_4_closed_captions:side_data_type=ATSC A53 Part 4 Closed Captions|side_datum/h_26_45__user_data_unregistered_sei_message:side_data_type=H.26[45] User Data Unregistered SEI message
+frame|pts=135000|side_datum/atsc_a53_part_4_closed_captions:side_data_type=ATSC A53 Part 4 Closed Captions
+
+# mpv --no-config --vo=null --ao=null --untimed --sub-create-cc-track=yes --sid=1 (Lua script prints sub-text), bf-h264/out.ts
+● Subs   --sid=1  (eia_608) [default]
+[subdump] SUB: HELLO
+[subdump] SUB: HELLO FROM MULTI
+[subdump] SUB: HELLO FROM MULTI | CA
+[subdump] SUB: HELLO FROM MULTI | CAPTION FIXTUR
+[subdump] SUB: HELLO FROM MULTI | CAPTION FIXTURE LINE TWO
+[subdump] SUB: CAPTION FIXTURE LINE TWO | RO
+[subdump] SUB: CAPTION FIXTURE LINE TWO | ROLL UP TEST 1
+[subdump] SUB: CAPTION FIXTURE LINE TWO | ROLL UP TEST 123
+[subdump] SUB: ROLL UP TEST 123 | HE
+[subdump] SUB: ROLL UP TEST 123 | HELLO FROM MUL
+[subdump] SUB: ROLL UP TEST 123 | HELLO FROM MULTI
+[subdump] SUB: HELLO FROM MULTI | CA
+[subdump] SUB: HELLO FROM MULTI | CAPTION FIXTUR
+[subdump] SUB: HELLO FROM MULTI | CAPTION FIXTURE LINE TWO
+[subdump] SUB: CAPTION FIXTURE LINE TWO | RO
+[subdump] SUB: CAPTION FIXTURE LINE TWO | ROLL UP TEST 1
+[subdump] SUB: CAPTION FIXTURE LINE TWO | ROLL UP TEST 123
+
+# cvlc -vv (dummy vout), bf-h264/out.ts: VLC detects the CC tracks and loads its cc decoder
+main input debug: Adding CC track 1 for es[256]
+main decoder debug: using spu decoder module "cc"
+main input debug: Adding CC track 2 for es[256]
+main input debug: Adding CC track 3 for es[256]
+main input debug: Adding CC track 4 for es[256]

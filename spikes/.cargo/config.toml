@@ -1,0 +1,6 @@
+# Build settings for the CUDA-backed spikes (s4-asr, s5-translate). The arch
+# values target the RTX 3090 (sm_86) on the dev machine; override per machine.
+[env]
+CUDA_PATH = { value = "/opt/cuda", force = false }
+CUDA_ARCH_LIST = { value = "8.6", force = false }
+CUDAARCHS = { value = "86", force = false }

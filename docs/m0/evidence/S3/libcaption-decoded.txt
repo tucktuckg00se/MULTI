@@ -1,0 +1,46 @@
+# libcaption (git e8b6261) examples/ts2srt: longest (final) text per caption; ts2srt emits one cue per character in roll-up/paint-on
+
+## h264-ru3-cc1
+This line is long enough that it
+This line is long enough that 
+This line is long enough tha
+must wrap onto a second row.
+Live captions, no re-encode.
+This line is long enough t
+
+## h264-popon
+Pop-on caption two
+POP-ON CAPTION ONE
+
+
+## h264-painton
+PAINT-ON CAPTION
+Second paint-on
+Second paint-o
+PAINT-ON CAPTI
+Second paint
+PAINT-ON CAP
+
+## h264-5994
+Sixty fps line two
+SIXTY FPS LINE ONE
+Sixty fps line t
+SIXTY FPS LINE O
+SIXTY FPS LINE
+Sixty fps line
+
+## h264-accents
+Grüße aus München: Äpfel, Öl.
+Élève, Noël, naïve, où, Übung
+¿Qué tal? Señor Muñoz, ¡olé!
+Não, a informação é pública.
+Grüße aus München: Äpfel, Ö
+Grüße aus München: Äpfel, O
+
+## h264-repeats
+a*b_c~d|e{f}g\h^i
+Très èè àà ôô ÄÄ
+Très èè àà ôô ÄA
+a*b_c~d|e{f}g\h^
+a*b_c~d|e{f}g\h 
+Très èè àà ôô Ä

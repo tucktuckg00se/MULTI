@@ -1,0 +1,15 @@
+[package]
+name = "s2b-gst-cc"
+version = "0.0.0"
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+cc = { path = "../cc" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+gst = { package = "gstreamer", version = "0.25", features = ["v1_24"] }
+gst-app = { package = "gstreamer-app", version = "0.25", features = ["v1_24"] }

@@ -1,0 +1,31 @@
+# Soak 2: 60 min, build 1a2abae. H.264 source -> latency tap -> SRT bridge (latency 120) -> s2-gst-pipe --captions ours -> UDP out + SRT out.
+## black box, source tap -> UDP out (whole run, first 10 s skipped; --match hash: PTS matching loses the pairs after the bridge slews its offset, and testsrc2 repeats frame tails so a fraction match)
+frames: in=108171 out=108129 matched=38396 (method: content hash)
+unmatched in window: in=69395 out=69395  duplicate input matches=0  bad CSV rows=0
+pts offset: 323937593 ticks (3599306.589 ms), 8031/38516 content-matched frames agree
+delay ms: p50=153.823 p95=162.725 p99=163.641 max=178.054 mean=156.418 min=142.751
+jitter ms: stddev=3.938 mean|successive diff|=3.924  drift=-0.008 ms/min
+## black box, source tap -> SRT out (via srtsrc!udpsink bridge; two SRT hops = ~240 ms)
+frames: in=108171 out=108126 matched=22548 (method: pts)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323937593 ticks (3599306.589 ms), 22548/22548 content-matched frames agree
+delay ms: p50=273.889 p95=282.704 p99=283.400 max=290.864 mean=276.416 min=268.768
+jitter ms: stddev=3.849 mean|successive diff|=3.763  drift=-0.005 ms/min
+## per 10 min (black box UDP, ms; internal tsdemux->mux, ms)
+window    bb_p50  bb_p99  bb_max   int_p50  int_p99  int_max  skew_ms(out_pts-rt, last)
+ 0-10 min  154.01  166.76  178.05    0.071   1.327   13.502    -0.56
+10-20 min  153.81  163.33  170.90    0.065   0.123    0.942    -0.33
+20-30 min  153.80  163.27  163.88    0.063   0.120    0.523    -0.49
+30-40 min  153.80  163.30  164.04    0.064   0.120    0.581    -0.65
+40-50 min  153.81  163.31  165.22    0.059   0.126    0.755    -0.56
+50-60 min  153.80  163.28  163.98    0.049   0.126    0.190    -0.71
+## stats: uptime 3600 s; RSS 25608 kB at 30 s, min 16972, max 25632, last 17208 kB
+## RSS growth from 10 min (23032 kB) to end (17208 kB)
+## counters at end: video_in=107980, video_out=107980, audio_in=168716, sessions=1, input_restarts=0, input_errors=0, output_errors=0, bridge_drops=0, rows_dropped=0, cc_frames=107980, slewed_ms=56.6
+## warnings/errors in pipeline log
+## output tap stream errors: not recorded (taps ran with --quiet and were killed, so no final counters)
+## verify.sh on the last 20 s of UDP output
+CAPTION FIXTURE LINE TWO
+ROLL UP TEST 123</font>
+PASS: all expected lines present
+## pipeline exit 0

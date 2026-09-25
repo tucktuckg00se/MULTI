@@ -1,0 +1,101 @@
+# S1 latency runs (2026-09-22). 60 s each, 720p30 1 s GOP no B-frames, measured with harness 'latency tap/report' (--skip 10).
+# pass-through = pipe CSV write_ns - read_ns per video packet (out0..3 = udp:9103, udp:9104, srt:9111, srt:9112; out3 only once verify.sh connected).
+# black-box = source tap -> pipe -> tap. 'SRT out' goes through an srt-live-transmit bridge back to UDP; bridge alone = see srt-bridge-cal below.
+# IN=srt adds a second bridge in front: UDP -> srt-live-transmit listener (latency 120 ms) -> pipe SRT caller.
+
+######## L-h264-udp
+/tmp/s1/L-h264-udp/out0.csv: pass-through ms n=1846 p50=0.05 p95=0.08 p99=0.10 max=0.15 min=0.02
+/tmp/s1/L-h264-udp/out1.csv: pass-through ms n=1846 p50=0.06 p95=0.09 p99=0.12 max=0.20 min=0.03
+/tmp/s1/L-h264-udp/out2.csv: pass-through ms n=1846 p50=0.04 p95=0.05 p99=0.08 max=0.24 min=0.01
+/tmp/s1/L-h264-udp/out3.csv: pass-through ms n=572 p50=0.04 p95=0.05 p99=0.07 max=0.09 min=0.01
+== black-box, UDP out
+frames: in=1875 out=1875 matched=1559 (method: content hash)
+pts offset: 0 ticks (0.000 ms), 1875/1875 content-matched frames agree
+delay ms: p50=33.408 p95=33.730 p99=33.945 max=34.267 mean=33.408 min=32.301
+jitter ms: stddev=0.200 mean|successive diff|=0.263  drift=0.005 ms/min
+== black-box, SRT out (includes srt-live-transmit bridge)
+frames: in=1875 out=1875 matched=1559 (method: content hash)
+pts offset: 0 ticks (0.000 ms), 1875/1875 content-matched frames agree
+delay ms: p50=153.495 p95=153.814 p99=154.042 max=154.352 mean=153.495 min=152.390
+jitter ms: stddev=0.200 mean|successive diff|=0.261  drift=0.001 ms/min
+==> /tmp/s1/L-h264-udp/verify-udp.txt <==
+PASS: all expected lines present
+==> /tmp/s1/L-h264-udp/verify-srt.txt <==
+PASS: all expected lines present
+
+######## L-h264-srt
+/tmp/s1/L-h264-srt/out0.csv: pass-through ms n=1846 p50=0.05 p95=0.08 p99=0.11 max=0.15 min=0.02
+/tmp/s1/L-h264-srt/out1.csv: pass-through ms n=1846 p50=0.06 p95=0.10 p99=0.13 max=0.20 min=0.03
+/tmp/s1/L-h264-srt/out2.csv: pass-through ms n=1846 p50=0.04 p95=0.06 p99=0.07 max=0.14 min=0.01
+/tmp/s1/L-h264-srt/out3.csv: pass-through ms n=572 p50=0.04 p95=0.06 p99=0.07 max=0.09 min=0.02
+== black-box, UDP out
+frames: in=1875 out=1876 matched=1559 (method: content hash)
+pts offset: 0 ticks (0.000 ms), 1875/1875 content-matched frames agree
+delay ms: p50=160.614 p95=171.306 p99=172.836 max=173.598 mean=161.328 min=153.117
+jitter ms: stddev=5.198 mean|successive diff|=3.995  drift=6.962 ms/min
+== black-box, SRT out (includes srt-live-transmit bridge)
+frames: in=1875 out=1876 matched=1559 (method: content hash)
+pts offset: 0 ticks (0.000 ms), 1875/1875 content-matched frames agree
+delay ms: p50=280.776 p95=291.614 p99=293.148 max=293.889 mean=281.547 min=273.378
+jitter ms: stddev=5.241 mean|successive diff|=3.996  drift=7.318 ms/min
+==> /tmp/s1/L-h264-srt/verify-udp.txt <==
+PASS: all expected lines present
+==> /tmp/s1/L-h264-srt/verify-srt.txt <==
+PASS: all expected lines present
+
+######## L-hevc-udp
+/tmp/s1/L-hevc-udp/out0.csv: pass-through ms n=1846 p50=0.05 p95=0.08 p99=0.10 max=0.15 min=0.03
+/tmp/s1/L-hevc-udp/out1.csv: pass-through ms n=1846 p50=0.06 p95=0.10 p99=0.13 max=0.20 min=0.02
+/tmp/s1/L-hevc-udp/out2.csv: pass-through ms n=1846 p50=0.04 p95=0.06 p99=0.08 max=0.13 min=0.01
+/tmp/s1/L-hevc-udp/out3.csv: pass-through ms n=572 p50=0.04 p95=0.06 p99=0.08 max=0.12 min=0.02
+== black-box, UDP out
+frames: in=1875 out=1875 matched=1557 (method: content hash)
+pts offset: 0 ticks (0.000 ms), 1875/1875 content-matched frames agree
+delay ms: p50=33.461 p95=36.185 p99=69.080 max=72.064 mean=33.409 min=9.730
+jitter ms: stddev=8.103 mean|successive diff|=5.353  drift=-0.023 ms/min
+== black-box, SRT out (includes srt-live-transmit bridge)
+frames: in=1875 out=1875 matched=1557 (method: content hash)
+pts offset: 0 ticks (0.000 ms), 1875/1875 content-matched frames agree
+delay ms: p50=153.550 p95=156.295 p99=189.184 max=192.163 mean=153.502 min=129.790
+jitter ms: stddev=8.105 mean|successive diff|=5.355  drift=-0.013 ms/min
+==> /tmp/s1/L-hevc-udp/verify-udp.txt <==
+PASS: all expected lines present
+==> /tmp/s1/L-hevc-udp/verify-srt.txt <==
+PASS: all expected lines present
+
+######## L-hevc-srt
+/tmp/s1/L-hevc-srt/out0.csv: pass-through ms n=1846 p50=0.06 p95=0.14 p99=0.41 max=1.52 min=0.03
+/tmp/s1/L-hevc-srt/out1.csv: pass-through ms n=1846 p50=0.08 p95=0.16 p99=0.36 max=2.04 min=0.03
+/tmp/s1/L-hevc-srt/out2.csv: pass-through ms n=1846 p50=0.04 p95=0.09 p99=0.28 max=2.19 min=0.01
+/tmp/s1/L-hevc-srt/out3.csv: pass-through ms n=572 p50=0.05 p95=0.21 p99=0.50 max=1.93 min=0.02
+== black-box, UDP out
+frames: in=1875 out=1876 matched=1557 (method: content hash)
+pts offset: 0 ticks (0.000 ms), 1875/1875 content-matched frames agree
+delay ms: p50=160.304 p95=173.964 p99=203.023 max=287.889 mean=161.073 min=130.484
+jitter ms: stddev=12.207 mean|successive diff|=8.992  drift=6.904 ms/min
+== black-box, SRT out (includes srt-live-transmit bridge)
+frames: in=1875 out=1876 matched=1557 (method: content hash)
+pts offset: 0 ticks (0.000 ms), 1875/1875 content-matched frames agree
+delay ms: p50=280.392 p95=294.048 p99=323.139 max=408.221 mean=281.181 min=250.172
+jitter ms: stddev=12.208 mean|successive diff|=8.988  drift=6.870 ms/min
+==> /tmp/s1/L-hevc-srt/verify-udp.txt <==
+PASS: all expected lines present
+==> /tmp/s1/L-hevc-srt/verify-srt.txt <==
+PASS: all expected lines present
+
+######## srt-bridge-cal (srt-live-transmit listener+caller, latency=120 ms, no pipe)
+frames: in=1216 out=1216 matched=900 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 0 ticks (0.000 ms), 1215/1215 content-matched frames agree
+delay ms: p50=125.052 p95=129.692 p99=130.100 max=130.193 mean=125.129 min=120.133
+jitter ms: stddev=2.926 mean|successive diff|=2.606  drift=0.561 ms/min
+
+######## AVParser comparison, H.264 UDP in, 40 s, run concurrently with the soak
+## P-parser
+/tmp/s1/P-parser/out0.csv: pass-through ms n=1245 p50=0.05 p95=0.08 p99=0.10 max=0.13 min=0.02
+delay ms: p50=66.766 p95=67.147 p99=67.487 max=71.090 mean=66.760 min=62.567
+delay ms: p50=186.852 p95=187.246 p99=187.602 max=191.191 mean=186.847 min=182.657
+## P-noparse
+/tmp/s1/P-noparse/out0.csv: pass-through ms n=1246 p50=0.05 p95=0.08 p99=0.10 max=0.26 min=0.03
+delay ms: p50=33.405 p95=33.796 p99=35.805 max=38.629 mean=33.409 min=28.177
+delay ms: p50=153.497 p95=153.897 p99=155.964 max=158.728 mean=153.501 min=148.262

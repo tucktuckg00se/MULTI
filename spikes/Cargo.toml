@@ -1,0 +1,18 @@
+# Throwaway M0 experiments. Nothing here ships; see docs/m0/README.md.
+[workspace]
+resolver = "3"
+members = ["harness", "cc", "s1-ffmpeg-pipe", "s2-gst-pipe", "s2b-gst-cc", "s4-asr", "s5-translate", "s6-e2e"]
+# s4-asr, s5-translate and s6-e2e compile large C++/CUDA libraries; build them with
+# `cargo build --release -p s4-asr -p s5-translate -p s6-e2e` when needed.
+default-members = ["harness", "cc", "s1-ffmpeg-pipe", "s2-gst-pipe", "s2b-gst-cc"]
+
+[workspace.package]
+edition = "2024"
+license = "GPL-3.0-only"
+publish = false
+
+[workspace.dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }

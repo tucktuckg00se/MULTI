@@ -1,0 +1,25 @@
+# How the reference decoders were built (no sudo, no Docker: the docker socket is not accessible)
+# Everything lives in ~/.cache/multi-tools/. Rust 1.98.1, cmake, gcc; tesseract/leptonica present system-wide.
+
+## ccextractor 0.96.5 (git 2364994), needs GPAC which Arch doesn't ship
+git clone --depth 1 https://github.com/CCExtractor/ccextractor.git
+git clone --depth 1 --branch v2.4.0 https://github.com/gpac/gpac.git
+cd gpac && ./configure --prefix=$HOME/.cache/multi-tools/prefix --isomedia-only --use-ffmpeg=no
+make -j16 lib; make install-lib        # shared lib fails to link; the static lib is enough
+ln -sf libgpac_static.a ../prefix/lib/libgpac.a
+# two symbols isomedia-only GPAC leaves undefined; stub them:
+printf 'void filter_parse_logs(void){}\nchar *gf_text_get_utf8_line(void){return 0;}\n' > gpac_stubs.c && cc -c gpac_stubs.c
+mkdir ccx-build && cd ccx-build
+PKG_CONFIG_PATH=$HOME/.cache/multi-tools/prefix/lib/pkgconfig cmake ../ccextractor/src -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_EXE_LINKER_FLAGS="-L$HOME/.cache/multi-tools/prefix/lib" \
+  -DCMAKE_C_STANDARD_LIBRARIES="$HOME/.cache/multi-tools/gpac_stubs.o -llzma"
+make -j16                              # -> ~/.cache/multi-tools/ccx-build/ccextractor
+# (linux/build fails: GPAC 2.4 FFmpeg filters don't compile against FFmpeg 9)
+
+## libcaption (MIT, git e8b6261)
+git clone --depth 1 https://github.com/szatmary/libcaption.git
+cd libcaption && mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && make -j16   # examples/ts2srt
+# byte dump helper: ~/.cache/multi-tools/lc-dump/dump.c (sei_from_caption_frame + cea708_parse_h264), linked to libcaption.a
+
+## FFmpeg ccaption decoder source read for dedupe behaviour: libavcodec/ccaption_dec.c (n8.0)

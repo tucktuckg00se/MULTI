@@ -1,0 +1,16 @@
+text: "Ça va? Grüße ÄÄ èè"
+608 CC1 pop-on (35 pairs = 35 frames at 1 pair/frame): 9420 9420 94ae 94ae 9470 9470 4380 9232 9232 6120 7661 bf20 c7f2 7580 9225 9225 7380 1334 1334 e520 c180 13b0 13b0 c180 13b0 13b0 2080 91ba 91ba 94a4 94a4 91ba 91ba 942f 942f
+608 CC1 roll-up 2 (33 pairs = 33 frames at 1 pair/frame): 9425 9425 94ad 94ad 9470 9470 4380 9232 9232 6120 7661 bf20 c7f2 7580 9225 9225 7380 1334 1334 e520 c180 13b0 13b0 c180 13b0 13b0 2080 91ba 91ba 94a4 94a4 91ba 91ba
+608 CC1 paint-on (33 pairs = 33 frames at 1 pair/frame): 9429 9429 942c 942c 9470 9470 4380 9232 9232 6120 7661 bf20 c7f2 7580 9225 9225 7380 1334 1334 e520 c180 13b0 13b0 c180 13b0 13b0 2080 91ba 91ba 94a4 94a4 91ba 91ba
+
+frame 0 cc_data (20 triples): fc 94 25 fd 80 80 ff 11 3f fe 98 20 fe da 32 fe 72 1f fe 21 97 fe 00 00 fe 0c 00 fe 90 05 fe 00 91 fe 3f 00 fe 00 0d fe c7 61 fe 20 76 fe 61 3f fe 20 47 fe 72 fc fe df 00 fa 00 00
+frame 0 H.264 SEI NAL: 00 00 00 01 06 04 47 b5 00 31 47 41 39 34 03 54 ff fc 94 25 fd 80 80 ff 11 3f fe 98 20 fe da 32 fe 72 1f fe 21 97 fe 00 00 fe 0c 00 fe 90 05 fe 00 91 fe 3f 00 fe 00 0d fe c7 61 fe 20 76 fe 61 3f fe 20 47 fe 72 fc fe df 00 fa 00 00 ff 80
+frame 0 HEVC SEI NAL:  00 00 00 01 4e 01 04 47 b5 00 31 47 41 39 34 03 54 ff fc 94 25 fd 80 80 ff 11 3f fe 98 20 fe da 32 fe 72 1f fe 21 97 fe 00 00 fe 0c 00 fe 90 05 fe 00 91 fe 3f 00 fe 00 0d fe c7 61 fe 20 76 fe 61 3f fe 20 47 fe 72 fc fe df 00 fa 00 00 ff 80
+
+frame 1 cc_data (20 triples): fc 94 25 fd 80 80 ff 45 28 fe 65 20 fe c4 c4 fe 20 e8 fe e8 03 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00
+frame 1 H.264 SEI NAL: 00 00 00 01 06 04 47 b5 00 31 47 41 39 34 03 54 ff fc 94 25 fd 80 80 ff 45 28 fe 65 20 fe c4 c4 fe 20 e8 fe e8 03 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 ff 80
+frame 1 HEVC SEI NAL:  00 00 00 01 4e 01 04 47 b5 00 31 47 41 39 34 03 54 ff fc 94 25 fd 80 80 ff 45 28 fe 65 20 fe c4 c4 fe 20 e8 fe e8 03 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 ff 80
+
+frame 2 cc_data (20 triples): fc 94 ad fd 80 80 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00
+frame 2 H.264 SEI NAL: 00 00 00 01 06 04 47 b5 00 31 47 41 39 34 03 54 ff fc 94 ad fd 80 80 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 ff 80
+frame 2 HEVC SEI NAL:  00 00 00 01 4e 01 04 47 b5 00 31 47 41 39 34 03 54 ff fc 94 ad fd 80 80 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 fa 00 00 ff 80

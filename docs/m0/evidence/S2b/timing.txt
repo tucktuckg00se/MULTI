@@ -1,0 +1,36 @@
+# Q7 timing. All runs: s2b-gst-cc render + decode.sh (ccextractor 0.96.5).
+
+## tttocea608 clamps text that needs more frames than its buffer duration onto the last frame (ru3-json.json, 1-frame buffers)
+     69 tttocea608/imp.rs:149:gstrsclosedcaption::tttocea608::imp::TtToCea608::pop_bufferlist:<tttocea608-0> Too much text for bandwidth
+gst stats: Stats { frames: 360, out_buffers: 360, late_buffers: 188, max_lag: 30, sum_lag: 1050, timeouts: 0, empty_frames: 1, max_wait_us: 6, sum_wait_us: 16 } backlog_at_end=1
+(late_buffers = output buffers stamped for a frame already served: the driver's FIFO re-paces them one per frame)
+
+## tttocea708 adds one frame per GAP event received while ahead (708-popon.json: pop-on, 2 s buffers)
+-- GAP only when the encoder is behind (driver default):
+gst stats: Stats { frames: 300, out_buffers: 300, late_buffers: 0, max_lag: 0, sum_lag: 0, timeouts: 0, empty_frames: 0, max_wait_us: 13, sum_wait_us: 39 } backlog_at_end=0
+== gst-ccx-708.p1.svc01.srt
+00:00:00,001 | POP ON LINE ONE /  POP ON LINE TWO
+00:00:03,999 | SECOND CAPTION
+00:00:07,034 | A POP ON LINE THAT IS LONGER THA
+-- GAP every frame (gap_always):
+gst stats: Stats { frames: 300, out_buffers: 359, late_buffers: 0, max_lag: 0, sum_lag: 0, timeouts: 0, empty_frames: 0, max_wait_us: 12, sum_wait_us: 14 } backlog_at_end=59
+== gst-ccx-708.p1.svc01.srt
+00:00:00,001 | POP ON LINE ONE /  POP ON LINE TWO
+00:00:05,966 | SECOND CAPTION
+00:00:09,000 | A POP ON LINE THAT IS LONGER THA
+(cause: gst-plugins-rs 0.15.3 tttocea708/translate.rs generate() always calls self.cc_data() once, even with no lines and last_frame_no already past end_frame_no)
+
+## pop-on: a caption pushed before the previous buffer's end waits for it (popon-replace.json: 5 s caption at 1 s, replacement at 2 s)
+== gst-ccx-cc1.srt
+00:00:01,500 | FIRST FOR FIVE SECONDS          
+00:00:06,434 | REPLACEMENT AT TWO              
+== gst-ccx-708.p1.svc01.srt
+00:00:00,001 | FIRST FOR FIVE SECONDS
+00:00:06,034 | REPLACEMENT AT TWO
+--
+== ours-ccx-cc1.srt
+00:00:01,567 | FIRST FOR FIVE SECONDS          
+00:00:02,500 | REPLACEMENT AT TWO              
+== ours-ccx-708.p1.svc01.srt
+00:00:02,000 | FIRST FOR FIVE SECONDS / REPLACEMENT AT TWO
+0:00:02,399 | FIRST FOR FIVE SECONDS

@@ -1,0 +1,22 @@
+# B-frame source: ffmpeg libx264 -bf 2 -g 30, 30 fps, UDP -> s2-gst-pipe (build 1a2abae) -> UDP; verify.sh 20 s; ccextractor 608 CC1 + 708 svc 1
+# Before the fixes: (b) captioned only 118/266 frames (bridge forced PTS monotonic, which breaks B-frame PTS order; now DTS is clamped).
+# (a) rendered scrambled text, e.g. "OLL R TESUPT" / "312EL H FLOROM LTMUI CTIAP ON": cccombiner assigns cc_data in decode order;
+# fixed with h264ccinserter/h265ccinserter caption-meta-order=display.
+== captions=ours: verify.sh exit 0
+<font face="Monospace">{\an7}ROLL UP TEST 123
+HELLO FROM MULTI
+CAPTION FIXTURE LINE TWO</font>
+PASS: all expected lines present
+reordered frames (PTS < previous PTS in decode order): 220
+decoded frames: 575, error lines: 0
+bf2/ccx-ours.srt: cues=8 "HELLO FROM MULTI"=8 "CAPTION FIXTURE LINE TWO"=8 "ROLL UP TEST 123"=7
+bf2/ccx708-ours.p1.svc01.srt: cues=7 "HELLO FROM MULTI"=6 "CAPTION FIXTURE LINE TWO"=7 "ROLL UP TEST 123"=7
+== captions=gst: verify.sh exit 0
+<font face="Monospace">{\an7}FIXTURE LINE TWO ROLL UP TEST 
+123 HELLO FROM MULTI CAPTION 
+FIXTURE LINE TWO ROLL UP TEST </font>
+PASS: all expected lines present
+reordered frames (PTS < previous PTS in decode order): 220
+decoded frames: 575, error lines: 0
+bf2/ccx-gst.srt: cues=5 "HELLO FROM MULTI"=5 "CAPTION FIXTURE LINE TWO"=5 "ROLL UP TEST 123"=4
+bf2/ccx708-gst.p1.svc01.srt: cues=7 "HELLO FROM MULTI"=6 "CAPTION FIXTURE LINE TWO"=3 "ROLL UP TEST 123"=3

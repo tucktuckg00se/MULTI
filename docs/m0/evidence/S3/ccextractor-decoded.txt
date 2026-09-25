@@ -1,0 +1,135 @@
+# ccextractor 0.96.5 (git 2364994), stream: tests/ccextractor_roundtrip.rs ccx-h264-30 (H.264 30 fps, CC1-CC4 + 708 services 1-6)
+# 608: --output-field 1|2 [--cc2]; 708: --service 1,2,3,4,5,6. 708 files are raw Latin-1; converted here, control bytes shown as \xNN.
+
+## cc1
+1
+00:00:02,633 --> 00:00:04,632
+English on CC1.                 
+Second English line.            
+
+2
+00:00:04,634 --> 00:00:06,098
+Second English line.            
+Third line, CC1.                
+
+
+## cc2
+1
+00:00:02,099 --> 00:00:04,098
+Español en CC2, ¿sí?            
+Segunda línea: niño.            
+
+2
+00:00:04,100 --> 00:00:06,032
+Segunda línea: niño.            
+Tercera: ¡adiós!                
+
+
+## cc3
+1
+00:00:02,733 --> 00:00:04,732
+Français sur CC3, très bien.    
+Deuxième ligne : où ?           
+
+2
+00:00:04,734 --> 00:00:06,098
+Deuxième ligne : où ?           
+Troisième, Noël.                
+
+
+## cc4
+1
+00:00:02,099 --> 00:00:04,098
+Deutsch auf CC4, Grüße.         
+Zweite Zeile: Äpfel.            
+
+2
+00:00:04,100 --> 00:00:06,032
+Zweite Zeile: Äpfel.            
+Dritte Zeile, Straße.           
+
+
+## 708 service 1
+6
+00:00:02,134 --> 00:00:04,133
+English on service 1.
+Second English line.
+
+12
+00:00:04,134 --> 00:00:06,033
+English on service 1.
+Second English line.
+Curly \x13quotes\x14 and dash -
+
+
+## 708 service 2
+1
+00:00:02,034 --> 00:00:04,033
+Español en servicio 2.
+¿Qué tal? ¡Muy bien!
+
+7
+00:00:04,034 --> 00:00:06,033
+Español en servicio 2.
+¿Qué tal? ¡Muy bien!
+Año, niño, corazón.
+
+
+## 708 service 3
+2
+00:00:02,034 --> 00:00:04,033
+Français, service 3.
+\x0cuvre, c\x1cur, Noël.
+
+8
+00:00:04,034 --> 00:00:06,033
+Français, service 3.
+\x0cuvre, c\x1cur, Noël.
+À bientôt, garçon.
+
+
+## 708 service 4
+3
+00:00:02,067 --> 00:00:04,066
+Deutsch, Dienst 4.
+Grüße aus München.
+
+9
+00:00:04,067 --> 00:00:06,033
+Deutsch, Dienst 4.
+Grüße aus München.
+Äpfel, Öl, Übung, Straße.
+
+
+## 708 service 5
+4
+00:00:02,100 --> 00:00:04,099
+Português, serviço 5.
+Informação pública.
+
+10
+00:00:04,100 --> 00:00:06,033
+Português, serviço 5.
+Informação pública.
+Não, São Paulo.
+
+
+## 708 service 6
+5
+00:00:02,100 --> 00:00:04,099
+Service six works too.
+Ellipsis\x05 and &l music &l
+
+11
+00:00:04,100 --> 00:00:06,033
+Service six works too.
+Ellipsis\x05 and &l music &l
+Last line of service 6.
+
+
+## same file, 608 repeated specials + remapped ASCII (h264-repeats, CC1)
+1
+00:00:00,000 --> 00:00:04,032
+Très èè àà ôô ÄÄ                
+a*b_c~d¦e{f}g\h^i               
+

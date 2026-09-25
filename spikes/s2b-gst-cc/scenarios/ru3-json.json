@@ -1,0 +1,11 @@
+{"secs": 12,
+ "tracks": [{"name": "cc1", "gst": {"kind": "608", "mode": "roll-up3", "json": true}, "ours": {"cc": "cc1", "mode": "ru3"}}],
+ "events": [
+  {"t": 1, "track": "cc1", "json": {"mode": "RollUp3", "lines": [{"carriage_return": true, "chunks": [{"style": "White", "underline": false, "text": "FIRST LINE EXACT"}]}]}},
+  {"t": 3, "track": "cc1", "json": {"mode": "RollUp3", "lines": [
+      {"carriage_return": true, "chunks": [{"style": "White", "underline": false, "text": "SECOND LINE"}]},
+      {"carriage_return": true, "chunks": [{"style": "White", "underline": false, "text": "THIRD LINE"}]}]}},
+  {"t": 5, "track": "cc1", "json": {"mode": "RollUp3", "lines": [{"carriage_return": false, "chunks": [{"style": "White", "underline": false, "text": "APPENDED"}]}]}, "ours_text": "APPENDED"},
+  {"t": 7, "track": "cc1", "json": {"mode": "RollUp3", "lines": [{"carriage_return": true, "chunks": [{"style": "White", "underline": false, "text": "A LONG LINE THAT HAS FORTY FIVE CHARACTERS IN IT"}]}]}},
+  {"t": 9, "track": "cc1", "json": {"mode": "RollUp2", "lines": [{"carriage_return": true, "chunks": [{"style": "White", "underline": false, "text": "NOW ROLL UP TWO"}]}]}, "ours_text": "NOW ROLL UP TWO"}
+ ]}

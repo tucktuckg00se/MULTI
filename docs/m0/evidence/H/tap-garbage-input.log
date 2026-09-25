@@ -1,0 +1,4 @@
+tap: listening on 127.0.0.1:9480 (SO_RCVBUF 14336 KiB), forwarding to 127.0.0.1:9481, writing garbage.csv
+tap: video_pid=0x100 stream_type=0x1b frames=163 packets=13003 bad_sync=2074 bad_bytes=613031 tei=257 bad_af=126 crc_err=12 bad_section=0 pat_changes=0 pmt_changes=0 cc_err=2027 pes_bad_hdr=8 pes_no_pts=0 pts_wraps=0
+tap: forward overhead (recv->send return) us: p50=1.5 p99=2.2 max=20.5 mean=1.0 n=3000
+tap: datagrams=3000 send_errors=1500 parser_drops=0
