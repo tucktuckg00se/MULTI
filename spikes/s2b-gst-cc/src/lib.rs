@@ -113,7 +113,7 @@ pub struct GstCc {
     /// Highest frame index seen on the output.
     out_hi: Option<u64>,
     /// Per track: 1 + highest frame index its encoder has output (0 = none).
-    track_hi: Vec<Arc<AtomicU64>>,
+    pub track_hi: Vec<Arc<AtomicU64>>,
     /// Send a GAP only to tracks whose encoder is behind this frame. With
     /// `false`, every idle track gets a GAP every frame; `tttocea708` then
     /// adds one frame per GAP while it is ahead and never catches up.

@@ -6,10 +6,9 @@
 //! `batch` runs the same streaming path as fast as possible over a list of
 //!         WAVs (for WER) and writes one hypothesis line per file.
 
-mod res;
-mod sherpa_asr;
-mod stream;
 mod whisper_asr;
+
+use s4_asr::{res, sherpa_asr, stream};
 
 use std::fmt::Write as _;
 use std::io::Write as _;

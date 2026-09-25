@@ -1,0 +1,42 @@
+== s6 h264 600s
+-- verify (UDP, CC1): 1742 srt lines; SRT output: 12
+-- video delay in -> UDP out
+frames: in=18495 out=18330 matched=12004 (method: pts)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323966856 ticks (3599631.733 ms), 12004/12004 content-matched frames agree
+delay ms: p50=33.658 p95=34.012 p99=34.216 max=35.176 mean=33.661 min=32.140
+jitter ms: stddev=0.216 mean|successive diff|=0.271  drift=0.002 ms/min
+-- warnings/errors in s6.log: 1
+2026-09-25T07:56:06.299324Z  INFO s6_e2e: stats uptime_s=0 rss_mb="656" vram_mb=0 video_in=0 video_out=0 cc_frames=0 input_restarts=0 input_errors=0 output_errors=0 bridge_drops=0 asr_ready=0 asr_words=0 asr_errors=0 audio_drops=0 pushed=[0, 0, 0, 0] dropped=[0, 0, 0, 0] mt=es:ok=0,late=0,err=0,avg_ms=0,max_ms=0 fr:ok=0,late=0,err=0,avg_ms=0,max_ms=0 de:ok=0,late=0,err=0,avg_ms=0,max_ms=0
+2026-09-25T08:06:16.123864Z  INFO s6_e2e: stats uptime_s=610 rss_mb="2011" vram_mb=4240 video_in=18271 video_out=18271 cc_frames=18271 input_restarts=0 input_errors=0 output_errors=0 bridge_drops=0 asr_ready=1 asr_words=1626 asr_errors=0 audio_drops=0 pushed=[951, 229, 229, 229] dropped=[0, 0, 0, 0] mt=es:ok=229,late=0,err=0,avg_ms=11,max_ms=33 fr:ok=229,late=0,err=0,avg_ms=11,max_ms=38 de:ok=229,late=0,err=0,avg_ms=10,max_ms=32
+-- ccx-cc1.srt: 348 cues
+-- ccx-cc3.srt: 383 cues
+-- ccx.p1.svc01.srt: 347 cues
+-- ccx.p1.svc02.srt: 380 cues
+-- ccx.p1.svc03.srt: 395 cues
+-- ccx.p1.svc04.srt: 403 cues
+-- EN caption lag (CC1, pts-origin 3601.053066333333)
+captions: 349 cues, span 6.533..603.934 s stream time; loop 485.645 s; reference = last word end (--words)
+utterances: 68 in span, 65 matched (95.6%)
+lag s: p50=0.199 p95=0.879 max=1.409 mean=0.224 min=-0.923
+-- translated lag: EN clause push -> translation push (first 10 s skipped)
+clauses with EN: 227
+lane 1: n=226 missing=1 delta_s p50=0.800 p95=0.834 max=0.834
+lane 2: n=226 missing=1 delta_s p50=0.800 p95=0.834 max=0.834
+lane 3: n=226 missing=1 delta_s p50=0.800 p95=0.833 max=0.834
+lane 0: queue wait before encoder p50=0.018 p95=0.020 max=0.083 s
+lane 1: queue wait before encoder p50=0.010 p95=0.030 max=0.041 s
+lane 2: queue wait before encoder p50=0.010 p95=0.032 max=0.038 s
+lane 3: queue wait before encoder p50=0.011 p95=0.032 max=0.043 s
+-- EN caption lag, real-time cues (rerun after the run: ffmpeg -real_time 1 + rtfix.py; now built into run.sh)
+utterances: 68 in span, 65 matched (95.6%)
+lag s: p50=0.953 p95=1.134 max=1.709 mean=0.905 min=-0.733
+-- ASR word timestamps vs reference (tsdemux shift removed)
+word ts - reference start (s): n=1540 p5=-0.022 p50=0.155 p95=0.379
+-- stats (uptime 20 s, 300 s, 610 s)
+uptime_s=20 rss_mb="2008" vram_mb=4240 video_in=572 video_out=572 cc_frames=572 input_restarts=0 input_errors=0 output_errors=0 bridge_drops=0 asr_ready=1 asr_words=38 asr_errors=0 audio_drops=0 pushed=[25, 6, 6, 6] dropped=[0, 0, 0, 0] mt=es:ok=6,late=0,err=0,avg_ms=8,max_ms=12 fr:ok=6,late=0,err=0,avg_ms=9,max_ms=14 de:ok=6,late=0,err=0,avg_ms=8,max_ms=14
+uptime_s=300 rss_mb="2011" vram_mb=4240 video_in=8970 video_out=8970 cc_frames=8970 input_restarts=0 input_errors=0 output_errors=0 bridge_drops=0 asr_ready=1 asr_words=747 asr_errors=0 audio_drops=0 pushed=[458, 109, 109, 109] dropped=[0, 0, 0, 0] mt=es:ok=109,late=0,err=0,avg_ms=10,max_ms=32 fr:ok=109,late=0,err=0,avg_ms=11,max_ms=38 de:ok=109,late=0,err=0,avg_ms=9,max_ms=28
+uptime_s=610 rss_mb="2011" vram_mb=4240 video_in=18271 video_out=18271 cc_frames=18271 input_restarts=0 input_errors=0 output_errors=0 bridge_drops=0 asr_ready=1 asr_words=1626 asr_errors=0 audio_drops=0 pushed=[951, 229, 229, 229] dropped=[0, 0, 0, 0] mt=es:ok=229,late=0,err=0,avg_ms=11,max_ms=33 fr:ok=229,late=0,err=0,avg_ms=11,max_ms=38 de:ok=229,late=0,err=0,avg_ms=10,max_ms=32
+-- WARN/ERROR lines in s6.log
+  WARN s6_e2e: input warning err=Could not get/set settings from/on resource.
+-- process exit: aborted in CUDA teardown ('driver shutting down'); fixed afterwards by ordered thread shutdown, clean exit verified in hevc60

@@ -1,0 +1,33 @@
+2026-09-25T08:08:09.964495Z  INFO s6_e2e::asr: ASR ready ms=1063
+== s6 hevc 60s
+-- verify (UDP, CC1): 157 srt lines; SRT output: 12
+-- video delay in -> UDP out
+frames: in=2167 out=2093 matched=1810 (method: content hash)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323967069 ticks (3599634.100 ms), 778/2093 content-matched frames agree
+delay ms: p50=33.644 p95=37.371 p99=69.879 max=76.905 mean=33.627 min=10.266
+jitter ms: stddev=8.209 mean|successive diff|=5.660  drift=-0.054 ms/min
+-- warnings/errors in s6.log: 1
+-- ccx-cc1.srt: 30 cues
+-- ccx-cc3.srt: 33 cues
+-- ccx.p1.svc01.srt: 32 cues
+-- ccx.p1.svc02.srt: 35 cues
+-- ccx.p1.svc03.srt: 33 cues
+-- ccx.p1.svc04.srt: 35 cues
+-- EN caption lag, real-time cues (pts-origin 3601.055433)
+utterances: 2 in span, 2 matched (100.0%)
+lag s: p50=0.898 p95=0.958 max=0.958 mean=0.928 min=0.898
+-- EN caption lag, verify.sh cues (biased early for streamed words)
+utterances: 2 in span, 2 matched (100.0%)
+lag s: p50=-0.335 p95=0.458 max=0.458 mean=0.061 min=-0.335
+-- ASR word timestamps (tsdemux shift 2.1665967396666668 s)
+word ts - reference start (s): n=156 p5=-0.014 p50=0.173 p95=0.342
+-- translated lag: EN clause push -> translation push (first 10 s skipped)
+clauses with EN: 23
+lane 1: n=22 missing=1 delta_s p50=0.797 p95=0.831 max=0.833
+lane 2: n=22 missing=1 delta_s p50=0.797 p95=0.833 max=0.833
+lane 3: n=22 missing=1 delta_s p50=0.797 p95=0.831 max=0.833
+lane 0: queue wait before encoder p50=0.018 p95=0.053 max=0.056 s
+lane 1: queue wait before encoder p50=0.010 p95=0.028 max=0.031 s
+lane 2: queue wait before encoder p50=0.011 p95=0.030 max=0.034 s
+lane 3: queue wait before encoder p50=0.012 p95=0.030 max=0.033 s

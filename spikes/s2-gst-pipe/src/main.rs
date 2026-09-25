@@ -7,41 +7,19 @@
 //!     --codec h264 --captions ours --csv delay.csv
 //! ```
 
-mod bridge;
-mod captions;
-mod gstcc;
-mod input;
-mod output;
-mod stamps;
 
 use std::path::PathBuf;
 use std::sync::atomic::Ordering;
 use std::time::{Duration, Instant};
 
 use anyhow::{Result, bail};
-use clap::{Parser, Subcommand, ValueEnum};
+use clap::{Parser, Subcommand};
 use gst::prelude::*;
 use tracing::{error, info, warn};
 
-use crate::stamps::{Stamps, rss_kb, wall_ns};
+use s2_gst_pipe::stamps::{Stamps, rss_kb, wall_ns};
+use s2_gst_pipe::{CaptionMode, Codec, bridge, captions, input, output};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
-pub enum Codec {
-    H264,
-    Hevc,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
-pub enum CaptionMode {
-    /// Pass-through only (baseline).
-    None,
-    /// (a) appsrc text -> tttocea708/tttocea608 -> cccombiner.
-    Gst,
-    /// (b) spikes/cc CcMux -> GstVideoCaptionMeta per frame, keyed by PTS.
-    Ours,
-    /// (c, S2b) tttocea708 driven per frame from the video probe, no cccombiner.
-    GstDirect,
-}
 
 #[derive(Parser)]
 #[command(about = "S2: GStreamer caption pass-through spike")]
