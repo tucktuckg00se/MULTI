@@ -1,8 +1,8 @@
 # ADR-0004: Use GStreamer (gstreamer-rs) as the pipeline base
 
-> **Summary:** Proposed: build the media pipeline on GStreamer via `gstreamer-rs`. S1 (FFmpeg) and S2 (GStreamer) tied on latency (33 ms, one frame) and both passed a clean 60-minute soak. GStreamer wins on caption tooling, the core of the product; FFmpeg wins on explicit timing control and simpler shipping.
+> **Summary:** Build the media pipeline on GStreamer via `gstreamer-rs`. S1 (FFmpeg) and S2 (GStreamer) tied on latency (33 ms, one frame) and both passed a clean 60-minute soak. GStreamer wins on caption tooling, the core of the product; FFmpeg wins on explicit timing control and simpler shipping.
 
-- **Status:** proposed, awaiting product-owner decision
+- **Status:** accepted (2026-09-25)
 - **Date:** 2026-09-24 (revised: first draft recommended FFmpeg)
 - **Evidence:** [S1 finding](../m0/findings/S1-ffmpeg-pipeline.md), [S2 finding](../m0/findings/S2-gstreamer-pipeline.md); raw data in `docs/m0/evidence/S1/` and `S2/`
 
