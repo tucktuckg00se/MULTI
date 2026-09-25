@@ -224,7 +224,7 @@ where
     let mut window_caps = 0;
     let mut pass = 0;
     'outer: loop {
-        for i in 0..clauses.len() {
+        for (i, c) in clauses.iter().enumerate() {
             let job = job_for(i);
             let t = Instant::now();
             let outs = translate(&job)?;
@@ -239,7 +239,6 @@ where
                 }
                 window.push(o.ms);
                 per_lang.entry(o.lang.clone()).or_default().push(o.ms);
-                let c = &clauses[i];
                 serde_json::to_writer(
                     &mut w,
                     &Record {

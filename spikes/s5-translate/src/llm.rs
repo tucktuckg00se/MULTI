@@ -25,8 +25,10 @@ use crate::common::{self, CommonArgs, Job, Out, lang_name};
 
 #[derive(clap::ValueEnum, Clone, Copy, Debug, PartialEq)]
 pub enum Family {
-    /// Tencent Hy-MT2 (hunyuan-dense), official translation prompt.
+    /// Tencent Hy-MT2 1.8B (hunyuan-dense), official translation prompt.
     Hymt,
+    /// Tencent Hy-MT2 7B: same prompts, older Hunyuan-7B chat format.
+    Hymt7,
     /// Qwen3.5 (ChatML, thinking disabled).
     Qwen35,
     /// Gemma 4 E2B/E4B (<|turn> format, thinking off).
@@ -76,7 +78,7 @@ pub struct LlmArgs {
 
 fn instruction(family: Family, generic: bool, lang: &str, text: &str, prev: &[&str]) -> String {
     let name = lang_name(lang);
-    let hy = family == Family::Hymt && !generic;
+    let hy = matches!(family, Family::Hymt | Family::Hymt7) && !generic;
     match (hy, prev.is_empty()) {
         // Hy-MT2 README "Default Translation" prompt.
         (true, true) => format!(
@@ -123,6 +125,8 @@ fn oneprompt_instruction(langs: &[String], text: &str, prev: &[&str]) -> String 
 fn chat(family: Family, user: &str) -> String {
     match family {
         Family::Hymt => format!("<｜hy_begin▁of▁sentence｜><｜hy_User｜>{user}<｜hy_Assistant｜>"),
+        // BOS (<|startoftext|>) comes from the tokenizer.
+        Family::Hymt7 => format!("{user}<|extra_0|>"),
         Family::Qwen35 => format!(
             "<|im_start|>user\n{user}<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n"
         ),

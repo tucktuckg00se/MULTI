@@ -52,6 +52,10 @@ pub struct MtArgs {
     /// CPU threads per translator.
     #[arg(long, default_value_t = 4)]
     pub threads: usize,
+    /// Split multi-sentence clauses and translate the sentences as one batch
+    /// (Marian drops trailing sentences otherwise).
+    #[arg(long)]
+    pub split: bool,
     /// GPU compute type: float16, int8_float16, bfloat16, int8_bfloat16, int8.
     #[arg(long, default_value = "float16")]
     pub compute: String,
@@ -121,6 +125,37 @@ fn options(beam: usize, src_words: usize) -> TranslationOptions<String, String> 
     }
 }
 
+/// Splits after . ! ? when followed by whitespace and an upper-case or
+/// opening-punctuation character; skips common abbreviations.
+pub fn sentences(text: &str) -> Vec<&str> {
+    const ABBR: [&str; 8] = ["Mr.", "Mrs.", "Ms.", "Dr.", "St.", "Jr.", "a.m.", "p.m."];
+    let mut out = Vec::new();
+    let mut start = 0;
+    let chars: Vec<(usize, char)> = text.char_indices().collect();
+    for w in 0..chars.len() {
+        let (i, c) = chars[w];
+        if !matches!(c, '.' | '!' | '?') {
+            continue;
+        }
+        let Some(&(j, ws)) = chars.get(w + 1) else { continue };
+        let Some(&(_, next)) = chars.get(w + 2) else { continue };
+        if !ws.is_whitespace() || !(next.is_uppercase() || matches!(next, '¿' | '¡' | '"' | '“')) {
+            continue;
+        }
+        let head = &text[start..=i];
+        if ABBR.iter().any(|a| head.ends_with(a)) {
+            continue;
+        }
+        out.push(head.trim());
+        start = j;
+    }
+    let tail = text[start..].trim();
+    if !tail.is_empty() {
+        out.push(tail);
+    }
+    out
+}
+
 pub fn run(a: MtArgs) -> Result<()> {
     let langs = a.common.langs.clone();
     let t_load = Instant::now();
@@ -156,6 +191,10 @@ pub fn run(a: MtArgs) -> Result<()> {
     }
     let kind = a.kind;
     let beam = a.beam;
+    let split = a.split;
+    if split && a.mode == Mode::Batch {
+        bail!("--split is implemented for single/threads modes");
+    }
 
     // Translate `text` into `langs[idx]` (one sentence).
     let one = |idx: usize, text: &str, t0: Instant| -> Result<Out> {
@@ -173,25 +212,25 @@ pub fn run(a: MtArgs) -> Result<()> {
         let cb_opt: Option<&mut dyn FnMut(ct2rs::GenerationStepResult) -> Result<()>> =
             if beam == 1 { Some(&mut cb) } else { None };
         let lang = &langs[idx];
+        let parts: Vec<&str> = if split { sentences(text) } else { vec![text] };
+        let joined = |r: Vec<(String, Option<f32>)>| {
+            let v: Vec<String> = r.into_iter().map(|x| x.0.trim().to_string()).collect();
+            (!v.is_empty()).then(|| v.join(" "))
+        };
         let out = match (&tr, kind) {
-            (Tr::Opus(v), _) => {
-                let r = v[idx].translate_batch(&[text], &opts, cb_opt)?;
-                r.into_iter().next().map(|x| x.0)
-            }
+            (Tr::Opus(v), _) => joined(v[idx].translate_batch(&parts, &opts, cb_opt)?),
             (Tr::Multi(t), Kind::M2m) => {
-                let pre = vec![vec![format!("__{lang}__")]];
-                let r = t.translate_batch_with_target_prefix(&[text], &pre, &opts, cb_opt)?;
-                r.into_iter().next().map(|x| x.0)
+                let pre = vec![vec![format!("__{lang}__")]; parts.len()];
+                joined(t.translate_batch_with_target_prefix(&parts, &pre, &opts, cb_opt)?)
             }
             (Tr::Multi(t), _) => {
-                let tagged = format!("<2{lang}> {text}");
-                let r = t.translate_batch(&[tagged], &opts, cb_opt)?;
-                r.into_iter().next().map(|x| x.0)
+                let tagged: Vec<String> = parts.iter().map(|p| format!("<2{lang}> {p}")).collect();
+                joined(t.translate_batch(&tagged, &opts, cb_opt)?)
             }
         };
         let out = out.ok_or_else(|| anyhow!("no output"))?;
         let n_out = steps;
-        let cap = if n_out >= opts.max_decoding_length {
+        let cap = if n_out >= opts.max_decoding_length * parts.len() {
             "max_tokens".to_string()
         } else {
             String::new()
@@ -262,4 +301,23 @@ pub fn run(a: MtArgs) -> Result<()> {
     };
     println!("{}", serde_json::to_string(&summary)?);
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::sentences;
+
+    #[test]
+    fn splits_sentences_not_abbreviations() {
+        assert_eq!(
+            sentences("Cold, is it, my darling? Bless your sweet face."),
+            ["Cold, is it, my darling?", "Bless your sweet face."]
+        );
+        assert_eq!(
+            sentences("Thank you, Mr. Chen. We'll ask staff."),
+            ["Thank you, Mr. Chen.", "We'll ask staff."]
+        );
+        assert_eq!(sentences("Version 2.4 fixes it"), ["Version 2.4 fixes it"]);
+        assert_eq!(sentences("and then we're going to"), ["and then we're going to"]);
+    }
 }

@@ -1,0 +1,16 @@
+# Whisper large-v3-turbo (CT2 fp16, beam 5, 30 s windows back to back) throughput: alone vs next to each translator (last stats line)
+alone(asrbase, 3 min): asrload t=172s windows=688 ms/window=250 audio_x_realtime=119.8
+eurollm17-q8: asrload t=81s windows=235 ms/window=345 audio_x_realtime=86.9
+gemma4-e2b-q4: asrload t=122s windows=356 ms/window=343 audio_x_realtime=87.5
+gemma4-e4b-q4: asrload t=163s windows=429 ms/window=381 audio_x_realtime=78.8
+hymt18-q4: asrload t=101s windows=286 ms/window=354 audio_x_realtime=84.8
+hymt18-q8: asrload t=102s windows=287 ms/window=355 audio_x_realtime=84.5
+hymt7-q4: asrload t=163s windows=378 ms/window=432 audio_x_realtime=69.4
+m2m12b: asrload t=41s windows=81 ms/window=505 audio_x_realtime=59.4
+m2m418: asrload t=20s windows=44 ms/window=463 audio_x_realtime=64.8
+madlad3b: asrload t=82s windows=174 ms/window=472 audio_x_realtime=63.5
+opus: asrload t=10s windows=26 ms/window=395 audio_x_realtime=76.0
+qwen35-2b-q4: asrload t=102s windows=291 ms/window=352 audio_x_realtime=85.3
+qwen35-4b-q4: asrload t=152s windows=375 ms/window=406 audio_x_realtime=73.9
+qwen35-4b-q8: asrload t=164s windows=394 ms/window=416 audio_x_realtime=72.2
+tgemma4b-q4: asrload t=153s windows=411 ms/window=371 audio_x_realtime=80.8
