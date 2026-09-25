@@ -12,7 +12,7 @@
 | S4 | Which streaming ASR gives the best lag/accuracy/VRAM trade-off? | `spikes/s4-asr` | done | [S4](findings/S4-streaming-asr.md) |
 | S5 | Can small local models translate a clause in ~500 ms? (stretch) | `spikes/s5-translate` | done | [S5](findings/S5-translation.md) |
 | S2b | Can GStreamer's own 608/708 encoders give per-line control with no added delay? | `spikes/s2-gst-pipe` | done | [S2b](findings/S2b-gstreamer-caption-encoders.md) |
-| S6 | End to end: OBS mic → SRT → captions in EN/ES/FR/DE → VLC (YouTube moved to M1) | `spikes/s6-e2e` | in progress | — |
+| S6 | End to end: OBS mic → SRT → captions in EN/ES/FR/DE → VLC (YouTube moved to M1) | `spikes/s6-e2e` | done (live OBS test pending) | [S6](findings/S6-end-to-end.md) |
 
 Status values: not started, in progress, done, dropped.
 
@@ -32,6 +32,7 @@ Everything in `spikes/harness/`. Run from the repo root.
 
 Newest first. One line per notable event, with a link if there's more.
 
+- 2026-09-25 — S6 done (harness): full chain in one process; video +33.7 ms; EN caption lag P95 1.13 s; ES/FR/DE ≈1.97 s; 10-min run flat memory, 0 errors. Open: process isolation, clause segmenter cuts mid-sentence, AAC decoder licence (use avdec_aac).
 - 2026-09-25 — ADR-0004 accepted: GStreamer is the pipeline base. S6 started (4 languages; YouTube check moved to M1).
 
 - 2026-09-24 — S4 done: Nemotron 3.5 Streaming (sherpa-onnx) lag P95 1.21 s, WER 5.4, 0 words on silence/music; Whisper turbo more accurate (3.3) but hallucinates over music. ADR-0005 and ADR-0006 accepted.

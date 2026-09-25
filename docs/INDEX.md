@@ -44,7 +44,7 @@ Types: `summary` overview page · `spec` requirements · `decision` ADR · `find
 
 | ID | Type | Title | Status | ~Tokens |
 |---|---|---|---|---|
-| M-00 | summary | [M0 overview: spikes, harness, log](m0/README.md) | current | ~1110 |
+| M-00 | summary | [M0 overview: spikes, harness, log](m0/README.md) | current | ~1186 |
 | F-S3 | finding | [Rust 608/708 encoder decodes in FFmpeg, ccextractor, libcaption](m0/findings/S3-caption-encoder.md) | current | ~1894 |
 | E-S3 | evidence | [S3 raw outputs](m0/evidence/S3) | current | ~4625 |
 | H-01 | how-it-works | [How the latency tool measures video delay and caption lag](m0/findings/H-latency-tool.md) | current | ~1698 |
@@ -59,3 +59,5 @@ Types: `summary` overview page · `spec` requirements · `decision` ADR · `find
 | E-S5 | evidence | [S5 raw outputs](m0/evidence/S5) | current | ~30755 |
 | F-S4 | finding | [Nemotron 3.5 streaming beats Whisper turbo on lag and hallucinations](m0/findings/S4-streaming-asr.md) | current | ~1722 |
 | E-S4 | evidence | [S4 raw outputs](m0/evidence/S4) | current | ~10875 |
+| F-S6 | finding | [End to end: live EN speech to four-language 608/708 captions](m0/findings/S6-end-to-end.md) | current | ~1196 |
+| E-S6 | evidence | [S6 raw outputs](m0/evidence/S6) | current | ~4013 |
