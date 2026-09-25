@@ -1,0 +1,12 @@
+20:39:31 waiting lock
+20:39:31 got lock
+wt-1000-p2 music5 wer=4.35 sub=52 dele=7 ins=1 n=1378 utts=1 missing=0
+nm-560 music5 wer=8.49 sub=67 dele=46 ins=4 n=1378 utts=1 missing=0
+cpu-nm-560-int8 wer=5.88 sub=57 dele=20 ins=4 n=1378 utts=1 missing=0
+junk wt-1000-p2: 27 words: Amen. Thank you. Thank you. Thank you. Thank you. Thank you. Thank you. Thank you. Thank you. Thank you. Thank you. Than
+junk wt-1000-p2-novad: 104 words: Thank you. Thank you. Thank you. Thank you. Thank you. Thank you. Thank you. Thank you. Thank you. Thank you. Thank you.
+junk nm-560: 0 words: 
+cpu rtf 0.218 cpu% 1882 p95ms 187 rss 1769
+20:42:37 final done
+
+[exited with code 0]
