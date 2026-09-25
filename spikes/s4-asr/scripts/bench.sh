@@ -18,7 +18,7 @@ MULTI_MEDIA=${MULTI_MEDIA:-/home/tucker/Documents/claude-projects/MULTI/spikes/h
 PY=${PY:-$HOME/.cache/multi-tools/s4-venv/bin/python}
 B=${B:-$spikes/target/release/s4-asr}
 LAT=$spikes/target/release/latency
-LOCK=/tmp/multi-gpu.lock
+LOCK=${LOCK-/tmp/multi-gpu.lock}  # set LOCK= (empty) if the caller already holds it
 mode=$1 name=$2; shift 2
 out=$S4/runs/$name; mkdir -p "$out"
 
@@ -31,34 +31,34 @@ lag() { # srt -> lag json (segment ends, and word ends)
 
 case $mode in
 live)
-  flock "$LOCK" "$B" live --wav "$MULTI_MEDIA/long.wav" --out "$out/live" "$@" > /dev/null 2> "$out/live.log"
+  ${LOCK:+flock "$LOCK"} "$B" live --wav "$MULTI_MEDIA/long.wav" --out "$out/live" "$@" > /dev/null 2> "$out/live.log"
   lag "$out/live.srt"
   "$PY" "$here/wer.py" "$MULTI_MEDIA/long.txt" "$out/live.txt" --json > "$out/live.wer.json"
   ;;
 wer)
   for v in ls ls_pink5 ls_music5; do
-    flock "$LOCK" "$B" batch --list "$S4/media/$v/list.tsv" --out "$out/$v.hyp.tsv" "$@" > /dev/null 2> "$out/$v.log"
+    ${LOCK:+flock "$LOCK"} "$B" batch --list "$S4/media/$v/list.tsv" --out "$out/$v.hyp.tsv" "$@" > /dev/null 2> "$out/$v.log"
     "$PY" "$here/wer.py" "$S4/media/ls/ref.tsv" "$out/$v.hyp.tsv" --json > "$out/$v.wer.json"
   done
   for v in pink10 pink5 pink0 music10 music5 music0; do
-    flock "$LOCK" "$B" live --fast --wav "$S4/media/long_$v.wav" --out "$out/long_$v" "$@" > /dev/null 2> "$out/long_$v.log"
+    ${LOCK:+flock "$LOCK"} "$B" live --fast --wav "$S4/media/long_$v.wav" --out "$out/long_$v" "$@" > /dev/null 2> "$out/long_$v.log"
     "$PY" "$here/wer.py" "$MULTI_MEDIA/long.txt" "$out/long_$v.txt" --json > "$out/long_$v.wer.json"
   done
   ;;
 soak)
   loops=$1; shift
-  flock "$LOCK" "$B" live --loops "$loops" --wav "$MULTI_MEDIA/long.wav" --out "$out/soak" "$@" > /dev/null 2> "$out/soak.log"
+  ${LOCK:+flock "$LOCK"} "$B" live --loops "$loops" --wav "$MULTI_MEDIA/long.wav" --out "$out/soak" "$@" > /dev/null 2> "$out/soak.log"
   ;;
 junk)
-  flock "$LOCK" "$B" live --fast --wav "$S4/media/nospeech.wav" --out "$out/junk" "$@" > /dev/null 2> "$out/junk.log"
+  ${LOCK:+flock "$LOCK"} "$B" live --fast --wav "$S4/media/nospeech.wav" --out "$out/junk" "$@" > /dev/null 2> "$out/junk.log"
   ;;
 mls)
   lang=$1; shift
-  flock "$LOCK" "$B" batch --list "$S4/media/mls_$lang/list.tsv" --out "$out/mls_$lang.hyp.tsv" "$@" > /dev/null 2> "$out/mls_$lang.log"
+  ${LOCK:+flock "$LOCK"} "$B" batch --list "$S4/media/mls_$lang/list.tsv" --out "$out/mls_$lang.hyp.tsv" "$@" > /dev/null 2> "$out/mls_$lang.log"
   "$PY" "$here/wer.py" "$S4/media/mls_$lang/ref.tsv" "$out/mls_$lang.hyp.tsv" --lang "$lang" --json > "$out/mls_$lang.wer.json"
   ;;
 scotus)
-  flock "$LOCK" "$B" live --fast --wav "$S4/media/scotus/clip.wav" --out "$out/scotus" "$@" > /dev/null 2> "$out/scotus.log"
+  ${LOCK:+flock "$LOCK"} "$B" live --fast --wav "$S4/media/scotus/clip.wav" --out "$out/scotus" "$@" > /dev/null 2> "$out/scotus.log"
   "$PY" "$here/wer.py" "$S4/media/scotus/ref.txt" "$out/scotus.txt" --json > "$out/scotus.wer.json"
   ;;
 *) echo "unknown mode $mode" >&2; exit 2 ;;

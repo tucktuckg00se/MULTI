@@ -101,8 +101,8 @@ pub fn skip_prefix(c: &[String], h: &[String]) -> usize {
     for (i, row) in d.iter_mut().enumerate() {
         row[0] = i;
     }
-    for j in 0..=m {
-        d[0][j] = j;
+    for (j, v) in d[0].iter_mut().enumerate() {
+        *v = j;
     }
     for i in 1..=n {
         for j in 1..=m {
