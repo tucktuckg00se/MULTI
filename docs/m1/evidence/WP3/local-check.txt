@@ -1,0 +1,32 @@
+# WP3 local real-model check, 2026-09-25T18:00:54Z, RTX 3090, CUDA 13.4, commit base f398699
+# cargo run --release -p multi --example wp3_check -- --asr-model-dir ~/.cache/multi-models/sherpa/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-560ms-2026-06-11-fp32 --mt-models ~/.cache/multi-models/ct2 --wav $MEDIA/long.wav --reference $MEDIA/long.txt --device auto
+input: /home/tucker/Documents/claude-projects/MULTI/spikes/harness/media/long.wav (485.6 s)
+
+== ASR, full file at 1x ==
+ready after 1166 ms
+words: 1355 (messages: 760)
+word lag after word end (s): P50 0.56  P95 0.96
+restarts 0  dropped_in 0  dropped_out 0
+WER vs reference (1341 words, simple normaliser): 5.8%
+
+== ASR, kill -9 at 20 s of a 60 s run ==
+worker ready again after 1699 ms; first words after kill: 1814 ms
+restarts 1  last_error Some("worker closed stdout")  dropped_in 0
+
+== MT, 20 clauses x es/fr/de, one at a time ==
+ready after 291 ms
+  en: It is a very fine old place of red brick
+  es: Es un lugar muy fino de ladrillo rojo
+  fr: C'est un très bel ancien endroit de brique rouge
+  de: Es ist ein sehr feiner alter Ort aus rotem Ziegel
+  en: Softened by a pale powdery lichen which has dispersed itself.
+  es: Suavizado por un líquen pálido y polvoriento que se ha dispersado.
+  fr: Adouci par un lichen pâle poudreux qui s'est dispersé.
+  de: Weich gemacht durch eine blasse pulverige Flechte, die sich selbst zerstreut hat.
+results 60  errors 0  latency (ms, send to receipt): P50 16  P95 20  max 22
+
+== MT, kill -9 during a run ==
+first translation after kill: 5118 ms
+restarts 1  last_error Some("worker closed stdout")
+# exit 0
+# note: the MT kill figure above (5118 ms) is a harness artefact: the clause in flight at the kill was lost and the old harness waited 5 s for it before sending the next. kill-rerun.txt keeps clauses flowing every 200 ms: 910 ms.

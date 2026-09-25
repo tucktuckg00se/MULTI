@@ -1,6 +1,9 @@
 [workspace]
 resolver = "3"
 members = ["crates/*"]
+# multi-asr and multi-mt link sherpa-onnx and CTranslate2 (slow native builds);
+# plain `cargo build/test/clippy` skips them. CI builds them in a separate job.
+default-members = ["crates/multi", "crates/multi-core", "crates/multi-fake-worker"]
 # spikes/ is its own throwaway workspace (M0); it is not part of the product.
 exclude = ["spikes"]
 

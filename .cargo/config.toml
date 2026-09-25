@@ -1,0 +1,14 @@
+# Machine defaults for the heavy workers (multi-asr, multi-mt). None of these
+# are needed for the default members or for CI's CPU-only build; `force = false`
+# lets the environment override them.
+#
+# CUDA build of multi-mt (`--features cuda`): toolkit location and GPU arch.
+# The defaults target the dev machine (Arch's /opt/cuda, RTX 3090 = sm_86).
+#
+# GPU inference in multi-asr also needs SHERPA_ONNX_LIB_DIR pointing at the
+# sherpa-onnx CUDA prebuilt; it is machine-specific, so it is not set here.
+# See docs/m1/README.md, "Workers".
+[env]
+CUDA_PATH = { value = "/opt/cuda", force = false }
+CUDA_ARCH_LIST = { value = "8.6", force = false }
+CUDAARCHS = { value = "86", force = false }
