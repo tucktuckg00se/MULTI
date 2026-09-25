@@ -2368,6 +2368,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "s6-e2e"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "ct2rs",
+ "gstreamer",
+ "gstreamer-app",
+ "gstreamer-video",
+ "s2-gst-pipe",
+ "s2b-gst-cc",
+ "s4-asr",
+ "s5-translate",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "same-file"
 version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"

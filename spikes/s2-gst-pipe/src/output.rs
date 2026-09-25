@@ -290,7 +290,7 @@ pub struct OutSink {
 }
 
 impl OutSink {
-    fn new(uri: String) -> Self {
+    pub fn new(uri: String) -> Self {
         Self {
             uri,
             inner: Mutex::new(None),
@@ -326,7 +326,7 @@ impl OutSink {
         Ok((p, src))
     }
 
-    fn push(&self, buf: gst::Buffer) {
+    pub fn push(&self, buf: gst::Buffer) {
         if let Ok(g) = self.inner.lock()
             && let Some((_, src)) = g.as_ref()
         {

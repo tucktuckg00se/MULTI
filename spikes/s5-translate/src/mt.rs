@@ -105,7 +105,7 @@ fn config(a: &MtArgs) -> Result<Config> {
     })
 }
 
-fn opus_dir(root: &Path, lang: &str) -> Result<PathBuf> {
+pub fn opus_dir(root: &Path, lang: &str) -> Result<PathBuf> {
     for name in [format!("opus-mt-en-{lang}"), format!("opus-mt-tc-big-en-{lang}")] {
         let p = root.join(name);
         if p.is_dir() {
@@ -115,7 +115,7 @@ fn opus_dir(root: &Path, lang: &str) -> Result<PathBuf> {
     bail!("no opus-mt model for en-{lang} under {}", root.display())
 }
 
-fn options(beam: usize, src_words: usize) -> TranslationOptions<String, String> {
+pub fn options(beam: usize, src_words: usize) -> TranslationOptions<String, String> {
     TranslationOptions {
         beam_size: beam,
         // Cap decode length: ~3 subwords per source word + slack.

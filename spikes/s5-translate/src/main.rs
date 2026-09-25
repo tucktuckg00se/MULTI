@@ -2,9 +2,9 @@
 //! See docs/m0/findings/S5-translation.md.
 
 mod asrload;
-mod common;
 mod llm;
-mod mt;
+
+use s5_translate::{common, mt};
 
 use clap::{Parser, Subcommand};
 
