@@ -12,9 +12,24 @@
 | S4 | Which streaming ASR gives the best lag/accuracy/VRAM trade-off? | `spikes/s4-asr` | done | [S4](findings/S4-streaming-asr.md) |
 | S5 | Can small local models translate a clause in ~500 ms? (stretch) | `spikes/s5-translate` | done | [S5](findings/S5-translation.md) |
 | S2b | Can GStreamer's own 608/708 encoders give per-line control with no added delay? | `spikes/s2-gst-pipe` | done | [S2b](findings/S2b-gstreamer-caption-encoders.md) |
-| S6 | End to end: OBS mic → SRT → captions in EN/ES/FR/DE → VLC (YouTube moved to M1) | `spikes/s6-e2e` | done (live OBS test pending) | [S6](findings/S6-end-to-end.md) |
+| S6 | End to end: OBS mic → SRT → captions in EN/ES/FR/DE → VLC (YouTube moved to M1) | `spikes/s6-e2e` | done | [S6](findings/S6-end-to-end.md) |
 
 Status values: not started, in progress, done, dropped.
+
+## Exit criteria
+
+Met on 2026-09-25: live captions from an SRT feed (OBS microphone) visible in VLC, with measured latency (video +33.7 ms; EN captions P95 1.13 s; translated ≈1.97 s).
+
+## Carried to M1
+
+- Process isolation: ASR and translation in supervised child processes.
+- Clause segmenter: use VAD pauses and a minimum clause length (70% of clauses currently close on the 800 ms timer, cutting sentences).
+- Caption lanes: restart after a flow error; test the backlog cap under load.
+- YouTube ingest check (moved from M0).
+- B-frame sources on the GStreamer caption path; 60-min soak of the full chain; non-English source speech.
+- 708 visibility in common players (VLC 3 shows only CC1–CC4); consider FR/DE on CC2/CC4 as an option.
+- Ship `avdec_aac` (LGPL) only, not fdkaacdec or faad.
+- File the two upstream GStreamer caption bugs (needs user approval before posting).
 
 ## Test harness
 
@@ -32,6 +47,7 @@ Everything in `spikes/harness/`. Run from the repo root.
 
 Newest first. One line per notable event, with a link if there's more.
 
+- 2026-09-25 — Live OBS test passed: EN and ES captions visible in VLC while speaking. FR/DE (708-only) not selectable in VLC 3.0.23, though MULTI translated and embedded every clause. **M0 exit criteria met.**
 - 2026-09-25 — S6 done (harness): full chain in one process; video +33.7 ms; EN caption lag P95 1.13 s; ES/FR/DE ≈1.97 s; 10-min run flat memory, 0 errors. Open: process isolation, clause segmenter cuts mid-sentence, AAC decoder licence (use avdec_aac).
 - 2026-09-25 — ADR-0004 accepted: GStreamer is the pipeline base. S6 started (4 languages; YouTube check moved to M1).
 

@@ -2,6 +2,8 @@
 
 > **Summary:** Rust single binary linking media libs; captions injected as SEI without decoding video. Candidate components and licences (FFmpeg or GStreamer, libsrt, whisper.cpp, ONNX Runtime, llama.cpp) and the Rust crates to evaluate in M0.
 
+> **Update after M0 (2026-09-25):** the component choices below are settled by ADRs and supersede the candidate tables in this section: pipeline base GStreamer ([ADR-0004](../decisions/ADR-0004-pipeline-base.md)); captions via GStreamer's `tttocea708` + `h26xccinserter` ([ADR-0003](../decisions/ADR-0003-caption-insertion.md)); ASR Nemotron 3.5 Streaming via sherpa-onnx ([ADR-0005](../decisions/ADR-0005-asr-backend.md)); translation CTranslate2 + opus-mt ([ADR-0006](../decisions/ADR-0006-translation-backend.md)).
+
 Decision: MULTI is written in **Rust**, as a single native binary that links the media libraries directly and runs speech and translation models in-process, rather than piping the ffmpeg CLI to a Python script. Rust matches the reliability-first principle: memory safety and compile-time data-race checks for a 24/7 network service, predictable latency with no garbage collector, and one toolchain for Linux, Windows, x86-64 and ARM64.
 
 **Why not "ffmpeg CLI + Python":** stock FFmpeg can pass captions through but cannot generate CEA-608/708 from text, so we need to touch the video packets ourselves anyway. Owning the pipeline also gives us control over timestamps, lower latency and one clean binary to sell.

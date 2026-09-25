@@ -1,6 +1,6 @@
 # Risks and open questions
 
-> **Summary:** Seven risks with mitigations (streaming ASR, small-model translation, 608 character limits, SEI stripping, filter misses, licence contamination, GPU driver sprawl) and the open-question checklist.
+> **Summary:** Twelve risks with mitigations (streaming ASR, small-model translation, 608 character limits, SEI stripping, filter misses, licence contamination, GPU driver sprawl, and five found in M0: upstream GStreamer caption bugs, Whisper hallucination, opus-mt sentence dropping, 708 visibility in players, AAC decoder licence) and the open-question checklist.
 
 | Risk | Impact | Mitigation |
 | --- | --- | --- |
@@ -11,12 +11,17 @@
 | Profanity filter misses (new slang, mis-transcriptions, other languages) | Offensive text on air | Filter every language; ship curated lists; warranty excludes misses |
 | Licence contamination (GPL-only FFmpeg parts, non-commercial models) | Can't sell binaries | Licence scan in CI; model registry records each model's licence |
 | GPU driver/CUDA version sprawl across Linux, Windows, Jetson | Support load | Narrow supported matrix; containers for Linux |
+| Upstream GStreamer caption bugs (`roll-up-rows` lost at start, GAP events add frames; gst-plugins-rs 0.15.3) | Wrong 708 roll-up depth; captions fall behind | Workarounds in place (ADR-0003); report upstream; our `cc` crate as fallback |
+| Whisper invents text over music/silence | Fake captions on air | Default ASR is Nemotron (0 words on non-speech); Whisper only with a hallucination filter |
+| opus-mt drops later sentences in multi-sentence input | Missing translated text | Split clauses into sentences before translating |
+| 708-only languages invisible in some players (VLC 3 offers CC1–CC4 only) | Viewers can't find FR/DE captions | Document; optional 608 CC2/CC4 placement; WebVTT for web |
+| Audio decoder licence (fdkaacdec/faad fallbacks are non-LGPL) | Can't ship binaries | Ship and require `avdec_aac` (LGPL) only |
 
 **Open questions**
 
 - [x] Final licence: GPL-3.0 (decided)
 - [x] Implementation language: Rust (decided)
-- [ ] Pipeline base: FFmpeg libraries or GStreamer (decide after M0 spike)?
+- [x] Pipeline base: GStreamer (decided, ADR-0004)
 - [ ] Is "MULTI" clear to trademark in software/broadcast classes?
 - [ ] Pricing for official binaries, and is the GPU Docker image free or paid?
 - [ ] Which languages are in the first supported set?

@@ -19,6 +19,6 @@ This page is the summary. Each section below is a separate file; open only the o
 | 7 | [Architecture and technology](docs/prd/07-proposed-architecture-and-technology.md) | Rust single binary, pipeline diagram, candidate libraries and crates |
 | 8 | [Licensing and business model](docs/prd/08-licensing-distribution-and-business-model.md) | GPL-3.0 + trademark, free source, paid binaries, draft warranty |
 | 9 | [Milestones](docs/prd/09-milestones.md) | M0 spikes through v1.0 launch |
-| 10 | [Risks and open questions](docs/prd/10-risks-and-open-questions.md) | Seven risks with mitigations; open decisions |
+| 10 | [Risks and open questions](docs/prd/10-risks-and-open-questions.md) | Twelve risks with mitigations; open decisions |
 
-**Decided so far:** Rust; GPL-3.0; Linux x64 first. See [docs/decisions/](docs/decisions/README.md).
+**Decided so far (M0 done):** Rust; GPL-3.0; Linux x64 first; GStreamer pipeline; GStreamer caption encoders; Nemotron streaming ASR; CTranslate2 + opus-mt translation. See [docs/decisions/](docs/decisions/README.md).

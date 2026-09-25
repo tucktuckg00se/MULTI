@@ -37,6 +37,10 @@ OBS: Custom service, server `srt://127.0.0.1:9600?mode=caller`, keyframe interva
 | Decoded text | CC1 EN (verify.sh), CC3 ES, svc 1–4 EN/ES/FR/DE (ccextractor) | all |
 | HEVC (60 s) | all lanes OK. Delay p50 33.6 ms (tail untrusted: hash matching) | — |
 
+## Live OBS test (2026-09-25)
+
+The user streamed from OBS with their microphone and watched the output in VLC 3.0.23. English (CC1) and Spanish (CC3) captions appeared live. French and German did not: VLC 3 only offers 608 channels CC1–CC4, and FR/DE are 708-only (services 3–4). MULTI's counters show FR/DE translated and pushed for every clause (102 each, 0 late, 0 errors), and ccextractor decoded services 3–4 in the harness run, so this is a player limitation. Evidence: `docs/m0/evidence/S6/live-obs.txt`.
+
 ## Gotchas
 
 1. **The verify.sh SRT under-reads streamed roll-up.** FFmpeg's default `ccaption_dec` gives a row's cue the time of its first word, which put EN lag at p50 0.20 s with negative values. `-real_time 1` emits a cue per change, and `rtfix.py` repairs its bogus end times. `run.sh` does both.

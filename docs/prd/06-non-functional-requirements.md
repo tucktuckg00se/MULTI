@@ -1,6 +1,6 @@
 # Non-functional requirements
 
-> **Summary:** Video delay is the engineer's choice (default 0 ms pass-through). Latency budget ~1.7 s source / ~2.2 s translated. Platform tiers. Reliability rules: video never stops for captions, crash isolation, graceful degradation, 30-day soak.
+> **Summary:** Video delay is the engineer's choice (default 0 ms pass-through). Latency budget ~1.7 s source / ~2.2 s translated; measured in M0: 1.13 s / ≈1.97 s, video +33.7 ms. Platform tiers. Reliability rules: video never stops for captions, crash isolation, graceful degradation, 30-day soak.
 
 Captions can only appear after the words are spoken, so how much to delay the video is the engineer's call. It is one setting, `video.delay_ms`.
 
@@ -8,17 +8,20 @@ Captions can only appear after the words are spoken, so how much to delay the vi
 - **Around the measured caption lag (e.g. 2,500 ms):** captions land on the right frames, at the cost of a delayed stream.
 - **Anything in between**, plus `captions.offset_ms` for fine-tuning. The UI suggests a value from measured lag.
 
-**Latency budget, speech to caption on screen, balanced preset (targets, to validate in the prototype)**
+**Latency budget, speech to caption on screen, balanced preset**
 
-| Stage | Target (P95) |
-| --- | --- |
-| Audio buffering + VAD | 300 ms |
-| Streaming speech-to-text (partial result) | 800 ms |
-| Translation per language (parallel) | 500 ms |
-| Filter + caption formatting | 50 ms |
-| Insertion + 608/708 encoding rate limit | 500 ms |
-| **Total, source language** | **~1.7 s (limit 2.5 s)** |
-| **Total, translated language** | **~2.2 s (limit 3 s)** |
+Measured in M0 on an RTX 3090 ([S6](../m0/findings/S6-end-to-end.md)); stages without their own number were measured only as part of the total.
+
+| Stage | Target (P95) | Measured (M0, P95) |
+| --- | --- | --- |
+| Audio buffering + VAD | 300 ms | in total below |
+| Streaming speech-to-text (partial result) | 800 ms | in total below |
+| Translation per language (parallel) | 500 ms | 38 ms max (11 ms mean) |
+| Filter + caption formatting | 50 ms | in total below |
+| Insertion + 608/708 encoding rate limit | 500 ms | in total below |
+| **Total, source language** | **~1.7 s (limit 2.5 s)** | **1.13 s** |
+| **Total, translated language** | **~2.2 s (limit 3 s)** | **≈1.97 s** (mostly the 800 ms clause timer) |
+| Video pass-through (not in caption path) | < 250 ms | 33.7 ms p50, 34.0 ms p95 |
 
 **Platforms**
 

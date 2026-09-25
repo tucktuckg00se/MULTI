@@ -1,0 +1,15 @@
+Live OBS test, 2026-09-25
+
+Setup: OBS (Custom service srt://127.0.0.1:9600?mode=caller, keyframe 1 s, B-frames 0, AAC 48 kHz, mic) -> s6-e2e -> SRT listener :9601 -> VLC 3.0.23.
+
+User observation: English (CC1) and Spanish (CC3) captions appeared live while speaking. French and German were not visible: VLC 3.0.23 only offers 608 channels CC1-CC4, and FR/DE are 708-only (services 3-4) by design. MULTI's counters show FR and DE translated and pushed for every clause.
+
+Process stayed up 9.2 h (mostly idle; video flowed ~14 min = 24887 frames); RSS flat ~2002 MB, VRAM 4240 MB. Not a loaded soak.
+
+Stats during the live session (video flowing):
+stats uptime_s=32780 rss_mb="1995" vram_mb=4240 video_in=1562 video_out=1562 cc_frames=686 input_restarts=0 input_errors=0 output_errors=0 bridge_drops=0 asr_ready=1 asr_words=10 asr_errors=0 audio_drops=0 pushed=[6, 0, 0, 0] dropped=[0, 0, 0, 0] mt=es:ok=0,late=0,err=0,avg_ms=0,max_ms=0 fr:ok=0,late=0,err=0,avg_ms=0,max_ms=0 de:ok=0,late=0,err=0,avg_ms=0,max_ms=0
+
+Final stats line:
+stats uptime_s=33270 rss_mb="2002" vram_mb=4240 video_in=24887 video_out=24887 cc_frames=10808 input_restarts=1 input_errors=0 output_errors=0 bridge_drops=0 asr_ready=1 asr_words=491 asr_errors=0 audio_drops=0 pushed=[304, 102, 102, 102] dropped=[0, 0, 0, 0] mt=es:ok=102,late=0,err=0,avg_ms=8,max_ms=21 fr:ok=102,late=0,err=0,avg_ms=9,max_ms=29 de:ok=102,late=0,err=0,avg_ms=8,max_ms=23
+
+ERROR/WARN lines in run log: 2

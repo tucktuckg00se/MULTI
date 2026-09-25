@@ -19,7 +19,7 @@ Every timing and quality trade-off is a setting with a sensible default, so a br
 | `captions.max_chars_per_line` | 32 | 20–42 (608 max 32) | Readability vs line breaks |
 | `captions.clear_after_ms` | 4,000 | 1,000–30,000 | How long text lingers after speech stops |
 | `asr.model` | chosen by `multi bench` | any registry model | Accuracy vs speed and VRAM |
-| `asr.chunk_ms` | 500 | 200–3,000 | Lower lag vs accuracy |
+| `asr.chunk_ms` | 560 | 160, 560, 1,120 for Nemotron (fixed exports); 200–3,000 for Whisper | Lower lag vs accuracy |
 | `asr.stability_passes` | 2 | 1–3 | Lower lag vs fewer on-screen corrections |
 | `vad.threshold` | 0.5 | 0.1–0.9 | Catching quiet speech vs ignoring noise and music |
 | `translate.segment` | clause | word, clause, sentence | Translation lag vs quality |
