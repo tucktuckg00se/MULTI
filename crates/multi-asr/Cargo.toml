@@ -1,0 +1,22 @@
+[package]
+name = "multi-asr"
+description = "MULTI speech-recognition worker: Nemotron 3.5 Streaming via sherpa-onnx"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+# sherpa-onnx links a prebuilt shared library. Without SHERPA_ONNX_LIB_DIR the
+# build script downloads the CPU build; point SHERPA_ONNX_LIB_DIR at the CUDA
+# prebuilt for GPU inference (see docs/m1/README.md, "Workers").
+[dependencies]
+multi-core.workspace = true
+anyhow.workspace = true
+clap.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+sherpa-onnx = { version = "1.13.8", default-features = false, features = ["shared"] }
+
+[lints]
+workspace = true

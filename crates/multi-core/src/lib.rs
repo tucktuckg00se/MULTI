@@ -4,6 +4,7 @@
 pub mod config;
 pub mod ipc;
 pub mod types;
+pub mod worker;
 
 pub use config::Config;
 pub use types::{Clause, Translation, Word};

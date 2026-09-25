@@ -1,11 +1,15 @@
 [package]
-name = "multi"
-description = "MULTI: live multilingual captions for video streams"
+name = "multi-mt"
+description = "MULTI translation worker: opus-mt via CTranslate2"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
 publish.workspace = true
+
+[features]
+# CUDA inference (fp16). Without it the worker runs on CPU (int8).
+cuda = ["ct2rs/cuda"]
 
 [dependencies]
 multi-core.workspace = true
@@ -13,14 +17,7 @@ anyhow.workspace = true
 clap.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
+ct2rs = { version = "=0.10.1", default-features = false, features = ["ruy", "sentencepiece"] }
 
 [lints]
 workspace = true
-
-[dev-dependencies]
-multi-fake-worker = { path = "../multi-fake-worker" }
-
-# Re-runs its own executable as the fake worker, so it has its own main().
-[[test]]
-name = "supervisor"
-harness = false

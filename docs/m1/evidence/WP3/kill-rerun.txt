@@ -1,0 +1,24 @@
+# WP3 kill -9 recovery rerun on the final code (MT harness keeps clauses flowing every 200 ms), 2026-09-25T18:13:13Z, RTX 3090
+# same command as local-check.txt plus --skip-full
+input: /home/tucker/Documents/claude-projects/MULTI/spikes/harness/media/long.wav (485.6 s)
+
+== ASR, kill -9 at 20 s of a 60 s run ==
+worker ready again after 1699 ms; first words after kill: 1814 ms
+restarts 1  last_error Some("worker exited (signal: 9 (SIGKILL))")  dropped_in 0
+
+== MT, 20 clauses x es/fr/de, one at a time ==
+ready after 291 ms
+  en: It is a very fine old place of red brick
+  es: Es un lugar muy fino de ladrillo rojo
+  fr: C'est un très bel ancien endroit de brique rouge
+  de: Es ist ein sehr feiner alter Ort aus rotem Ziegel
+  en: Softened by a pale powdery lichen which has dispersed itself.
+  fr: Adouci par un lichen pâle poudreux qui s'est dispersé.
+  es: Suavizado por un líquen pálido y polvoriento que se ha dispersado.
+  de: Weich gemacht durch eine blasse pulverige Flechte, die sich selbst zerstreut hat.
+results 60  errors 0  latency (ms, send to receipt): P50 16  P95 22  max 24
+
+== MT, kill -9 while sending a clause every 200 ms ==
+first translation after kill: 905 ms (clause 1011; clauses sent from 1010)
+restarts 1  last_error Some("worker closed stdout")
+# exit 0

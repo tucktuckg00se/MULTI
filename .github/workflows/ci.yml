@@ -1,6 +1,11 @@
 # CPU-only checks for every push and pull request. GPU tests (ASR, translation
 # benchmarks) run locally; see docs/m1/README.md.
 #
+# `check` covers the workspace's default members. The heavy workers
+# (multi-asr: sherpa-onnx; multi-mt: CTranslate2 built from source) are
+# built CPU-only in the separate, slower `workers` job so they never hold up
+# or break `check`.
+#
 # Runs in an Arch Linux container so GStreamer matches the dev machine
 # (h264ccinserter needs GStreamer >= 1.26; Ubuntu LTS ships older).
 name: CI
@@ -37,8 +42,33 @@ jobs:
       - name: Format
         run: cargo fmt --all --check
       - name: Lint
-        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+        run: cargo clippy --all-targets --locked -- -D warnings
       - name: Test
-        run: cargo test --workspace --locked
+        run: cargo test --locked
       - name: Docs index is current
         run: scripts/docs-index.sh --check
+
+  workers:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    env:
+      # sherpa-onnx: no SHERPA_ONNX_LIB_DIR, so its build script downloads the
+      # CPU prebuilt. multi-mt without `--features cuda` builds CTranslate2
+      # for CPU (ruy backend).
+      CMAKE_BUILD_PARALLEL_LEVEL: 4
+    steps:
+      - name: Install toolchain
+        run: pacman -Syu --noconfirm --needed base-devel git rust clang cmake pkgconf
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: workers-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
+          restore-keys: workers-${{ runner.os }}-
+      - name: Lint
+        run: cargo clippy -p multi-asr -p multi-mt --all-targets --locked -- -D warnings
+      - name: Test
+        run: cargo test -p multi-asr -p multi-mt --locked
