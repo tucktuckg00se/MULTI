@@ -9,7 +9,7 @@
 | S1 | Can FFmpeg libraries pass video through and inject caption SEI without re-encode? | `spikes/s1-ffmpeg-pipe` | done | [S1](findings/S1-ffmpeg-pipeline.md) |
 | S2 | Same, with GStreamer | `spikes/s2-gst-pipe` | done | [S2](findings/S2-gstreamer-pipeline.md) |
 | S3 | Pure-Rust CEA-608/708 encoder + SEI builder that real decoders accept | `spikes/cc` | done | [S3](findings/S3-caption-encoder.md) |
-| S4 | Which streaming ASR gives the best lag/accuracy/VRAM trade-off? | `spikes/s4-asr` | in progress | — |
+| S4 | Which streaming ASR gives the best lag/accuracy/VRAM trade-off? | `spikes/s4-asr` | done | [S4](findings/S4-streaming-asr.md) |
 | S5 | Can small local models translate a clause in ~500 ms? (stretch) | `spikes/s5-translate` | done | [S5](findings/S5-translation.md) |
 | S2b | Can GStreamer's own 608/708 encoders give per-line control with no added delay? | `spikes/s2-gst-pipe` | done | [S2b](findings/S2b-gstreamer-caption-encoders.md) |
 | S6 | End to end: OBS mic → SRT → captions → VLC and YouTube | `spikes/s6-e2e` | not started | — |
@@ -32,6 +32,7 @@ Everything in `spikes/harness/`. Run from the repo root.
 
 Newest first. One line per notable event, with a link if there's more.
 
+- 2026-09-24 — S4 done: Nemotron 3.5 Streaming (sherpa-onnx) lag P95 1.21 s, WER 5.4, 0 words on silence/music; Whisper turbo more accurate (3.3) but hallucinates over music. ADR-0005 and ADR-0006 accepted.
 - 2026-09-24 — S5 done: CTranslate2 + opus-mt translates 4 languages in parallel at P95 34 ms (61 ms with ASR saturating the GPU), chrF 62.6 on FLORES; LLMs 5–10× slower and follow instructions hidden in the text. CPU int8 fallback P95 347 ms.
 
 - 2026-09-22 — S3 done: pure-Rust 608/708 encoder decodes exactly in FFmpeg, ccextractor and libcaption (H.264 + HEVC, CC1–CC4, 708 services 1–6). Found and fixed a repeated-special-character bug. Open: B-frame ordering, real players, no P16 for non-Latin scripts.
