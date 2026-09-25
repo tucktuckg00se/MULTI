@@ -42,7 +42,7 @@ Types: `summary` overview page · `spec` requirements · `decision` ADR · `find
 
 | ID | Type | Title | Status | ~Tokens |
 |---|---|---|---|---|
-| M-00 | summary | [M0 overview: spikes, harness, log](m0/README.md) | current | ~947 |
+| M-00 | summary | [M0 overview: spikes, harness, log](m0/README.md) | current | ~1015 |
 | F-S3 | finding | [Rust 608/708 encoder decodes in FFmpeg, ccextractor, libcaption](m0/findings/S3-caption-encoder.md) | current | ~1894 |
 | E-S3 | evidence | [S3 raw outputs](m0/evidence/S3) | current | ~4625 |
 | H-01 | how-it-works | [How the latency tool measures video delay and caption lag](m0/findings/H-latency-tool.md) | current | ~1698 |
@@ -53,3 +53,5 @@ Types: `summary` overview page · `spec` requirements · `decision` ADR · `find
 | E-S1 | evidence | [S1 raw outputs](m0/evidence/S1) | current | ~7902 |
 | F-S2b | finding | [GStreamer caption encoders: per-line control, no added delay, use them](m0/findings/S2b-gstreamer-caption-encoders.md) | current | ~1667 |
 | E-S2b | evidence | [S2b raw outputs](m0/evidence/S2b) | current | ~7395 |
+| F-S5 | finding | [Local MT via CTranslate2 opus-mt: P95 34 ms, 4 languages](m0/findings/S5-translation.md) | current | ~1432 |
+| E-S5 | evidence | [S5 raw outputs](m0/evidence/S5) | current | ~30755 |
