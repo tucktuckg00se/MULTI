@@ -1,0 +1,27 @@
+# S5 models: source, exact revision, licence, file size. Fetched 2026-09-24 into ~/.cache/multi-models/.
+# kind | repo @ revision | file | size | licence (checked in the repo's LICENSE/model card)
+gguf | https://huggingface.co/tencent/Hy-MT2-1.8B-GGUF @ a0c709d9fac510f2c807aa3af52872340dc37a4a | Hy-MT2-1.8B-Q4_K_M.gguf | 1.1G | Apache-2.0 (LICENSE.txt: plain Apache 2.0, no territory clause unlike HY-MT1.5)
+gguf | https://huggingface.co/tencent/Hy-MT2-1.8B-GGUF @ a0c709d9fac510f2c807aa3af52872340dc37a4a | Hy-MT2-1.8B-Q8_0.gguf | 1.8G | Apache-2.0
+gguf | https://huggingface.co/tencent/Hy-MT2-7B-GGUF @ ab8472660ac61fac25f1af43fac2599d52a8a775 | Hy-MT2-7B-Q4_K_M.gguf | 4.4G | Apache-2.0
+gguf | https://huggingface.co/unsloth/Qwen3.5-2B-GGUF @ f6d5376be1edb4d416d56da11e5397a961aca8ae | Qwen3.5-2B-Q4_K_M.gguf | 1.2G | Apache-2.0 (base Qwen/Qwen3.5-2B@15852e8c)
+gguf | https://huggingface.co/unsloth/Qwen3.5-4B-GGUF @ e87f176479d0855a907a41277aca2f8ee7a09523 | Qwen3.5-4B-Q4_K_M.gguf | 2.6G | Apache-2.0 (base Qwen/Qwen3.5-4B@851bf6e8)
+gguf | https://huggingface.co/unsloth/Qwen3.5-4B-GGUF @ e87f176479d0855a907a41277aca2f8ee7a09523 | Qwen3.5-4B-Q8_0.gguf | 4.2G | Apache-2.0
+gguf | https://huggingface.co/unsloth/gemma-4-E2B-it-GGUF @ 0314792d7f1f7e229411f620751375812bb9faf2 | gemma-4-E2B-it-Q4_K_M.gguf | 2.9G | Apache-2.0 (Gemma 4 moved off the Gemma Terms; base google/gemma-4-E2B-it@3e22461f)
+gguf | https://huggingface.co/unsloth/gemma-4-E4B-it-GGUF @ bfc15c382204943c3a8fff0c750b94ae2364d7a3 | gemma-4-E4B-it-Q4_K_M.gguf | 4.7G | Apache-2.0 (base google/gemma-4-E4B-it@ee0ef602)
+gguf | https://huggingface.co/mradermacher/EuroLLM-1.7B-Instruct-GGUF @ 2951f08f66429c934c8b01a94347161362430808 | EuroLLM-1.7B-Instruct.Q8_0.gguf | 1.7G | Apache-2.0 (base utter-project/EuroLLM-1.7B-Instruct@a25c7fa6)
+gguf | https://huggingface.co/mradermacher/translategemma-4b-it-GGUF @ 35a7486e128b19642cdc72d7b91b21ba388aaf42 | translategemma-4b-it.Q4_K_M.gguf | 2.4G | FLAGGED: Gemma Terms of Use (custom; gated; Prohibited Use Policy must flow down to users, Google may restrict use). Comparison only, not shippable by default.
+gguf | https://huggingface.co/unsloth/gemma-4-26B-A4B-it-GGUF @ c099eb48e663fd284577b04978a94ffccb261841 | gemma-4-26B-A4B-it-UD-Q4_K_M.gguf | 16G | Apache-2.0. Used only to make pseudo-references (base google/gemma-4-26B-A4B-it@4d7ae498)
+ct2 | https://huggingface.co/Helsinki-NLP/opus-mt-en-es @ 5bc4493d463cf000c1f0b50f8d56886a392ed4ab | opus-mt-en-es | 152M | Apache-2.0 (model card tag; OPUS-MT models are generally CC-BY-4.0: attribute)
+ct2 | https://huggingface.co/Helsinki-NLP/opus-mt-en-fr @ dd7f6540a7a48a7f4db59e5c0b9c42c8eea67f18 | opus-mt-en-fr | 146M | Apache-2.0 (as above)
+ct2 | https://huggingface.co/Helsinki-NLP/opus-mt-en-de @ 6183067f769a302e3861815543b9f312c71b0ca4 | opus-mt-en-de | 144M | CC-BY-4.0 (attribution required)
+ct2 | https://huggingface.co/Helsinki-NLP/opus-mt-tc-big-en-pt @ 9f2863d807ecf91a374bdbecb8d01e402e90622e | opus-mt-tc-big-en-pt | 448M | CC-BY-4.0 (attribution required)
+ct2 | https://huggingface.co/Helsinki-NLP/opus-mt-en-zh @ 408d9bc410a388e1d9aef112a2daba955b945255 | opus-mt-en-zh | 152M | Apache-2.0
+ct2 | https://huggingface.co/facebook/m2m100_418M @ 55c2e61bbf05dfb8d7abccdc3fae6fc8512fd636 | m2m100_418M | 930M | MIT
+ct2 | https://huggingface.co/facebook/m2m100_1.2B @ 7b36184180524c1a1bbfa37f120a608046250b98 | m2m100_1.2B | 2.4G | MIT
+ct2 | https://huggingface.co/google/madlad400-3b-mt @ fa184c675da0b5c9e1c8694fccd4e12e2d422094 | madlad400-3b-mt | 5.5G | Apache-2.0
+ct2 | https://huggingface.co/openai/whisper-large-v3-turbo @ 41f01f3fe87f28c78e2fbf8b568835947dd65ed9 | whisper-large-v3-turbo | 1.6G | MIT. Synthetic ASR load only
+eval | https://huggingface.co/Unbabel/wmt22-comet-da @ 2760a223ac957f30acfb18c8aa649b01cf1d75f2 | wmt22-comet-da | 2.2G | Apache-2.0 (encoder xlm-roberta-large, MIT). Scoring only
+
+# CTranslate2 conversions: ct2-transformers-converter (ctranslate2 4.8.2, transformers in ~/.cache/multi-tools/s5-venv) --quantization float16; compute type chosen at load (fp16 GPU, int8 CPU, bf16 for MADLAD).
+# Reference data: FLORES-200 devtest, https://dl.fbaipublicfiles.com/nllb/flores200_dataset.tar.gz sha256 b8b0b76783024b85797e5cc75064eb83fc5288b41e9654dabc7be6ae944011f6, CC-BY-SA-4.0, evaluation only, not committed (spikes/s5-translate/fetch-refs.sh).
+# Disqualified without testing: NLLB-200, SeamlessM4T (CC-BY-NC); Tower/TowerInstruct (CC-BY-NC); Aya Expanse (CC-BY-NC); HY-MT1.5 / Hunyuan-MT-7B (Tencent licence excludes EU, UK, South Korea).
