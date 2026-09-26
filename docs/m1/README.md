@@ -9,7 +9,7 @@ One branch and PR per package; CI must pass before merge.
 | WP | Contents | Status |
 |---|---|---|
 | 1 Skeleton | Workspace, `multi-core` (config with PRD defaults, text types, worker IPC framing), `multi` CLI stub, CI | in progress |
-| 2 Media | `multi-media`: GStreamer input, restamping bridge, caption lanes, SRT/UDP/RTMP outputs, reconnect; fake-worker integration test | not started |
+| 2 Media | `multi-media`: GStreamer input, restamping bridge, caption lanes, SRT/UDP/RTMP outputs, reconnect; fake-worker integration test | in review |
 | 3 Workers | `multi-asr`, `multi-mt` worker binaries; supervisor with heartbeats and restart | in review |
 | 4 Caption quality | Segmenter, word filters, text cleaning, backlog cap, lane restart, degrade policy, CC2/CC4 option | not started |
 | 5 Web GUI | Control layer, API + live events, embedded page: settings, status, live captions | not started |
@@ -29,8 +29,9 @@ One branch and PR per package; CI must pass before merge.
 
 | Path | What |
 |---|---|
+| `crates/multi-media` | GStreamer pipeline: input, restamping bridge, caption lanes (`CaptionHandle`), outputs, audio tap, `Stats` |
 | `crates/multi-core` | Config (`Config::validate` reports issues by setting path), `Word`/`Clause`/`Translation`, worker IPC framing |
-| `crates/multi` | The `multi` binary: `multi run`, `multi config default`, `multi config check`; `supervisor` (worker processes) |
+| `crates/multi` | The `multi` binary: `multi run`, `multi config default`, `multi config check`; `supervisor` (worker processes), `run` (wiring), `segment` (placeholder segmenter) |
 | `crates/multi-asr` | ASR worker: Nemotron 3.5 Streaming 560 ms (sherpa-onnx) + Silero VAD |
 | `crates/multi-mt` | Translation worker: opus-mt via CTranslate2 (ct2rs) |
 | `crates/multi-fake-worker` | Scripted worker for tests (no models) |
@@ -63,9 +64,30 @@ cargo run --release -p multi --example wp3_check -- --asr-model-dir … --mt-mod
 
 Without `SHERPA_ONNX_LIB_DIR` the sherpa-onnx build script downloads its CPU prebuilt; without `--features cuda`, CTranslate2 is built CPU-only. `--device auto` tries CUDA and logs a warning when it falls back to CPU. `multi-asr` and `multi-mt` are not default members, so plain `cargo build/test/clippy` skip them; CI checks them in a separate `workers` job (CPU-only, cached). Supervisor tests (`crates/multi/tests/supervisor.rs`) drive the fake worker through crash, hang, garbage output, blocked sends and shutdown.
 
+## Media
+
+`multi run -c multi.toml` starts the pipeline, the ASR worker and the MT worker, logs a `stats` line every 10 s, and stops on Ctrl-C (media first, then workers). Worker binaries default to `multi-asr`/`multi-mt` next to `multi`, with models from `--models-dir` (`$MULTI_MODELS`, else `~/.cache/multi-models`); `--asr-worker "<path> [args]"` and `--mt-worker "<path> [args]"` replace them (tests use `multi-fake-worker`).
+
+```text
+input -> tsdemux -> bridge -> h26xparse -> [caption lanes] -> h26xccinserter -> mpegtsmux -> SRT/UDP outputs
+                                                                                   `-> ES -> flvmux -> RTMP outputs
+            `-> audio tap: aacparse -> avdec_aac -> 16 kHz mono -> 100 ms PCM frames -> ASR -> segmenter -> source lane
+                                                                                            `-> clause -> MT -> other lanes
+```
+
+- **Input** `input.url`: `srt://` (caller or listener; `srt.latency_ms` unless the URL sets `latency`), `udp://` (unicast or multicast), `rtp://` (MPEG-TS over RTP). H.264 or HEVC, detected from the stream, parsed but never decoded. The input is rebuilt on error, EOS, or 2 s of silence after data (srtsrc's silent caller, S2); the bridge ([S2](../m0/findings/S2-gstreamer-pipeline.md)) re-stamps onto one continuous output timeline, so a source restarting at PTS 0 continues seamlessly.
+- **Outputs** `outputs[].url`: `srt://`, `udp://` (MPEG-TS) and `rtmp(s)://` (FLV, H.264 + AAC; the SEI keeps the captions; needs both video and audio). Each output is its own pipeline, restarted alone with backoff (0.5 s doubling to 10 s); URLs are logged with passphrases and stream keys masked.
+- **Caption lanes** from `languages` (default EN CC1+708 s1, ES CC3+s2, FR s3, DE s4) with `captions.mode`, `rows` and `offset_ms` (≥ 0; negative needs video delay, not built). S2b's `GstCc` with both upstream workarounds. CC2/CC4 are refused at startup (WP4).
+- **Audio tap**: first audio track (or `audio.track`), `audio.channel` or downmix, `avdec_aac` only (startup fails without gst-libav); PCM timestamps are the input audio PTS.
+- **Segmenter** (placeholder until WP4): clause closes on punctuation, a `translate.max_wait_ms` pause, or 24 words.
+- **Stats** (`Media::stats()`): frames in/out, sessions, input restarts/errors, per-output state and errors, caption frames, per-lane pushed/dropped/queued, audio tap chunks/drops.
+
+Tested in CI by `crates/multi/tests/pipeline.rs` (real GStreamer, fake workers, ports 9720–9722): fake words on CC1, `[es] …` on CC3, captions over RTMP (FFmpeg as RTMP server), video and captions continue after `kill -9` of the ASR worker and after a source restart, clean Ctrl-C exit. **Measured** ([evidence/WP2](evidence/WP2), real workers, RTX 3090, 180 s): video delay p50 33.6 ms / p99 34.2 ms; EN caption lag p50 0.96 s / p95 1.08 s; ES on CC3; no drops or restarts.
+
 ## Log
 
 Newest first.
 
+- 2026-09-25 — WP2 in review: `multi-media`, `multi run` wiring, pipeline integration test. Real-model numbers in [evidence/WP2](evidence/WP2).
 - 2026-09-25 — WP3 in review: workers, supervisor, fake worker, CI `workers` job. Real-model numbers in [evidence/WP3](evidence/WP3).
 - 2026-09-25 — M1 started: WP1 skeleton.

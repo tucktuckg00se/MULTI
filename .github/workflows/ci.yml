@@ -8,6 +8,9 @@
 #
 # Runs in an Arch Linux container so GStreamer matches the dev machine
 # (h264ccinserter needs GStreamer >= 1.26; Ubuntu LTS ships older).
+# `cargo test` includes crates/multi/tests/pipeline.rs: real GStreamer with
+# the fake workers, fed by spikes/harness/source.sh (ffmpeg; its drawtext
+# needs a font, hence ttf-dejavu). Ports 9720-9722.
 name: CI
 
 on:
@@ -29,7 +32,7 @@ jobs:
           pacman -Syu --noconfirm --needed \
             base-devel git rust clang pkgconf \
             gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad \
-            gst-plugin-rsclosedcaption gst-libav ffmpeg
+            gst-plugin-rsclosedcaption gst-libav ffmpeg ttf-dejavu
       - uses: actions/checkout@v4
       - uses: actions/cache@v4
         with:

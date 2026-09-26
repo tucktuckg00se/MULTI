@@ -1,0 +1,596 @@
+1
+00:00:00,000 --> 01:00:06,750
+<font face="Monospace">{\an7}pale powdery </font>
+
+2
+01:00:06,750 --> 01:00:08,217
+<font face="Monospace">{\an7}\hpale powdery 
+lichen</font>
+
+3
+01:00:08,216 --> 01:00:10,449
+<font face="Monospace">{\an7}lichen
+Which has dispersed itself with </font>
+
+4
+01:00:10,450 --> 01:00:11,250
+<font face="Monospace">{\an7}lichen
+Which has dispersed itself with 
+happy</font>
+
+5
+01:00:11,250 --> 01:00:12,450
+<font face="Monospace">{\an7}Which has dispersed itself with 
+happy
+irregularity</font>
+
+6
+01:00:12,450 --> 01:00:14,183
+<font face="Monospace">{\an7}happy
+irregularity
+So as to bring the red brick </font>
+
+7
+01:00:14,183 --> 01:00:16,350
+<font face="Monospace">{\an7}irregularity
+So as to bring the red brick 
+into terms of friendly</font>
+
+8
+01:00:16,350 --> 01:00:18,550
+<font face="Monospace">{\an7}So as to bring the red brick 
+into terms of friendly
+companionship with a limestone</font>
+
+9
+01:00:18,550 --> 01:00:20,283
+<font face="Monospace">{\an7}into terms of friendly
+companionship with a limestone
+ornaments surrounding the three</font>
+
+10
+01:00:20,283 --> 01:00:21,450
+<font face="Monospace">{\an7}companionship with a limestone
+ornaments surrounding the three
+gables the</font>
+
+11
+01:00:21,450 --> 01:00:23,650
+<font face="Monospace">{\an7}ornaments surrounding the three
+gables the
+windows and the doorplace</font>
+
+12
+01:00:23,650 --> 01:00:24,950
+<font face="Monospace">{\an7}gables the
+windows and the doorplace
+But the windows are patched </font>
+
+13
+01:00:24,950 --> 01:00:27,150
+<font face="Monospace">{\an7}windows and the doorplace
+But the windows are patched 
+with wooden panes, and the door </font>
+
+14
+01:00:27,150 --> 01:00:29,950
+<font face="Monospace">{\an7}But the windows are patched 
+with wooden panes, and the door 
+I think is like the gate</font>
+
+15
+01:00:29,950 --> 01:00:31,817
+<font face="Monospace">{\an7}with wooden panes, and the door 
+I think is like the gate
+It is never opened</font>
+
+16
+01:00:31,816 --> 01:00:34,049
+<font face="Monospace">{\an7}I think is like the gate
+It is never opened
+For it is a solid, heavy, </font>
+
+17
+01:00:34,050 --> 01:00:35,550
+<font face="Monospace">{\an7}It is never opened
+For it is a solid, heavy, 
+handsome door</font>
+
+18
+01:00:35,550 --> 01:00:36,783
+<font face="Monospace">{\an7}For it is a solid, heavy, 
+handsome door
+And must once have been in the </font>
+
+19
+01:00:36,783 --> 01:00:38,983
+<font face="Monospace">{\an7}handsome door
+And must once have been in the 
+habit of shutting with a </font>
+
+20
+01:00:38,983 --> 01:00:40,283
+<font face="Monospace">{\an7}And must once have been in the 
+habit of shutting with a 
+sonorous bang</font>
+
+21
+01:00:40,283 --> 01:00:41,950
+<font face="Monospace">{\an7}habit of shutting with a 
+sonorous bang
+Pind the livered lackey who had </font>
+
+22
+01:00:41,950 --> 01:00:43,517
+<font face="Monospace">{\an7}sonorous bang
+Pind the livered lackey who had 
+just seen his master and </font>
+
+23
+01:00:43,516 --> 01:00:44,616
+<font face="Monospace">{\an7}Pind the livered lackey who had 
+just seen his master and 
+mistress off the</font>
+
+24
+01:00:44,616 --> 01:00:47,216
+<font face="Monospace">{\an7}just seen his master and 
+mistress off the
+grounds in a carriage and pair</font>
+
+25
+01:00:47,216 --> 01:00:49,516
+<font face="Monospace">{\an7}mistress off the
+grounds in a carriage and pair
+A large open fireplace with </font>
+
+26
+01:00:49,516 --> 01:00:51,183
+<font face="Monospace">{\an7}grounds in a carriage and pair
+A large open fireplace with 
+rusty dogs in it</font>
+
+27
+01:00:51,183 --> 01:00:54,116
+<font face="Monospace">{\an7}A large open fireplace with 
+rusty dogs in it
+Bear boarded floor</font>
+
+28
+01:00:54,116 --> 01:00:56,149
+<font face="Monospace">{\an7}rusty dogs in it
+Bear boarded floor
+The far end fleeces of wolves </font>
+
+29
+01:00:56,150 --> 01:00:57,483
+<font face="Monospace">{\an7}Bear boarded floor
+The far end fleeces of wolves 
+stacked up</font>
+
+30
+01:00:57,483 --> 01:00:59,350
+<font face="Monospace">{\an7}The far end fleeces of wolves 
+stacked up
+In the middle of the floor, </font>
+
+31
+01:00:59,350 --> 01:01:02,017
+<font face="Monospace">{\an7}stacked up
+In the middle of the floor, 
+some empty corn bags</font>
+
+32
+01:01:02,016 --> 01:01:03,083
+<font face="Monospace">{\an7}In the middle of the floor, 
+some empty corn bags
+And what through the left hand </font>
+
+33
+01:01:03,083 --> 01:01:04,550
+<font face="Monospace">{\an7}some empty corn bags
+And what through the left hand 
+window</font>
+
+34
+01:01:04,550 --> 01:01:05,783
+<font face="Monospace">{\an7}And what through the left hand 
+window
+Several</font>
+
+35
+01:01:05,783 --> 01:01:07,550
+<font face="Monospace">{\an7}window
+Several
+clotheshorses, a pillion, a </font>
+
+36
+01:01:07,550 --> 01:01:09,150
+<font face="Monospace">{\an7}Several
+clotheshorses, a pillion, a 
+spinning wheel</font>
+
+37
+01:01:09,150 --> 01:01:10,883
+<font face="Monospace">{\an7}clotheshorses, a pillion, a 
+spinning wheel
+In an old box wide open and </font>
+
+38
+01:01:10,883 --> 01:01:13,716
+<font face="Monospace">{\an7}spinning wheel
+In an old box wide open and 
+stuffed full of coloured rags</font>
+
+39
+01:01:13,716 --> 01:01:15,316
+<font face="Monospace">{\an7}In an old box wide open and 
+stuffed full of coloured rags
+At the edge of this box, there </font>
+
+40
+01:01:15,316 --> 01:01:18,116
+<font face="Monospace">{\an7}stuffed full of coloured rags
+At the edge of this box, there 
+lies a great wooden doll</font>
+
+41
+01:01:18,116 --> 01:01:19,716
+<font face="Monospace">{\an7}At the edge of this box, there 
+lies a great wooden doll
+Which so far as mutilation is </font>
+
+42
+01:01:19,716 --> 01:01:20,849
+<font face="Monospace">{\an7}lies a great wooden doll
+Which so far as mutilation is 
+concerned</font>
+
+43
+01:01:20,850 --> 01:01:22,550
+<font face="Monospace">{\an7}Which so far as mutilation is 
+concerned
+There‘s a strong resemblance to </font>
+
+44
+01:01:22,550 --> 01:01:24,350
+<font face="Monospace">{\an7}concerned
+There‘s a strong resemblance to 
+the finest Greek sculpture, and </font>
+
+45
+01:01:24,350 --> 01:01:25,917
+<font face="Monospace">{\an7}There‘s a strong resemblance to 
+the finest Greek sculpture, and 
+especially in the total loss of </font>
+
+46
+01:01:25,916 --> 01:01:27,583
+<font face="Monospace">{\an7}the finest Greek sculpture, and 
+especially in the total loss of 
+its nose</font>
+
+47
+01:01:27,583 --> 01:01:28,783
+<font face="Monospace">{\an7}especially in the total loss of 
+its nose
+The history of the house is </font>
+
+48
+01:01:28,783 --> 01:01:30,116
+<font face="Monospace">{\an7}its nose
+The history of the house is 
+plain now</font>
+
+49
+01:01:30,116 --> 01:01:31,849
+<font face="Monospace">{\an7}The history of the house is 
+plain now
+But there is always a stronger </font>
+
+50
+01:01:31,850 --> 01:01:34,050
+<font face="Monospace">{\an7}plain now
+But there is always a stronger 
+sense of life when the sun is </font>
+
+51
+01:01:34,050 --> 01:01:36,050
+<font face="Monospace">{\an7}But there is always a stronger 
+sense of life when the sun is 
+brilliant after rain</font>
+
+52
+01:01:36,050 --> 01:01:38,250
+<font face="Monospace">{\an7}sense of life when the sun is 
+brilliant after rain
+And now he is pouring down his</font>
+
+53
+01:01:38,250 --> 01:01:39,950
+<font face="Monospace">{\an7}brilliant after rain
+And now he is pouring down his
+beams and making</font>
+
+54
+01:01:39,950 --> 01:01:41,983
+<font face="Monospace">{\an7}And now he is pouring down his
+beams and making
+sparkles among the wet straw</font>
+
+55
+01:01:41,983 --> 01:01:44,383
+<font face="Monospace">{\an7}beams and making
+sparkles among the wet straw
+And lighting up every patch of </font>
+
+56
+01:01:44,383 --> 01:01:45,983
+<font face="Monospace">{\an7}sparkles among the wet straw
+And lighting up every patch of 
+vivid green moss on the red </font>
+
+57
+01:01:45,983 --> 01:01:48,150
+<font face="Monospace">{\an7}And lighting up every patch of 
+vivid green moss on the red 
+tiles of the cowshed</font>
+
+58
+01:01:48,150 --> 01:01:49,783
+<font face="Monospace">{\an7}vivid green moss on the red 
+tiles of the cowshed
+And turning even the muddy </font>
+
+59
+01:01:49,783 --> 01:01:50,983
+<font face="Monospace">{\an7}tiles of the cowshed
+And turning even the muddy 
+water that is hurrying along </font>
+
+60
+01:01:50,983 --> 01:01:52,983
+<font face="Monospace">{\an7}And turning even the muddy 
+water that is hurrying along 
+the channel to the drain</font>
+
+61
+01:01:52,983 --> 01:01:54,850
+<font face="Monospace">{\an7}water that is hurrying along 
+the channel to the drain
+A mirror</font>
+
+62
+01:01:54,850 --> 01:01:56,050
+<font face="Monospace">{\an7}the channel to the drain
+A mirror
+Yellow billed</font>
+
+63
+01:01:56,050 --> 01:01:57,283
+<font face="Monospace">{\an7}A mirror
+Yellow billed
+ducks who were seizing the </font>
+
+64
+01:01:57,283 --> 01:01:59,250
+<font face="Monospace">{\an7}Yellow billed
+ducks who were seizing the 
+opportunity of getting a drink</font>
+
+65
+01:01:59,250 --> 01:02:01,817
+<font face="Monospace">{\an7}ducks who were seizing the 
+opportunity of getting a drink
+As much body in it as possible</font>
+
+66
+01:02:01,816 --> 01:02:03,416
+<font face="Monospace">{\an7}opportunity of getting a drink
+As much body in it as possible
+For the great barn doors are </font>
+
+67
+01:02:03,416 --> 01:02:05,116
+<font face="Monospace">{\an7}As much body in it as possible
+For the great barn doors are 
+thrown wide open and men are </font>
+
+68
+01:02:05,116 --> 01:02:06,816
+<font face="Monospace">{\an7}For the great barn doors are 
+thrown wide open and men are 
+busy there mending the</font>
+
+69
+01:02:06,816 --> 01:02:08,049
+<font face="Monospace">{\an7}thrown wide open and men are 
+busy there mending the
+harness under the </font>
+
+70
+01:02:08,050 --> 01:02:09,517
+<font face="Monospace">{\an7}busy there mending the
+harness under the 
+superintendence of Mister</font>
+
+71
+01:02:09,516 --> 01:02:11,583
+<font face="Monospace">{\an7}harness under the 
+superintendence of Mister
+Gobe, the Whida, otherwise </font>
+
+72
+01:02:11,583 --> 01:02:12,583
+<font face="Monospace">{\an7}superintendence of Mister
+Gobe, the Whida, otherwise 
+saddler</font>
+
+73
+01:02:12,583 --> 01:02:14,783
+<font face="Monospace">{\an7}Gobe, the Whida, otherwise 
+saddler
+Entertains them with the latest </font>
+
+74
+01:02:14,783 --> 01:02:16,650
+<font face="Monospace">{\an7}saddler
+Entertains them with the latest 
+Tredleston gossip</font>
+
+75
+01:02:16,650 --> 01:02:19,083
+<font face="Monospace">{\an7}Entertains them with the latest 
+Tredleston gossip
+Hetty Sir often took the</font>
+
+76
+01:02:19,083 --> 01:02:20,116
+<font face="Monospace">{\an7}Tredleston gossip
+Hetty Sir often took the
+opportunity when her aunt‘s </font>
+
+77
+01:02:20,116 --> 01:02:21,583
+<font face="Monospace">{\an7}Hetty Sir often took the
+opportunity when her aunt‘s 
+back was turned</font>
+
+78
+01:02:21,583 --> 01:02:22,816
+<font face="Monospace">{\an7}opportunity when her aunt‘s 
+back was turned
+Looking at the pleasing </font>
+
+79
+01:02:22,816 --> 01:02:23,783
+<font face="Monospace">{\an7}back was turned
+Looking at the pleasing 
+reflection of</font>
+
+80
+01:02:23,783 --> 01:02:25,516
+<font face="Monospace">{\an7}Looking at the pleasing 
+reflection of
+herself in those polished </font>
+
+81
+01:02:25,516 --> 01:02:28,416
+<font face="Monospace">{\an7}reflection of
+herself in those polished 
+services For the oak table was</font>
+
+82
+01:02:28,416 --> 01:02:29,983
+<font face="Monospace">{\an7}herself in those polished 
+services For the oak table was
+using turned up like a screen </font>
+
+83
+01:02:29,983 --> 01:02:31,816
+<font face="Monospace">{\an7}services For the oak table was
+using turned up like a screen 
+and was more for ornament than </font>
+
+84
+01:02:31,816 --> 01:02:33,583
+<font face="Monospace">{\an7}using turned up like a screen 
+and was more for ornament than 
+for use</font>
+
+85
+01:02:33,583 --> 01:02:34,616
+<font face="Monospace">{\an7}and was more for ornament than 
+for use
+And she could see</font>
+
+86
+01:02:34,616 --> 01:02:36,483
+<font face="Monospace">{\an7}for use
+And she could see
+herself sometimes in the great </font>
+
+87
+01:02:36,483 --> 01:02:38,583
+<font face="Monospace">{\an7}And she could see
+herself sometimes in the great 
+round pewter dishes that were </font>
+
+88
+01:02:38,583 --> 01:02:40,816
+<font face="Monospace">{\an7}herself sometimes in the great 
+round pewter dishes that were 
+ranged on the shelves above the </font>
+
+89
+01:02:40,816 --> 01:02:42,683
+<font face="Monospace">{\an7}round pewter dishes that were 
+ranged on the shelves above the 
+long deal dinner table</font>
+
+90
+01:02:42,683 --> 01:02:44,450
+<font face="Monospace">{\an7}ranged on the shelves above the 
+long deal dinner table
+In the hobs of the great, which </font>
+
+91
+01:02:44,450 --> 01:02:46,950
+<font face="Monospace">{\an7}long deal dinner table
+In the hobs of the great, which 
+always shone like Jasper</font>
+
+92
+01:02:46,950 --> 01:02:48,750
+<font face="Monospace">{\an7}In the hobs of the great, which 
+always shone like Jasper
+Do not suppose, however, that </font>
+
+93
+01:02:48,750 --> 01:02:49,183
+<font face="Monospace">{\an7}always shone like Jasper
+Do not suppose, however, that 
+Mrs.</font>
+
+94
+01:02:49,183 --> 01:02:51,050
+<font face="Monospace">{\an7}Do not suppose, however, that 
+Mrs.
+Poyser was elderly or shrewish </font>
+
+95
+01:02:51,050 --> 01:02:52,583
+<font face="Monospace">{\an7}Mrs.
+Poyser was elderly or shrewish 
+in her appearance</font>
+
+96
+01:02:52,583 --> 01:02:55,483
+<font face="Monospace">{\an7}Poyser was elderly or shrewish 
+in her appearance
+She was a good looking woman</font>
+
+97
+01:02:55,483 --> 01:02:57,716
+<font face="Monospace">{\an7}in her appearance
+She was a good looking woman
+Not more than eight and thirty</font>
+
+98
+01:02:57,716 --> 01:02:58,749
+<font face="Monospace">{\an7}She was a good looking woman
+Not more than eight and thirty
+Fair</font>
+
+99
+01:02:58,750 --> 01:03:00,417
+<font face="Monospace">{\an7}Not more than eight and thirty
+Fair
+complexion and sandy hair</font>
+
+100
+01:03:00,416 --> 01:03:03,149
+<font face="Monospace">{\an7}Fair
+complexion and sandy hair
+Well shaping light footed</font>
+
