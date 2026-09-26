@@ -3,7 +3,7 @@ resolver = "3"
 members = ["crates/*"]
 # multi-asr and multi-mt link sherpa-onnx and CTranslate2 (slow native builds);
 # plain `cargo build/test/clippy` skips them. CI builds them in a separate job.
-default-members = ["crates/multi", "crates/multi-core", "crates/multi-fake-worker"]
+default-members = ["crates/multi", "crates/multi-core", "crates/multi-fake-worker", "crates/multi-media"]
 # spikes/ is its own throwaway workspace (M0); it is not part of the product.
 exclude = ["spikes"]
 
@@ -16,6 +16,7 @@ publish = false
 
 [workspace.dependencies]
 multi-core = { path = "crates/multi-core" }
+multi-media = { path = "crates/multi-media" }
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 serde = { version = "1", features = ["derive"] }
@@ -24,6 +25,9 @@ thiserror = "2"
 toml = "0.9"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+gst = { package = "gstreamer", version = "0.25", features = ["v1_24"] }
+gst-app = { package = "gstreamer-app", version = "0.25", features = ["v1_24"] }
+gst-video = { package = "gstreamer-video", version = "0.25", features = ["v1_24"] }
 
 [workspace.lints.rust]
 unsafe_code = "deny"

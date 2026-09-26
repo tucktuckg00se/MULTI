@@ -2,9 +2,13 @@
 
 use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
+use multi::run::RunOptions;
 use multi_core::Config;
+use std::io::IsTerminal;
 use std::path::PathBuf;
 use std::process::ExitCode;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 #[derive(Parser)]
 #[command(version, about = "Live multilingual captions for video streams")]
@@ -20,6 +24,16 @@ enum Cmd {
         /// Configuration file (TOML). Missing settings use defaults.
         #[arg(long, short)]
         config: Option<PathBuf>,
+        /// ASR worker command line (`path [args]`), instead of `multi-asr`
+        /// next to this executable.
+        #[arg(long, value_name = "CMD")]
+        asr_worker: Option<String>,
+        /// Translation worker command line (`path [args]`), instead of `multi-mt`.
+        #[arg(long, value_name = "CMD")]
+        mt_worker: Option<String>,
+        /// Model directory for the default workers ($MULTI_MODELS, else ~/.cache/multi-models).
+        #[arg(long)]
+        models_dir: Option<PathBuf>,
     },
     /// Work with configuration files.
     #[command(subcommand)]
@@ -40,6 +54,7 @@ fn main() -> ExitCode {
             tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()),
         )
         .with_writer(std::io::stderr)
+        .with_ansi(std::io::stderr().is_terminal())
         .init();
 
     match run(Cli::parse()) {
@@ -63,14 +78,36 @@ fn run(cli: Cli) -> Result<()> {
             println!("{}: OK", path.display());
             Ok(())
         }
-        Cmd::Run { config } => {
+        Cmd::Run {
+            config,
+            asr_worker,
+            mt_worker,
+            models_dir,
+        } => {
             let config = match config {
                 Some(path) => Config::load(&path).with_context(|| "loading configuration")?,
                 None => Config::default(),
             };
             check(&config)?;
-            tracing::info!(input = %config.input.url, outputs = config.outputs.len(), "configuration OK");
-            bail!("the media pipeline is not built yet (M1 work package 2)")
+            tracing::info!(
+                input = %multi_media::url::redact(&config.input.url),
+                outputs = config.outputs.len(),
+                "configuration OK"
+            );
+            let opts = RunOptions::new(
+                config,
+                asr_worker.as_deref(),
+                mt_worker.as_deref(),
+                models_dir.as_deref(),
+            )?;
+            let stop = Arc::new(AtomicBool::new(false));
+            let flag = stop.clone();
+            ctrlc::set_handler(move || {
+                tracing::info!("stop requested");
+                flag.store(true, Ordering::Release);
+            })
+            .context("cannot install the Ctrl-C handler")?;
+            multi::run::run(opts, &stop)
         }
     }
 }

@@ -1,0 +1,8 @@
+[input]
+url = "udp://127.0.0.1:9731"
+
+[[outputs]]
+url = "udp://127.0.0.1:9732"
+
+[[outputs]]
+url = "srt://127.0.0.1:9734?mode=listener"

@@ -1,0 +1,19 @@
+== WP2 real workers, 180s capture
+-- multi: multi exit: 0; warnings/errors in log: 1
+frames_in=5368 frames_out=5368 input_live=true input_restarts=0 sessions=1 caption_frames=5368 audio_chunks=8385 audio_drops=0 outputs=udp://127.0.0.1:9732:up:err=0 srt://127.0.0.1:9734?mode=listener:up:err=0 lanes_pushed_dropped_queued=en:265/0/0 es:66/0/0 fr:66/0/0 de:66/0/0 asr=Ready asr_restarts=0 asr_dropped=0 mt=Some(Ready) mt_restarts=0
+-- verify (UDP, CC1): 100 cues
+-- CC3 (ES): 103 cues; sample:
+<font face="Monospace">{\an7}Que se ha dispersado con feliz
+irregularidad
+Para que el ladrillo rojo en </font>
+<font face="Monospace">{\an7}irregularidad
+Para que el ladrillo rojo en 
+-- video delay in -> UDP out
+frames: in=5604 out=5563 matched=3839 (method: pts)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323825538 ticks (3598061.533 ms), 3839/3839 content-matched frames agree
+delay ms: p50=33.615 p95=33.968 p99=34.212 max=34.838 mean=33.623 min=32.272
+jitter ms: stddev=0.213 mean|successive diff|=0.268  drift=-0.002 ms/min
+-- EN caption lag, real-time cues (pts-origin 3599.4828663333333)
+utterances: 10 in span, 10 matched (100.0%)
+lag s: p50=0.958 p95=1.077 max=1.077 mean=0.979 min=0.867

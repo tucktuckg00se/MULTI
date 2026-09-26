@@ -44,8 +44,9 @@ Types: `summary` overview page · `spec` requirements · `decision` ADR · `find
 
 | ID | Type | Title | Status | ~Tokens |
 |---|---|---|---|---|
-| M1-00 | summary | [M1 overview: work packages, exit criteria, code layout](m1/README.md) | current | ~1496 |
+| M1-00 | summary | [M1 overview: work packages, exit criteria, code layout](m1/README.md) | current | ~2308 |
 | E-WP3 | evidence | [WP3 real-model check: ASR words/WER, MT latency, kill -9 recovery](m1/evidence/WP3) | current | ~784 |
+| E-WP2 | evidence | [WP2 real-model check: video delay, EN caption lag, CC1/CC3 output](m1/evidence/WP2) | current | ~11479 |
 
 ## M0 spikes
 

@@ -1,0 +1,20 @@
+[package]
+name = "multi-media"
+description = "MULTI media pipeline: GStreamer input, restamping bridge, caption lanes, outputs"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+multi-core.workspace = true
+anyhow.workspace = true
+serde.workspace = true
+tracing.workspace = true
+gst.workspace = true
+gst-app.workspace = true
+gst-video.workspace = true
+
+[lints]
+workspace = true

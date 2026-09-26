@@ -1,0 +1,11 @@
+loop,utt,utt_start_s,utt_end_s,ref_end_s,appear_s,lag_s,words_matched,target
+0,2,22.570,30.600,30.009,30.967,0.958,3,gate never opened
+0,3,30.600,46.120,45.469,46.533,1.064,3,grounds carriage pair
+0,4,46.120,60.795,60.064,61.100,1.036,3,empty corn bags
+0,5,60.795,63.435,62.900,63.767,0.867,3,left hand window
+0,6,63.435,72.525,71.814,72.733,0.919,3,full coloured rags
+0,7,72.525,86.345,85.754,86.800,1.046,3,total loss nose
+0,8,86.345,89.045,88.510,89.533,1.023,3,house plain now
+0,9,89.045,120.695,120.145,121.033,0.888,3,much body possible
+0,10,120.695,135.100,134.590,135.667,1.077,3,latest treddleston gossip
+0,11,135.100,165.715,165.085,166.000,0.915,3,shone like jasper
