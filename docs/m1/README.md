@@ -14,8 +14,12 @@ One branch and PR per package; CI must pass before merge.
 | 4 Caption quality | Segmenter, word filters, text cleaning, backlog cap, lane restart, degrade policy, CC2/CC4 option | not started |
 | 5 Web GUI | Control layer, API + live events, embedded page: settings, status, live captions | in review |
 | 6 Validate | B-frames, 4-hour soak, live OBS test from the GUI, YouTube RTMP test, findings | not started |
+| 7 Models | Model registry (PRD MD-4); `multi models list/pull/verify/remove`; storage folders; hosted pre-converted opus-mt; clear error and GUI warning when a language's model is missing | not started |
+| 8 GUI follow-ups | Input audio level meter and a warning after ~10 s of silence; warn when a language has no installed model or its script can't go on 608/708; fix output mode label ("waits for the receiver") | not started |
 
 ## Exit criteria
+
+- `multi models pull` installs the default model set on a clean machine, with checksums verified.
 
 - 4-hour live run: no video interruptions, memory flat, no errors.
 - EN caption lag P95 ≤ 1.5 s; translated ≤ 2.5 s.
