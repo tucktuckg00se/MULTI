@@ -282,6 +282,8 @@ pub struct Web {
     /// Required when `bind` is not a loopback address. Prefer the
     /// `MULTI_WEB_TOKEN` environment variable over storing it here.
     pub token: Option<String>,
+    /// `multi serve` starts the pipeline right away instead of waiting for Start.
+    pub autostart: bool,
 }
 
 impl Default for Web {
@@ -290,6 +292,7 @@ impl Default for Web {
             bind: IpAddr::from([127, 0, 0, 1]),
             port: 8480,
             token: None,
+            autostart: false,
         }
     }
 }

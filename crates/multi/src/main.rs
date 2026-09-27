@@ -2,13 +2,14 @@
 
 use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
-use multi::run::RunOptions;
+use multi::service::{Service, Workers};
 use multi_core::Config;
 use std::io::IsTerminal;
 use std::path::PathBuf;
 use std::process::ExitCode;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::time::Duration;
 
 #[derive(Parser)]
 #[command(version, about = "Live multilingual captions for video streams")]
@@ -26,6 +27,21 @@ enum Cmd {
         config: Option<PathBuf>,
         /// ASR worker command line (`path [args]`), instead of `multi-asr`
         /// next to this executable.
+        #[arg(long, value_name = "CMD")]
+        asr_worker: Option<String>,
+        /// Translation worker command line (`path [args]`), instead of `multi-mt`.
+        #[arg(long, value_name = "CMD")]
+        mt_worker: Option<String>,
+        /// Model directory for the default workers ($MULTI_MODELS, else ~/.cache/multi-models).
+        #[arg(long)]
+        models_dir: Option<PathBuf>,
+    },
+    /// Run the web GUI (settings, status, live captions) and the pipeline.
+    Serve {
+        /// Configuration file (TOML); created with defaults if missing.
+        #[arg(long, short)]
+        config: PathBuf,
+        /// ASR worker command line (`path [args]`), instead of `multi-asr`.
         #[arg(long, value_name = "CMD")]
         asr_worker: Option<String>,
         /// Translation worker command line (`path [args]`), instead of `multi-mt`.
@@ -94,12 +110,14 @@ fn run(cli: Cli) -> Result<()> {
                 outputs = config.outputs.len(),
                 "configuration OK"
             );
-            let opts = RunOptions::new(
-                config,
-                asr_worker.as_deref(),
-                mt_worker.as_deref(),
-                models_dir.as_deref(),
-            )?;
+            let service = Service::new(
+                config.clone(),
+                Workers {
+                    asr: asr_worker,
+                    mt: mt_worker,
+                    models_dir,
+                },
+            );
             let stop = Arc::new(AtomicBool::new(false));
             let flag = stop.clone();
             ctrlc::set_handler(move || {
@@ -107,8 +125,25 @@ fn run(cli: Cli) -> Result<()> {
                 flag.store(true, Ordering::Release);
             })
             .context("cannot install the Ctrl-C handler")?;
-            multi::run::run(opts, &stop)
+            service.start(config)?;
+            while !stop.load(Ordering::Acquire) && service.is_active() {
+                std::thread::sleep(Duration::from_millis(50));
+            }
+            service.stop()
         }
+        Cmd::Serve {
+            config,
+            asr_worker,
+            mt_worker,
+            models_dir,
+        } => multi::web::serve(
+            &config,
+            Workers {
+                asr: asr_worker,
+                mt: mt_worker,
+                models_dir,
+            },
+        ),
     }
 }
 
