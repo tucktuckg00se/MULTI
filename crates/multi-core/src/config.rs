@@ -424,6 +424,16 @@ impl Config {
         if self.web.port == 0 {
             v.push("web.port", "port must be between 1 and 65535");
         }
+        for (name, list) in [
+            ("blocklist", &self.filter.blocklist),
+            ("allowlist", &self.filter.allowlist),
+        ] {
+            for (i, e) in list.iter().enumerate() {
+                if let Some(msg) = crate::filter::entry_problem(e.trim()) {
+                    v.push(&format!("filter.{name}[{i}]"), msg);
+                }
+            }
+        }
         v.range("degrade.max_lag_ms", self.degrade.max_lag_ms, 1_000, 30_000);
         let mut seen = Vec::new();
         for step in &self.degrade.order {
@@ -469,6 +479,13 @@ impl Config {
                 );
             }
             if let Some(ch) = l.cc608 {
+                if matches!(ch, Cc608::Cc2 | Cc608::Cc4) {
+                    v.push(
+                        &at("cc608"),
+                        "CC2 and CC4 are not supported: they share a field with CC1/CC3, and \
+                         GStreamer's encoders write CC1/CC3 only; use a 708 service instead",
+                    );
+                }
                 if channels.contains(&ch) {
                     v.push(&at("cc608"), "channel already used by another language");
                 }
@@ -602,6 +619,21 @@ mod tests {
         let paths = issue_paths(&c);
         assert!(paths.contains(&"input.url".to_string()));
         assert!(paths.contains(&"outputs[0].url".to_string()));
+    }
+
+    #[test]
+    fn cc2_cc4_and_bad_filter_entries_are_reported() {
+        let mut c = Config::default();
+        c.languages[2].cc608 = Some(Cc608::Cc2);
+        c.languages[3].cc608 = Some(Cc608::Cc4);
+        c.filter.blocklist = vec!["ok*".into(), "*".into()];
+        c.filter.allowlist = vec!["a$$".into()];
+        let paths = issue_paths(&c);
+        assert!(paths.contains(&"languages[2].cc608".to_string()));
+        assert!(paths.contains(&"languages[3].cc608".to_string()));
+        assert!(paths.contains(&"filter.blocklist[1]".to_string()));
+        assert!(!paths.contains(&"filter.blocklist[0]".to_string()));
+        assert!(paths.contains(&"filter.allowlist[0]".to_string()));
     }
 
     #[test]

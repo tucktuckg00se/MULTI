@@ -34,6 +34,8 @@ pub(crate) struct LaneCounters {
     pub pushed: AtomicU64,
     pub dropped: AtomicU64,
     pub queued: AtomicU64,
+    pub stale: AtomicU64,
+    pub oldest_ms: AtomicU64,
 }
 
 /// A point-in-time view of the media pipeline.
@@ -88,4 +90,8 @@ pub struct LaneStats {
     pub dropped: u64,
     /// Text pieces waiting for the encoder.
     pub queued: u64,
+    /// Of `dropped`: text older than the age cap (6 s).
+    pub stale: u64,
+    /// Age of the oldest waiting text, ms (0 when none).
+    pub oldest_ms: u64,
 }

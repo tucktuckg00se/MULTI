@@ -1,7 +1,8 @@
 //! `multi run` end to end with real GStreamer and the fake workers (no GPU):
 //! `source.sh` (UDP, H.264) -> `multi run` -> UDP and RTMP out.
 //!
-//! Checks: fake ASR words on CC1, fake translations (`[es] …`) on CC3,
+//! Checks: fake ASR words on CC1, fake translations (`[es] …`) on CC3, a
+//! blocklisted script word masked on both,
 //! captions in the RTMP (FLV) output, video keeps flowing (and captions come
 //! back) after the ASR worker is killed, and Ctrl-C exits cleanly.
 //!
@@ -22,6 +23,8 @@ const IN_PORT: u16 = 9720;
 const UDP_OUT_PORT: u16 = 9721;
 const RTMP_PORT: u16 = 9722;
 const WORDS: [&str; 6] = multi_fake_worker::SCRIPT;
+/// A script word put on the blocklist.
+const BLOCKED: &str = "charlie";
 
 fn main() -> ExitCode {
     if std::env::var_os(ENV).is_some() {
@@ -214,7 +217,8 @@ fn end_to_end() {
         format!(
             "[input]\nurl = \"udp://127.0.0.1:{IN_PORT}\"\n\n\
              [[outputs]]\nurl = \"udp://127.0.0.1:{UDP_OUT_PORT}\"\n\n\
-             [[outputs]]\nurl = \"rtmp://127.0.0.1:{RTMP_PORT}/live/test\"\n"
+             [[outputs]]\nurl = \"rtmp://127.0.0.1:{RTMP_PORT}/live/test\"\n\n\
+             [filter]\nblocklist = [\"{BLOCKED}\"]\n"
         ),
     )
     .unwrap();
@@ -281,7 +285,15 @@ fn end_to_end() {
         cc3.contains("[es]"),
         "no fake translation on CC3: {cc3:.300}"
     );
-    println!("CC1 and CC3 carry the fake ASR and MT text");
+    // FL-4: the blocklisted script word is masked in the source and in the
+    // (copied) translation.
+    for (name, text) in [("CC1", &cc1), ("CC3", &cc3)] {
+        assert!(
+            !text.to_lowercase().contains(BLOCKED),
+            "blocklisted {BLOCKED:?} on {name}: {text:.300}"
+        );
+    }
+    println!("CC1 and CC3 carry the fake ASR and MT text, with {BLOCKED:?} masked");
 
     // RTMP: the listener stops by itself after 12 s of input.
     assert!(

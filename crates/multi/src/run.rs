@@ -9,7 +9,6 @@
 //! the supervisor (which drops the oldest when full), and caption pushes are
 //! non-blocking. Shutdown order: media first, then the workers.
 
-use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{Receiver, RecvTimeoutError};
@@ -19,6 +18,7 @@ use std::time::{Duration, Instant};
 use anyhow::{Context, Result, bail};
 use multi_core::Config;
 use multi_core::ipc::Message;
+use multi_core::quality::CaptionQuality;
 use multi_media::{AudioChunk, CaptionHandle, Media, MediaConfig};
 use tracing::{debug, info, warn};
 
@@ -195,8 +195,7 @@ pub fn run(opts: RunOptions, stop: &AtomicBool) -> Result<()> {
         ))),
         captions: media.captions(),
         source: source_lang(config),
-        targets: target_langs(config),
-        rows: BTreeMap::new(),
+        q: CaptionQuality::new(config),
     };
     text_loop(
         text,
@@ -221,9 +220,8 @@ struct TextPath {
     seg: Segmenter,
     captions: CaptionHandle,
     source: String,
-    targets: Vec<String>,
-    /// Clause id -> starts a new row, for translations.
-    rows: BTreeMap<u64, bool>,
+    /// Cleaning, word filter, stale drops and degrade policy (WP4).
+    q: CaptionQuality,
 }
 
 impl TextPath {
@@ -231,20 +229,37 @@ impl TextPath {
         for e in events {
             match e {
                 Event::Source { text, new_row } => {
-                    self.captions.push(&self.source, &text, new_row);
-                }
-                Event::Clause { clause, new_row } => {
-                    let Some(mt) = mt else { continue };
-                    self.rows.insert(clause.id, new_row);
-                    while self.rows.len() > 256 {
-                        self.rows.pop_first();
+                    if let Some(text) = self.q.source_text(&text) {
+                        self.captions.push(&self.source, &text, new_row);
                     }
-                    mt.send_message(Message::Translate {
-                        clause,
-                        langs: self.targets.clone(),
-                    });
+                }
+                Event::Clause {
+                    clause,
+                    new_row,
+                    reason,
+                } => {
+                    let Some(mt) = mt else { continue };
+                    let now = self.seg.ms(Instant::now());
+                    let langs = self.q.clause(&clause, new_row, reason, now);
+                    if !langs.is_empty() {
+                        mt.send_message(Message::Translate { clause, langs });
+                    }
                 }
             }
+        }
+    }
+
+    /// Degrade policy tick: per-lane queue age from the media stats.
+    fn degrade(&mut self, media: &Media) {
+        let ages: Vec<(String, u64)> = media
+            .stats()
+            .lanes
+            .into_iter()
+            .map(|l| (l.lang, l.oldest_ms))
+            .collect();
+        let now = self.seg.ms(Instant::now());
+        if let Some(paused) = self.q.update_degrade(&ages, now) {
+            warn!(?paused, "caption lag: paused lanes changed");
         }
     }
 }
@@ -258,6 +273,7 @@ fn text_loop(
     stop: &AtomicBool,
 ) {
     let mut next_stats = Instant::now() + STATS_EVERY;
+    let mut next_degrade = Instant::now() + Duration::from_secs(1);
     while !stop.load(Ordering::Acquire) {
         match asr_rx.recv_timeout(Duration::from_millis(20)) {
             Ok(Message::Words { words }) => {
@@ -278,8 +294,11 @@ fn text_loop(
             while let Ok(msg) = rx.try_recv() {
                 match msg {
                     Message::Translated { translation: tr } => {
-                        let row = t.rows.get(&tr.clause_id).copied().unwrap_or(true);
-                        t.captions.push(&tr.lang, &tr.text, row);
+                        let now = t.seg.ms(Instant::now());
+                        if let Some(r) = t.q.translation(&tr, now) {
+                            let age = Duration::from_millis(r.age_ms);
+                            t.captions.push_aged(&tr.lang, &r.text, r.new_row, age);
+                        }
                     }
                     Message::Error { message } => {
                         debug!(worker = "mt", %message, "translation error")
@@ -291,6 +310,11 @@ fn text_loop(
         if Instant::now() >= next_stats {
             next_stats += STATS_EVERY;
             log_stats(media, asr, mt.map(|m| m.0));
+            info!(quality = %t.q.summary(&t.seg.stats()), "caption quality");
+        }
+        if Instant::now() >= next_degrade {
+            next_degrade += Duration::from_secs(1);
+            t.degrade(media);
         }
     }
 }
