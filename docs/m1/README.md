@@ -12,7 +12,7 @@ One branch and PR per package; CI must pass before merge.
 | 2 Media | `multi-media`: GStreamer input, restamping bridge, caption lanes, SRT/UDP/RTMP outputs, reconnect; fake-worker integration test | in review |
 | 3 Workers | `multi-asr`, `multi-mt` worker binaries; supervisor with heartbeats and restart | in review |
 | 4 Caption quality | Segmenter, word filters, text cleaning, backlog cap, lane restart, degrade policy, CC2/CC4 option | not started |
-| 5 Web GUI | Control layer, API + live events, embedded page: settings, status, live captions | not started |
+| 5 Web GUI | Control layer, API + live events, embedded page: settings, status, live captions | in review |
 | 6 Validate | B-frames, 4-hour soak, live OBS test from the GUI, YouTube RTMP test, findings | not started |
 
 ## Exit criteria
@@ -31,7 +31,7 @@ One branch and PR per package; CI must pass before merge.
 |---|---|
 | `crates/multi-media` | GStreamer pipeline: input, restamping bridge, caption lanes (`CaptionHandle`), outputs, audio tap, `Stats` |
 | `crates/multi-core` | Config (`Config::validate` reports issues by setting path), `Word`/`Clause`/`Translation`, worker IPC framing |
-| `crates/multi` | The `multi` binary: `multi run`, `multi config default`, `multi config check`; `supervisor` (worker processes), `run` (wiring), `segment` (placeholder segmenter) |
+| `crates/multi` | The `multi` binary: `multi run`, `multi serve`, `multi config default`, `multi config check`; `supervisor` (worker processes), `run` (wiring), `service` (pipeline lifecycle, status, events), `web` (GUI + API, page in `crates/multi/web/`), `segment` (placeholder segmenter) |
 | `crates/multi-asr` | ASR worker: Nemotron 3.5 Streaming 560 ms (sherpa-onnx) + Silero VAD |
 | `crates/multi-mt` | Translation worker: opus-mt via CTranslate2 (ct2rs) |
 | `crates/multi-fake-worker` | Scripted worker for tests (no models) |
@@ -84,10 +84,23 @@ input -> tsdemux -> bridge -> h26xparse -> [caption lanes] -> h26xccinserter -> 
 
 Tested in CI by `crates/multi/tests/pipeline.rs` (real GStreamer, fake workers, ports 9720–9722): fake words on CC1, `[es] …` on CC3, captions over RTMP (FFmpeg as RTMP server), video and captions continue after `kill -9` of the ASR worker and after a source restart, clean Ctrl-C exit. **Measured** ([evidence/WP2](evidence/WP2), real workers, RTX 3090, 180 s): video delay p50 33.6 ms / p99 34.2 ms; EN caption lag p50 0.96 s / p95 1.08 s; ES on CC3; no drops or restarts.
 
+## Web GUI
+
+`multi serve -c multi.toml` (same `--asr-worker`/`--mt-worker`/`--models-dir` options as `multi run`) serves the GUI at **http://127.0.0.1:8480/** (`web.bind`, `web.port`). The config file is created with defaults if missing. The pipeline starts when you click Start, or at launch if `web.autostart = true`. Ctrl-C/SIGTERM stops the pipeline, then the server.
+
+- **Settings**: every config section with help text from PRD §5, helper fields for SRT/UDP/RTP/RTMP URLs, a language table, and errors shown next to the field (`Issue.path`). Save writes the TOML atomically (mode 0600). A banner lists saved settings that wait for a restart. Rule list in `service::RULES`: `web.token` and `web.autostart` apply live, `web.bind`/`web.port` need `multi serve` restarted, and everything else restarts the pipeline. When stopped, everything applies at the next Start.
+- **Status**: Start/Stop, input live/no signal, frames in/out (and fps), caption lag (audio position minus the end of the latest ASR word), outputs, worker state and restarts, lanes, GPU/VRAM (`nvidia-smi` every 5 s), and the last 50 errors.
+- **Live captions**: one rolling panel per language, from `/api/events`.
+- **API**: `GET/PUT /api/config` (PUT gives 422 with `{issues:[{path,message}]}`), `GET /api/config/default`, `POST /api/start`, `POST /api/stop`, `GET /api/status`, `GET /api/events` (SSE: `{"type":"stats",…}` each second, `{"type":"caption","lang","text","new_row"}` per line). POST/PUT need the header `X-Multi: 1` (blocks cross-site forms).
+- **Security**: GETs mask stream keys, SRT passphrases/stream ids and the token. A masked value sent back keeps the stored one. On a loopback bind there is no token, but the `Host` header must be local (blocks DNS rebinding). On any other bind, `multi serve` refuses to start without a token (`MULTI_WEB_TOKEN`, which wins, or `web.token`). Clients send `Authorization: Bearer <token>`, or sign in at `/login`, which sets an HttpOnly SameSite=Strict cookie. Use TLS through a reverse proxy when crossing untrusted networks.
+
+Tested by unit tests in `web.rs`/`service.rs` (config round trip, 422 paths, masking, token and host rules) and `crates/multi/tests/web.rs` (start/stop with fake workers, then `multi serve` end to end: PUT config, start, `source.sh` input, a caption arrives over SSE, clean SIGINT exit; ports 9740–9745).
+
 ## Log
 
 Newest first.
 
+- 2026-09-25 — WP5 in review: `service` control layer (`multi run` now uses it), `multi serve` web GUI and API.
 - 2026-09-25 — WP2 in review: `multi-media`, `multi run` wiring, pipeline integration test. Real-model numbers in [evidence/WP2](evidence/WP2).
 - 2026-09-25 — WP3 in review: workers, supervisor, fake worker, CI `workers` job. Real-model numbers in [evidence/WP3](evidence/WP3).
 - 2026-09-25 — M1 started: WP1 skeleton.

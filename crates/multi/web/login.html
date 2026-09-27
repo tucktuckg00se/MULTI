@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MULTI · Sign in</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<main class="login">
+  <div class="card">
+    <h2>MULTI</h2>
+    <p class="lede">This GUI is reachable from other machines, so it needs the access token (<code>MULTI_WEB_TOKEN</code> or <code>web.token</code>).</p>
+    {{error}}
+    <form method="post" action="/login">
+      <label class="label" for="token">Access token</label>
+      <input id="token" name="token" type="password" autocomplete="current-password" required autofocus>
+      <button class="primary" type="submit">Sign in</button>
+    </form>
+  </div>
+</main>
+</body>
+</html>

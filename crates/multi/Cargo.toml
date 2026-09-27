@@ -15,12 +15,21 @@ anyhow.workspace = true
 clap.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
+axum = { version = "0.8", default-features = false, features = ["http1", "json", "query", "tokio", "form"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "sync", "signal", "time"] }
+futures-util = { version = "0.3", default-features = false, features = ["std"] }
+serde_path_to_error = "0.1"
+serde.workspace = true
+serde_json.workspace = true
+toml.workspace = true
 
 [lints]
 workspace = true
 
 [dev-dependencies]
+http-body-util = "0.1"
 multi-fake-worker = { path = "../multi-fake-worker" }
+tower = { version = "0.5", features = ["util"], default-features = false }
 
 # Re-runs its own executable as the fake worker, so it has its own main().
 [[test]]
@@ -31,4 +40,10 @@ harness = false
 # worker, so it has its own main().
 [[test]]
 name = "pipeline"
+harness = false
+
+# `multi serve` API with the fake workers (in-process service and the real
+# binary + SSE); re-runs itself as the fake worker, so it has its own main().
+[[test]]
+name = "web"
 harness = false

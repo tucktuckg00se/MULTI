@@ -8,10 +8,13 @@
 //! Nothing here can block video: the tap callback only queues frames into
 //! the supervisor (which drops the oldest when full), and caption pushes are
 //! non-blocking. Shutdown order: media first, then the workers.
+//!
+//! An [`Observer`] sees every caption line and a [`Snapshot`] each second;
+//! the control layer (`service`) uses it for status and live events.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::mpsc::{Receiver, RecvTimeoutError};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
@@ -19,16 +22,42 @@ use std::time::{Duration, Instant};
 use anyhow::{Context, Result, bail};
 use multi_core::Config;
 use multi_core::ipc::Message;
-use multi_media::{AudioChunk, CaptionHandle, Media, MediaConfig};
+use multi_media::{AudioChunk, CaptionHandle, Media, MediaConfig, Stats};
 use tracing::{debug, info, warn};
 
 use crate::segment::{Event, Segmenter};
-use crate::supervisor::{Policy, Supervisor, WorkerSpec};
+use crate::supervisor::{Policy, Status, Supervisor, WorkerSpec};
 
 /// PCM frame length sent to the ASR worker.
 pub const PCM_FRAME_MS: u64 = 100;
 const SAMPLES_PER_MS: u64 = 16;
 const STATS_EVERY: Duration = Duration::from_secs(10);
+const SNAPSHOT_EVERY: Duration = Duration::from_secs(1);
+
+/// What the running pipeline looks like right now.
+#[derive(Clone, Debug)]
+pub struct Snapshot {
+    pub media: Stats,
+    pub asr: Status,
+    /// `None` when there is nothing to translate.
+    pub mt: Option<Status>,
+    /// Audio timeline position minus the end of the latest ASR word: how far
+    /// the source captions trail the audio (ASR plus IPC, before offset).
+    pub caption_lag_ms: Option<u64>,
+}
+
+/// Watches a running pipeline. Called from the text thread; must not block.
+pub trait Observer: Send + Sync {
+    /// A caption line was queued for `lang`'s lane.
+    fn caption(&self, _lang: &str, _text: &str, _new_row: bool) {}
+    /// Called once a second.
+    fn snapshot(&self, _s: Snapshot) {}
+    /// A worker reported an error.
+    fn worker_error(&self, _worker: &str, _message: &str) {}
+}
+
+/// No observer.
+impl Observer for () {}
 /// Default Nemotron export (see docs/m1/README.md, "Workers").
 const ASR_MODEL: &str = "sherpa/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-560ms-2026-06-11-fp32";
 
@@ -154,7 +183,7 @@ impl Framer {
 }
 
 /// Runs until `stop` is set, then shuts down media, then the workers.
-pub fn run(opts: RunOptions, stop: &AtomicBool) -> Result<()> {
+pub fn run(opts: RunOptions, stop: &AtomicBool, obs: &dyn Observer) -> Result<()> {
     let config = &opts.config;
     let (asr, asr_rx) =
         Supervisor::start(opts.asr, Policy::default()).context("cannot start the ASR worker")?;
@@ -169,12 +198,15 @@ pub fn run(opts: RunOptions, stop: &AtomicBool) -> Result<()> {
 
     let framer = Mutex::new(Framer::default());
     let asr_tap = asr.clone();
+    let audio_ms = Arc::new(AtomicU64::new(0));
+    let audio_pos = audio_ms.clone();
     let audio = Arc::new(move |chunk: AudioChunk| {
         let frames = match framer.lock() {
             Ok(mut f) => f.push(chunk),
             Err(_) => return,
         };
         for (start_ms, samples) in frames {
+            audio_pos.store(start_ms + PCM_FRAME_MS, Ordering::Relaxed);
             asr_tap.send_pcm(start_ms, samples);
         }
     });
@@ -197,6 +229,9 @@ pub fn run(opts: RunOptions, stop: &AtomicBool) -> Result<()> {
         source: source_lang(config),
         targets: target_langs(config),
         rows: BTreeMap::new(),
+        obs,
+        audio_ms,
+        lag_ms: None,
     };
     text_loop(
         text,
@@ -217,21 +252,38 @@ pub fn run(opts: RunOptions, stop: &AtomicBool) -> Result<()> {
     Ok(())
 }
 
-struct TextPath {
+struct TextPath<'a> {
     seg: Segmenter,
     captions: CaptionHandle,
     source: String,
     targets: Vec<String>,
     /// Clause id -> starts a new row, for translations.
     rows: BTreeMap<u64, bool>,
+    obs: &'a dyn Observer,
+    /// End of the latest PCM frame sent to ASR, on the audio timeline.
+    audio_ms: Arc<AtomicU64>,
+    lag_ms: Option<u64>,
 }
 
-impl TextPath {
+impl TextPath<'_> {
+    fn push(&self, lang: &str, text: &str, new_row: bool) {
+        if self.captions.push(lang, text, new_row) {
+            self.obs.caption(lang, text.trim(), new_row);
+        }
+    }
+
+    fn words_arrived(&mut self, words: &[multi_core::Word]) {
+        if let Some(w) = words.last() {
+            let pos = self.audio_ms.load(Ordering::Relaxed);
+            self.lag_ms = Some(pos.saturating_sub(w.end_ms));
+        }
+    }
+
     fn handle(&mut self, events: Vec<Event>, mt: Option<&Supervisor>) {
         for e in events {
             match e {
                 Event::Source { text, new_row } => {
-                    self.captions.push(&self.source, &text, new_row);
+                    self.push(&self.source, &text, new_row);
                 }
                 Event::Clause { clause, new_row } => {
                     let Some(mt) = mt else { continue };
@@ -258,13 +310,18 @@ fn text_loop(
     stop: &AtomicBool,
 ) {
     let mut next_stats = Instant::now() + STATS_EVERY;
+    let mut next_snapshot = Instant::now() + SNAPSHOT_EVERY;
     while !stop.load(Ordering::Acquire) {
         match asr_rx.recv_timeout(Duration::from_millis(20)) {
             Ok(Message::Words { words }) => {
+                t.words_arrived(&words);
                 let ev = t.seg.words(&words, Instant::now());
                 t.handle(ev, mt.map(|m| m.0));
             }
-            Ok(Message::Error { message }) => warn!(worker = "asr", %message, "worker error"),
+            Ok(Message::Error { message }) => {
+                warn!(worker = "asr", %message, "worker error");
+                t.obs.worker_error("asr", &message);
+            }
             Ok(other) => debug!(?other, "unexpected message from ASR worker"),
             Err(RecvTimeoutError::Timeout) => {}
             Err(RecvTimeoutError::Disconnected) => {
@@ -279,7 +336,7 @@ fn text_loop(
                 match msg {
                     Message::Translated { translation: tr } => {
                         let row = t.rows.get(&tr.clause_id).copied().unwrap_or(true);
-                        t.captions.push(&tr.lang, &tr.text, row);
+                        t.push(&tr.lang, &tr.text, row);
                     }
                     Message::Error { message } => {
                         debug!(worker = "mt", %message, "translation error")
@@ -291,6 +348,15 @@ fn text_loop(
         if Instant::now() >= next_stats {
             next_stats += STATS_EVERY;
             log_stats(media, asr, mt.map(|m| m.0));
+        }
+        if Instant::now() >= next_snapshot {
+            next_snapshot = Instant::now() + SNAPSHOT_EVERY;
+            t.obs.snapshot(Snapshot {
+                media: media.stats(),
+                asr: asr.status(),
+                mt: mt.map(|m| m.0.status()),
+                caption_lag_ms: t.lag_ms,
+            });
         }
     }
 }

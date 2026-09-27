@@ -3,4 +3,6 @@
 
 pub mod run;
 pub mod segment;
+pub mod service;
 pub mod supervisor;
+pub mod web;
