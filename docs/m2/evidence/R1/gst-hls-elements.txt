@@ -1,0 +1,25 @@
+# GStreamer GStreamer 1.28.7; 2026-09-28
+## installed (system)
+hlssink2: yes
+hlssink3: no
+hlscmafsink: no
+hlsmultivariantsink: no
+cmafmux: no
+isofmp4mux: no
+mpegtsmux: yes
+webvttenc: yes
+jsontovtt: yes
+## Arch packages (pacman -Si)
+Name            : gst-plugin-hlssink3
+Version         : 0.15.4-1
+Depends On      : glib2  glibc  gstreamer  libgcc  gst-plugin-isobmff=0.15.4-1  gst-plugins-base-libs
+Name            : gst-plugin-hlsmultivariantsink
+Version         : 0.15.4-1
+Depends On      : glib2  glibc  gstreamer  libgcc  gst-plugin-hlssink3=0.15.4-1  gst-plugins-base-libs
+## after extracting those pkgs (+ gst-plugin-isobmff) to GST_PLUGIN_PATH, sink pad templates/caps:
+hlsmultivariantsink: SINK template: 'audio_%u' SINK template: 'video_%u' 
+hlssink3: SINK template: 'audio' SINK template: 'video' 
+hlscmafsink: SINK template: 'sink' video/x-h264 video/x-h265 audio/mpeg 
+cmafmux: SINK template: 'sink' video/x-h264 video/x-av1 video/x-h265 video/x-h266 audio/mpeg audio/x-opus audio/x-eac3 audio/x-raw video/quicktime 
+hlssink2: SINK template: 'audio' SINK template: 'video' 
+jsontovtt: sink application/x-json,format=cea608 -> src application/x-subtitle-vtt-fragmented
