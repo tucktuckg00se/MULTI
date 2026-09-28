@@ -14,7 +14,7 @@ One branch and PR per package; CI must pass before merge.
 | 4 Caption quality | Segmenter, word filters, text cleaning, backlog cap, lane restart, degrade policy, CC2/CC4 option | in review |
 | 5 Web GUI | Control layer, API + live events, embedded page: settings, status, live captions | in review |
 | 6 Validate | B-frames, 4-hour soak, live OBS test from the GUI, YouTube RTMP test, findings | not started |
-| 7 Models | Model registry (PRD MD-4); `multi models list/pull/verify/remove`; storage folders; hosted pre-converted opus-mt; clear error and GUI warning when a language's model is missing | not started |
+| 7 Models | Model registry (PRD MD-4); `multi models list/pull/verify/remove`; storage folders; hosted pre-converted opus-mt; clear error and GUI warning when a language's model is missing | in review |
 | 8 GUI follow-ups | Input audio level meter and a warning after ~10 s of silence; warn when a language has no installed model or its script can't go on 608/708; fix output mode label ("waits for the receiver") | in review |
 
 ## Warnings and audio level (WP8)
@@ -24,7 +24,7 @@ One branch and PR per package; CI must pass before merge.
   - Input audio below −60 dBFS for over 10 s while video flows (e.g. a muted or unassigned OBS mic).
   - A language in a non-Latin script on 608/708 (needs WebVTT/TTML, not in M1).
   - A Latin-script language whose letters 608 can't all show (on 608 only).
-  - WP7 adds missing-model warnings through the same list.
+  - A model the configuration needs is not installed, or a language has no model in the registry (WP7, `multi::models::missing_models`; only for the default workers).
 
 ## Exit criteria
 
@@ -60,7 +60,7 @@ ASR and translation run in child processes so a crash, hang or CUDA fault never 
 
 **MT details.** One thread, model and queue (8) per language: a slow or failed language gets an `Error` and never delays the others. fp16 on CUDA, int8 on CPU; sentence split; decode length cap `4 × words + 16` (≤ 256); a 2 s deadline from arrival stops decoding and returns an `Error`.
 
-**Build and run** (models in `~/.cache/multi-models/`, see [S4](../m0/evidence/S4/models.txt) and [S5](../m0/evidence/S5/models.txt) for sources and licences):
+**Build and run** (models from `multi models pull`, see Models; the M0 copies in `~/.cache/multi-models/` use the same layout):
 
 ```sh
 # GPU: sherpa-onnx CUDA prebuilt + CTranslate2 with CUDA (CUDA_PATH/arch in .cargo/config.toml)
@@ -79,7 +79,7 @@ Without `SHERPA_ONNX_LIB_DIR` the sherpa-onnx build script downloads its CPU pre
 
 ## Media
 
-`multi run -c multi.toml` starts the pipeline, the ASR worker and the MT worker, logs a `stats` line every 10 s, and stops on Ctrl-C (media first, then workers). Worker binaries default to `multi-asr`/`multi-mt` next to `multi`, with models from `--models-dir` (`$MULTI_MODELS`, else `~/.cache/multi-models`); `--asr-worker "<path> [args]"` and `--mt-worker "<path> [args]"` replace them (tests use `multi-fake-worker`).
+`multi run -c multi.toml` starts the pipeline, the ASR worker and the MT worker, logs a `stats` line every 10 s, and stops on Ctrl-C (media first, then workers). Worker binaries default to `multi-asr`/`multi-mt` next to `multi`, with model folders resolved from the registry in the models directory (see Models); `--asr-worker "<path> [args]"` and `--mt-worker "<path> [args]"` replace them (tests use `multi-fake-worker`).
 
 ```text
 input -> tsdemux -> bridge -> h26xparse -> [caption lanes] -> h26xccinserter -> mpegtsmux -> SRT/UDP outputs
@@ -120,10 +120,39 @@ WP4. Text path: ASR words → `clean` → segmenter → filter → source lane; 
 - **CC2/CC4: not supported, refused by `Config::validate`.** CC2/CC4 share field 1/2 with CC1/CC3; `tttocea708`'s `cea608-channel` supports only 1 and 3 (GStreamer 1.28.7), `tttocea608` writes CC1 only, and two encoders cannot share one field's two bytes per frame without a 608 multiplexer that interleaves control and text codes; S2b also found separate 608 lanes trail by 22 frames. FR/DE stay on 708 services. Doing it needs our own 608 encoder/mux (revisit with S2b's `cc` crate).
 - **Degrade** (`multi_core::degrade`, pure): lane lag = max(queue age, last translation latency, age of the oldest outstanding translation). Above `degrade.max_lag_ms`, pause the lowest-priority translated lane (one per 3 s); below half the limit for 10 s, resume the highest-priority paused lane. Paused lanes are left out of MT requests. The source lane is never paused; `model` and `pass-through` steps are not built. Checked once a second from the run loop; changes logged as warnings; a `caption quality` line (clause split, masked, stale, paused) follows each stats line.
 
+## Models
+
+Models are never bundled; `multi models` fetches them into the models directory and checks them against a registry compiled into the binary ([`crates/multi-core/data/models.toml`](../../crates/multi-core/data/models.toml), parsed by `multi_core::models`). Design: [PRD §7](../prd/07-proposed-architecture-and-technology.md) "Model storage and download".
+
+**Directory:** `--models-dir` > `$MULTI_MODELS` > `$XDG_DATA_HOME/multi/models` > `~/.local/share/multi/models`. Inside: each model's `dir` from the registry (`sherpa/…`, `ct2/opus-mt-en-es`), `.tmp/` for downloads and conversions in progress, `.venv/` for the conversion tools. The layout matches the M0 cache, so `--models-dir ~/.cache/multi-models` keeps working. Offline sites copy the folder and run `verify`.
+
+```sh
+multi models list                  # registry, installed/missing, disk and VRAM MB, licence
+multi models pull                  # default set; or: multi models pull silero-vad opus-mt-en-es
+multi models verify [ids…]         # SHA-256 against the registry, or manifest.json for converted models
+multi models remove <id>
+```
+
+- **Downloads** (`files`, `archive`): HTTPS only (ureq + rustls), written to `<file>.part`, resumed with HTTP Range after an interruption (3 retries, and across runs), size and SHA-256 checked, then renamed into place; a mismatch deletes the `.part`. Archives (`.tar.bz2`) are checked, extracted to `.tmp/`, their files checked against the registry, then moved into place.
+- **Conversion** (`convert`, opus-mt): `scripts/convert-opus-mt.sh <hf-repo> <revision> <out-dir>` (embedded in the binary) makes `<models>/.venv` with pinned ctranslate2 4.8.2, transformers 4.57.6, torch 2.14.0 (CPU) and runs `ct2-transformers-converter --quantization float16`. `pull` then writes `manifest.json` (repo, revision, SHA-256 and size of each file). Needs Python 3 with venv (`$MULTI_PYTHON` picks one); without it `pull` says so. Models copied in by hand without a manifest verify as "present, unverified". Hosted pre-converted copies (PRD) are not built yet.
+- **Workers:** `multi run`/`serve` look up `asr.model` (an id, or `<model>-<chunk_ms>ms`, so the default `nemotron-3.5-streaming` + 560 is `nemotron-3.5-streaming-560ms`; its int8 `cpu_variant` is used when only that is installed), `silero-vad` (`--vad-model`), and the `en->xx` model per target language (`multi-mt --model xx=<dir>`). A missing model fails the start naming `multi models pull <id>`. `multi::models::missing_models(config, dir)` returns the same as config `Issue`s (`asr.model`, `languages[i].code`, also for a language with no registry model) for the GUI warnings (WP8).
+
+| id | kind | source | disk MB | licence |
+|---|---|---|---|---|
+| `nemotron-3.5-streaming-560ms` * | asr | files, [csukuangfj2 sherpa-onnx export](https://huggingface.co/csukuangfj2/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-560ms-2026-06-11) @ `2072aba9` | 2594 | OpenMDW-1.1 (NVIDIA) |
+| `nemotron-3.5-streaming-560ms-int8` * | asr | archive, sherpa-onnx release `asr-models` | 682 (475 download) | OpenMDW-1.1 (NVIDIA) |
+| `silero-vad` * | vad | file, sherpa-onnx release `asr-models` | 1 | MIT |
+| `opus-mt-en-es` / `-fr` * | mt | convert, Helsinki-NLP @ `5bc4493d` / `dd7f6540` | 152 / 146 | Apache-2.0 |
+| `opus-mt-en-de` * | mt | convert, Helsinki-NLP @ `6183067f` | 144 | CC-BY-4.0 |
+| `opus-mt-tc-big-en-pt` * | mt | convert, Helsinki-NLP @ `9f2863d8` | 448 | CC-BY-4.0 |
+
+\* default set. `pull` prints each model's licence and attribution; CC-BY models need the attribution in MULTI's notices. Every registry entry must have a licence and attribution (checked when parsing). Tests (`crates/multi/tests/models.rs`, no network): local HTTP server with fake files for pull, checksum mismatch, interrupted and earlier-run resume, archives, verify/remove, and verify against a fake manifest. Local check: [evidence/WP7](evidence/WP7).
+
 ## Log
 
 Newest first.
 
+- 2026-09-27 — WP7 in review: model registry, `multi models list/pull/verify/remove`, XDG models directory, workers resolve models from the registry, `missing_models` for WP8. Local pull/verify in [evidence/WP7](evidence/WP7).
 - 2026-09-27 — WP4 in review: segmenter, word filter, text cleaning, age cap, flow-error rebuild, degrade policy; CC2/CC4 refused. No real-model run (worker binaries not built here).
 - 2026-09-25 — WP5 in review: `service` control layer (`multi run` now uses it), `multi serve` web GUI and API.
 - 2026-09-25 — WP2 in review: `multi-media`, `multi run` wiring, pipeline integration test. Real-model numbers in [evidence/WP2](evidence/WP2).

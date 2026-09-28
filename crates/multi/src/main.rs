@@ -2,8 +2,10 @@
 
 use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
+use multi::models::{self, Check};
 use multi::service::{Service, Workers};
 use multi_core::Config;
+use multi_core::models::Registry;
 use std::io::IsTerminal;
 use std::path::PathBuf;
 use std::process::ExitCode;
@@ -32,7 +34,8 @@ enum Cmd {
         /// Translation worker command line (`path [args]`), instead of `multi-mt`.
         #[arg(long, value_name = "CMD")]
         mt_worker: Option<String>,
-        /// Model directory for the default workers ($MULTI_MODELS, else ~/.cache/multi-models).
+        /// Models directory ($MULTI_MODELS, else $XDG_DATA_HOME/multi/models,
+        /// else ~/.local/share/multi/models).
         #[arg(long)]
         models_dir: Option<PathBuf>,
     },
@@ -47,13 +50,38 @@ enum Cmd {
         /// Translation worker command line (`path [args]`), instead of `multi-mt`.
         #[arg(long, value_name = "CMD")]
         mt_worker: Option<String>,
-        /// Model directory for the default workers ($MULTI_MODELS, else ~/.cache/multi-models).
+        /// Models directory ($MULTI_MODELS, else $XDG_DATA_HOME/multi/models,
+        /// else ~/.local/share/multi/models).
         #[arg(long)]
         models_dir: Option<PathBuf>,
     },
     /// Work with configuration files.
     #[command(subcommand)]
     Config(ConfigCmd),
+    /// Download, check and remove models.
+    Models(ModelsArgs),
+}
+
+#[derive(clap::Args)]
+struct ModelsArgs {
+    /// Models directory ($MULTI_MODELS, else $XDG_DATA_HOME/multi/models,
+    /// else ~/.local/share/multi/models).
+    #[arg(long, global = true)]
+    models_dir: Option<PathBuf>,
+    #[command(subcommand)]
+    cmd: ModelsCmd,
+}
+
+#[derive(Subcommand)]
+enum ModelsCmd {
+    /// List the registry with installed/missing status and sizes.
+    List,
+    /// Download (or convert) models; the default set when no ids are given.
+    Pull { ids: Vec<String> },
+    /// Check installed models against the registry (SHA-256) or their manifest.
+    Verify { ids: Vec<String> },
+    /// Delete an installed model.
+    Remove { id: String },
 }
 
 #[derive(Subcommand)]
@@ -131,6 +159,7 @@ fn run(cli: Cli) -> Result<()> {
             }
             service.stop()
         }
+        Cmd::Models(args) => models_cmd(args),
         Cmd::Serve {
             config,
             asr_worker,
@@ -144,6 +173,48 @@ fn run(cli: Cli) -> Result<()> {
                 models_dir,
             },
         ),
+    }
+}
+
+fn models_cmd(args: ModelsArgs) -> Result<()> {
+    let reg = Registry::builtin().map_err(anyhow::Error::msg)?;
+    let root = models::resolve_dir(args.models_dir.as_deref());
+    match args.cmd {
+        ModelsCmd::List => {
+            models::list(&reg, &root);
+            Ok(())
+        }
+        ModelsCmd::Pull { ids } => models::pull(&reg, &ids, &root),
+        ModelsCmd::Remove { id } => models::remove(&reg, &id, &root),
+        ModelsCmd::Verify { ids } => {
+            println!("models directory: {}", root.display());
+            let results = models::verify(&reg, &ids, &root)?;
+            let mut failed = 0;
+            for (id, check) in &results {
+                match check {
+                    Check::Ok => println!("{id}: OK"),
+                    Check::Missing => {
+                        failed += 1;
+                        println!("{id}: not installed");
+                    }
+                    Check::Unverified(why) => println!("{id}: present, unverified: {why}"),
+                    Check::Failed(problems) => {
+                        failed += 1;
+                        println!("{id}: FAILED");
+                        for p in problems {
+                            println!("  {p}");
+                        }
+                    }
+                }
+            }
+            if results.is_empty() {
+                println!("no models installed");
+            }
+            if failed > 0 {
+                bail!("{failed} model(s) failed verification");
+            }
+            Ok(())
+        }
     }
 }
 

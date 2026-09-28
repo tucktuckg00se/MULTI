@@ -42,6 +42,10 @@ struct Args {
     /// Directory holding CTranslate2 opus-mt models (`opus-mt-en-<lang>`).
     #[arg(long)]
     models: PathBuf,
+    /// Model folder for one language (`LANG=DIR`), instead of looking in
+    /// `--models`; repeatable. `multi run` passes these from the registry.
+    #[arg(long = "model", value_name = "LANG=DIR")]
+    model: Vec<String>,
     #[arg(long, value_enum, default_value_t = Device::Auto)]
     device: Device,
     /// Target languages, comma-separated.
@@ -120,7 +124,7 @@ fn run(args: &Args, hb: &Arc<Heartbeat>) -> Result<()> {
     let mut starting = BTreeMap::new();
     for lang in &args.langs {
         let (tx, rx) = std::sync::mpsc::sync_channel(args.queue.max(1));
-        let dir = model_dir(&args.models, lang);
+        let dir = explicit_dir(&args.model, lang).unwrap_or_else(|| model_dir(&args.models, lang));
         let (device, threads) = (args.device, args.threads);
         let (lang2, ready, hb2) = (lang.clone(), ready_tx.clone(), Arc::clone(hb));
         let thread = std::thread::Builder::new()
@@ -218,6 +222,13 @@ fn serve(lanes: &BTreeMap<String, Lane>) -> Result<()> {
             Frame::Pcm { .. } => tracing::warn!("ignoring PCM frame"),
         }
     }
+}
+
+fn explicit_dir(pairs: &[String], lang: &str) -> Option<PathBuf> {
+    pairs.iter().find_map(|p| {
+        let (l, dir) = p.split_once('=')?;
+        (l == lang).then(|| PathBuf::from(dir))
+    })
 }
 
 fn model_dir(root: &Path, lang: &str) -> PathBuf {

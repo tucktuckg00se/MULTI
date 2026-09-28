@@ -451,6 +451,7 @@ fn full_status(state: &AppState) -> StatusOut {
     config_issues.extend(server_issues(state, &config));
     let mut warnings = config.warnings();
     warnings.extend(live_warnings(&status));
+    warnings.extend(state.service.missing_models(&config));
     StatusOut {
         status,
         config_issues,

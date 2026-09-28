@@ -1,0 +1,102 @@
+# WP7 local check, 2026-09-28. Debug build of multi; RTX 3090 box; python3 3.14.7 for the conversion. $FRESH = an empty temp dir.
+# Nemotron fp32 not re-downloaded: the M0 cache copy verifies by SHA-256 (same hashes as the Hugging Face LFS pointers at 2072aba9).
+# The converted opus-mt-en-es model.bin is byte-identical to the M0 conversion (sha256 5468bada...).
+++ multi models list --models-dir ~/.cache/multi-models
+models directory: ~/.cache/multi-models
+id                                   kind  status     disk MB  VRAM MB  licence      languages
+nemotron-3.5-streaming-560ms*        asr   installed     2594     3000  OpenMDW-1.1  en,es,fr,it,pt,nl,de,tr,ru,ar,hi,ja,ko,vi,uk,pl,sv,cs,nb,da,bg,fi,hr,sk,zh,hu,ro,et
+nemotron-3.5-streaming-560ms-int8*   asr   installed      682      800  OpenMDW-1.1  en,es,fr,it,pt,nl,de,tr,ru,ar,hi,ja,ko,vi,uk,pl,sv,cs,nb,da,bg,fi,hr,sk,zh,hu,ro,et
+silero-vad*                          vad   installed        1        0  MIT          -
+opus-mt-en-es*                       mt    installed      152      200  Apache-2.0   en->es
+opus-mt-en-fr*                       mt    installed      146      200  Apache-2.0   en->fr
+opus-mt-en-de*                       mt    installed      144      200  CC-BY-4.0    en->de
+opus-mt-tc-big-en-pt*                mt    installed      448      500  CC-BY-4.0    en->pt
+* = default set (`multi models pull` with no ids)
+++ multi models verify --models-dir ~/.cache/multi-models
+models directory: ~/.cache/multi-models
+nemotron-3.5-streaming-560ms: OK
+nemotron-3.5-streaming-560ms-int8: OK
+silero-vad: OK
+opus-mt-en-es: present, unverified: no manifest.json (not installed by `multi models pull`)
+opus-mt-en-fr: present, unverified: no manifest.json (not installed by `multi models pull`)
+opus-mt-en-de: present, unverified: no manifest.json (not installed by `multi models pull`)
+opus-mt-tc-big-en-pt: present, unverified: no manifest.json (not installed by `multi models pull`)
+
+real	0m42.368s
+user	0m41.766s
+sys	0m0.464s
+++ multi models pull silero-vad opus-mt-en-es nemotron-3.5-streaming-560ms-int8 --models-dir $FRESH
+silero-vad (Vad, ~1 MB)
+  licence: MIT
+  attribution: Silero VAD v5, Silero Team (MIT); ONNX file from the sherpa-onnx project
+  downloading silero_vad.onnx (0.6 MB)
+  installed in $FRESH/sherpa
+opus-mt-en-es (Mt, ~152 MB)
+  licence: Apache-2.0
+  attribution: OPUS-MT en-es, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16
+  converting Helsinki-NLP/opus-mt-en-es @ 5bc4493d463cf000c1f0b50f8d56886a392ed4ab to CTranslate2 (float16)
+setting up the conversion environment in $FRESH/.venv (one-off, ~1 GB)
+  installed in $FRESH/ct2/opus-mt-en-es
+nemotron-3.5-streaming-560ms-int8 (Asr, ~682 MB)
+  licence: OpenMDW-1.1
+  attribution: NVIDIA Nemotron 3.5 ASR Streaming 0.6B (nvidia/nemotron-3.5-asr-streaming-0.6b @ ea30d66d), NVIDIA, OpenMDW-1.1; int8 sherpa-onnx export by the k2-fsa project
+  downloading nemotron-3.5-streaming-560ms-int8.tar.bz2 (475.3 MB)
+  extracting
+  installed in $FRESH/sherpa/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-560ms-int8-2026-06-11
+
+real	1m25.185s
+user	1m7.741s
+sys	0m2.014s
+++ multi models verify --models-dir $FRESH
+models directory: $FRESH
+nemotron-3.5-streaming-560ms-int8: OK
+silero-vad: OK
+opus-mt-en-es: OK
+++ multi models list --models-dir $FRESH
+models directory: $FRESH
+id                                   kind  status     disk MB  VRAM MB  licence      languages
+nemotron-3.5-streaming-560ms*        asr   missing       2594     3000  OpenMDW-1.1  en,es,fr,it,pt,nl,de,tr,ru,ar,hi,ja,ko,vi,uk,pl,sv,cs,nb,da,bg,fi,hr,sk,zh,hu,ro,et
+nemotron-3.5-streaming-560ms-int8*   asr   installed      682      800  OpenMDW-1.1  en,es,fr,it,pt,nl,de,tr,ru,ar,hi,ja,ko,vi,uk,pl,sv,cs,nb,da,bg,fi,hr,sk,zh,hu,ro,et
+silero-vad*                          vad   installed        1        0  MIT          -
+opus-mt-en-es*                       mt    installed      152      200  Apache-2.0   en->es
+opus-mt-en-fr*                       mt    missing        146      200  Apache-2.0   en->fr
+opus-mt-en-de*                       mt    missing        144      200  CC-BY-4.0    en->de
+opus-mt-tc-big-en-pt*                mt    missing        448      500  CC-BY-4.0    en->pt
+* = default set (`multi models pull` with no ids)
+++ du -sh $FRESH/ct2 $FRESH/sherpa $FRESH/.venv
+152M	$FRESH/ct2
+654M	$FRESH/sherpa
+1.3G	$FRESH/.venv
+++ cat $FRESH/ct2/opus-mt-en-es/manifest.json
+{
+  "id": "opus-mt-en-es",
+  "repo": "Helsinki-NLP/opus-mt-en-es",
+  "revision": "5bc4493d463cf000c1f0b50f8d56886a392ed4ab",
+  "files": [
+    {
+      "path": "config.json",
+      "sha256": "8f6496adfc930cbfecbe8281112197705c488fab47d34b4829b06d7f478909af",
+      "size": 223
+    },
+    {
+      "path": "model.bin",
+      "sha256": "5468badac0c33b3e35e433afd30b2584f28060d35ee1ac1fbebda4d87ce66d9d",
+      "size": 155502615
+    },
+    {
+      "path": "shared_vocabulary.json",
+      "sha256": "040e48c9d00734f48506e052695837720bd1f6aa01c70636cde83038362baf19",
+      "size": 1276136
+    },
+    {
+      "path": "source.spm",
+      "sha256": "4dd547c24816a335e7b0b2e63376a8f1b3cbfc671eda5ab808dd44fdadaa8791",
+      "size": 801636
+    },
+    {
+      "path": "target.spm",
+      "sha256": "e236ee6d866b635c0142114f8647f39831f9d92534aa2aad75c942f6a78ad0e3",
+      "size": 825924
+    }
+  ]
+}

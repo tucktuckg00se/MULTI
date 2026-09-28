@@ -12,6 +12,7 @@
 //! An [`Observer`] sees every caption line and a [`Snapshot`] each second;
 //! the control layer (`service`) uses it for status and live events.
 
+use crate::models::{self, AsrPaths};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::mpsc::{Receiver, RecvTimeoutError};
@@ -58,9 +59,6 @@ pub trait Observer: Send + Sync {
 
 /// No observer.
 impl Observer for () {}
-/// Default Nemotron export (see docs/m1/README.md, "Workers").
-const ASR_MODEL: &str = "sherpa/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-560ms-2026-06-11-fp32";
-
 /// Splits a worker command line (`path arg arg ...`) on whitespace.
 pub fn worker_command(name: &str, cmd: &str) -> Result<WorkerSpec> {
     let mut parts = cmd.split_whitespace();
@@ -68,17 +66,6 @@ pub fn worker_command(name: &str, cmd: &str) -> Result<WorkerSpec> {
         bail!("empty --{name}-worker command");
     };
     Ok(WorkerSpec::new(name, program).args(parts))
-}
-
-/// Where the default models live: `$MULTI_MODELS`, else `~/.cache/multi-models`.
-pub fn default_models_dir() -> PathBuf {
-    if let Some(d) = std::env::var_os("MULTI_MODELS") {
-        return PathBuf::from(d);
-    }
-    std::env::var_os("HOME")
-        .map(PathBuf::from)
-        .unwrap_or_default()
-        .join(".cache/multi-models")
 }
 
 fn source_lang(config: &Config) -> String {
@@ -98,23 +85,38 @@ fn target_langs(config: &Config) -> Vec<String> {
         .collect()
 }
 
-/// The real workers, next to the `multi` executable.
-pub fn default_asr(config: &Config, bin_dir: &Path, models: &Path) -> WorkerSpec {
+/// The real workers, next to the `multi` executable, with model folders
+/// resolved from the registry (`crate::models`).
+pub fn default_asr(config: &Config, bin_dir: &Path, paths: &AsrPaths) -> WorkerSpec {
     WorkerSpec::new("asr", bin_dir.join("multi-asr"))
         .arg("--model-dir")
-        .arg(models.join(ASR_MODEL))
+        .arg(&paths.model_dir)
+        .arg("--vad-model")
+        .arg(&paths.vad)
         .args(["--device", "auto", "--lang"])
         .arg(source_lang(config))
         .arg("--vad-threshold")
         .arg(config.vad.threshold.to_string())
 }
 
-pub fn default_mt(config: &Config, bin_dir: &Path, models: &Path) -> WorkerSpec {
-    WorkerSpec::new("mt", bin_dir.join("multi-mt"))
+/// `models`: `(language, folder)` per target language.
+pub fn default_mt(
+    config: &Config,
+    bin_dir: &Path,
+    root: &Path,
+    models: &[(String, PathBuf)],
+) -> WorkerSpec {
+    let mut spec = WorkerSpec::new("mt", bin_dir.join("multi-mt"))
         .arg("--models")
-        .arg(models.join("ct2"))
+        .arg(root.join("ct2"))
         .args(["--device", "auto", "--langs"])
-        .arg(target_langs(config).join(","))
+        .arg(target_langs(config).join(","));
+    for (lang, dir) in models {
+        let mut pair = std::ffi::OsString::from(format!("{lang}="));
+        pair.push(dir);
+        spec = spec.arg("--model").arg(pair);
+    }
+    spec
 }
 
 pub struct RunOptions {
@@ -134,17 +136,22 @@ impl RunOptions {
     ) -> Result<Self> {
         let exe = std::env::current_exe().context("cannot find the multi executable")?;
         let bin_dir = exe.parent().map(Path::to_path_buf).unwrap_or_default();
-        let models = models.map_or_else(default_models_dir, Path::to_path_buf);
+        let models = models::resolve_dir(models);
         let asr = match asr_cmd {
             Some(c) => worker_command("asr", c)?,
-            None => default_asr(&config, &bin_dir, &models),
+            None => default_asr(&config, &bin_dir, &models::asr_paths(&config, &models)?),
         };
         let mt = if target_langs(&config).is_empty() {
             None
         } else {
             Some(match mt_cmd {
                 Some(c) => worker_command("mt", c)?,
-                None => default_mt(&config, &bin_dir, &models),
+                None => default_mt(
+                    &config,
+                    &bin_dir,
+                    &models,
+                    &models::mt_paths(&config, &models)?,
+                ),
             })
         };
         Ok(Self { config, asr, mt })
@@ -479,9 +486,17 @@ mod tests {
     #[test]
     fn default_specs_follow_config() {
         let c = Config::default();
-        let a = default_asr(&c, Path::new("/opt/multi"), Path::new("/m"));
+        let paths = AsrPaths {
+            id: "x".into(),
+            model_dir: "/m/asr".into(),
+            vad: "/m/vad.onnx".into(),
+        };
+        let a = default_asr(&c, Path::new("/opt/multi"), &paths);
         assert_eq!(a.program, PathBuf::from("/opt/multi/multi-asr"));
-        let m = default_mt(&c, Path::new("/opt/multi"), Path::new("/m"));
+        assert!(a.args.contains(&OsString::from("/m/vad.onnx")));
+        let mt = [("es".to_string(), PathBuf::from("/m/ct2/opus-mt-en-es"))];
+        let m = default_mt(&c, Path::new("/opt/multi"), Path::new("/m"), &mt);
         assert!(m.args.contains(&OsString::from("es,fr,de")));
+        assert!(m.args.contains(&OsString::from("es=/m/ct2/opus-mt-en-es")));
     }
 }
