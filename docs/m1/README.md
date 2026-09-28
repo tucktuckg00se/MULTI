@@ -19,7 +19,7 @@ One branch and PR per package; CI must pass before merge.
 
 ## Warnings and audio level (WP8)
 
-- **Input audio meter** on the Status tab: RMS level over 250 ms from the audio tap (−60 to 0 dBFS), with the peak underneath. `Stats` carries `audio_rms_dbfs`, `audio_peak_dbfs` and `audio_silent_s`.
+- **Input audio meter** in the Status section: RMS level over 250 ms from the audio tap (−60 to 0 dBFS), with the peak underneath. `Stats` carries `audio_rms_dbfs`, `audio_peak_dbfs` and `audio_silent_s`.
 - **Warnings** (`/api/status` → `warnings`) never block saving or starting. They show as amber banners:
   - Input audio below −60 dBFS for over 10 s while video flows (e.g. a muted or unassigned OBS mic).
   - A language in a non-Latin script on 608/708 (needs WebVTT/TTML, not in M1).
@@ -101,9 +101,11 @@ Tested in CI by `crates/multi/tests/pipeline.rs` (real GStreamer, fake workers, 
 
 `multi serve -c multi.toml` (same `--asr-worker`/`--mt-worker`/`--models-dir` options as `multi run`) serves the GUI at **http://127.0.0.1:8480/** (`web.bind`, `web.port`). The config file is created with defaults if missing. The pipeline starts when you click Start, or at launch if `web.autostart = true`. Ctrl-C/SIGTERM stops the pipeline, then the server.
 
-- **Settings**: every config section with help text from PRD §5, helper fields for SRT/UDP/RTP/RTMP URLs, a language table, and errors shown next to the field (`Issue.path`). Save writes the TOML atomically (mode 0600). A banner lists saved settings that wait for a restart. Rule list in `service::RULES`: `web.token` and `web.autostart` apply live, `web.bind`/`web.port` need `multi serve` restarted, and everything else restarts the pipeline. When stopped, everything applies at the next Start.
+One dashboard page, top to bottom, with a left sidebar that links to each section and to each settings group (the section in view is highlighted; on narrow screens the sidebar becomes a row of links):
+
 - **Status**: Start/Stop, input live/no signal, frames in/out (and fps), caption lag (audio position minus the end of the latest ASR word), outputs, worker state and restarts, lanes, GPU/VRAM (`nvidia-smi` every 5 s), and the last 50 errors.
 - **Live captions**: one rolling panel per language, from `/api/events`.
+- **Settings** (each group, e.g. Input, Outputs, Languages, collapses on its own and starts closed; a group opens automatically when an error or warning links to one of its fields; the save bar shows while any group is open or there are unsaved changes): every config section with help text from PRD §5, helper fields for SRT/UDP/RTP/RTMP URLs, a language table, and errors shown next to the field (`Issue.path`). Save writes the TOML atomically (mode 0600). A banner lists saved settings that wait for a restart. Rule list in `service::RULES`: `web.token` and `web.autostart` apply live, `web.bind`/`web.port` need `multi serve` restarted, and everything else restarts the pipeline. When stopped, everything applies at the next Start.
 - **API**: `GET/PUT /api/config` (PUT gives 422 with `{issues:[{path,message}]}`), `GET /api/config/default`, `POST /api/start`, `POST /api/stop`, `GET /api/status`, `GET /api/events` (SSE: `{"type":"stats",…}` each second, `{"type":"caption","lang","text","new_row"}` per line). POST/PUT need the header `X-Multi: 1` (blocks cross-site forms).
 - **Security**: GETs mask stream keys, SRT passphrases/stream ids and the token. A masked value sent back keeps the stored one. On a loopback bind there is no token, but the `Host` header must be local (blocks DNS rebinding). On any other bind, `multi serve` refuses to start without a token (`MULTI_WEB_TOKEN`, which wins, or `web.token`). Clients send `Authorization: Bearer <token>`, or sign in at `/login`, which sets an HttpOnly SameSite=Strict cookie. Use TLS through a reverse proxy when crossing untrusted networks.
 
