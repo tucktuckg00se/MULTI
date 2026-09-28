@@ -431,7 +431,7 @@ mod tests {
         let ev = s.finish();
         assert_eq!(
             clauses(&ev),
-            vec![(vec!["x"; 8].join(" "), false, CloseReason::End)]
+            vec![(["x"; 8].join(" "), false, CloseReason::End)]
         );
     }
 
