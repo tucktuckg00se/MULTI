@@ -1,0 +1,28 @@
+# Helsinki-NLP opus-mt pairs on Hugging Face, checked 2026-09-28 via https://huggingface.co/api/models/Helsinki-NLP/<id> (cardData.license)
+# "-" = no single-pair model (checked opus-mt-X-Y, opus-mt-tc-big-X-Y; tc-big-* names are the newer, larger Tatoeba-Challenge models)
+X->EN
+es-en opus-mt-es-en apache-2.0
+fr-en opus-mt-fr-en apache-2.0 | opus-mt-tc-big-fr-en cc-by-4.0
+de-en opus-mt-de-en apache-2.0
+pt-en -  (multi-source: opus-mt-ROMANCE-en apache-2.0; opus-mt-mul-en apache-2.0)
+zh-en opus-mt-zh-en cc-by-4.0
+ar-en opus-mt-ar-en apache-2.0 | opus-mt-tc-big-ar-en cc-by-4.0
+ja-en opus-mt-ja-en apache-2.0
+ru-en opus-mt-ru-en cc-by-4.0 | opus-mt-tc-big-zle-en cc-by-4.0 (East Slavic -> en)
+hi-en opus-mt-hi-en apache-2.0
+EN->X
+en-es opus-mt-en-es apache-2.0 | opus-mt-tc-big-en-es cc-by-4.0
+en-fr opus-mt-en-fr apache-2.0 | opus-mt-tc-big-en-fr cc-by-4.0
+en-de opus-mt-en-de cc-by-4.0
+en-pt opus-mt-tc-big-en-pt cc-by-4.0
+en-zh opus-mt-en-zh apache-2.0
+en-ar opus-mt-en-ar apache-2.0 | opus-mt-tc-big-en-ar cc-by-4.0
+en-ja -  (opus-mt-en-jap apache-2.0 is Bible-only "jap"; not usable)
+en-ru opus-mt-en-ru apache-2.0 | opus-mt-tc-big-en-zle cc-by-4.0
+en-hi opus-mt-en-hi apache-2.0
+X->Y among es/fr/de/pt
+es-fr opus-mt-es-fr apache-2.0    fr-es opus-mt-fr-es apache-2.0
+es-de opus-mt-es-de apache-2.0    de-es opus-mt-de-es apache-2.0
+fr-de opus-mt-fr-de apache-2.0    de-fr opus-mt-de-fr apache-2.0
+es-pt, fr-pt, pt-es, pt-fr: no pair model; opus-mt-tc-big-itc-itc cc-by-4.0 (Italic<->Italic, needs >>tgt<< token)
+de-pt, pt-de: none

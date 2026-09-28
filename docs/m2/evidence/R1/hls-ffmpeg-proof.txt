@@ -1,0 +1,44 @@
+# FFmpeg n9.0.2 HLS proof: stream-copied H.264/AAC + en.srt + es.srt -> WebVTT renditions
+# ffmpeg -re -i src.ts -i en.srt -i es.srt -map 0:v -map 0:a -map 1:s -map 0:v -map 0:a -map 2:s -c:v copy -c:a copy -c:s webvtt -f hls -hls_time 2 -hls_list_size 0 -master_pl_name master.m3u8 -var_stream_map "v:0,a:0,s:0,sgroup:subs,sname:English,language:en,default:YES,name:en v:1,a:1,s:1,sgroup:subs,sname:Espanol,language:es,name:es" out/stream_%v.m3u8
+## master.m3u8
+#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subs",NAME="English",DEFAULT=YES,LANGUAGE="en",URI="stream_en_vtt.m3u8"
+#EXT-X-STREAM-INF:BANDWIDTH=923455,AVERAGE-BANDWIDTH=875421,RESOLUTION=640x360,CODECS="avc1.64001e,mp4a.40.2",SUBTITLES="subs"
+stream_en.m3u8
+
+#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subs",NAME="Espanol",DEFAULT=NO,LANGUAGE="es",URI="stream_es_vtt.m3u8"
+#EXT-X-STREAM-INF:BANDWIDTH=923455,AVERAGE-BANDWIDTH=875421,RESOLUTION=640x360,CODECS="avc1.64001e,mp4a.40.2",SUBTITLES="subs"
+stream_es.m3u8
+
+## stream_es_vtt.m3u8 (head)
+#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-TARGETDURATION:2
+#EXT-X-MEDIA-SEQUENCE:0
+#EXTINF:2.000000,
+stream_es0.vtt
+#EXTINF:2.000000,
+stream_es1.vtt
+## stream_es0.vtt
+WEBVTT
+
+00:00.044 --> 00:03.544
+Hola y bienvenidos
+## ffprobe master.m3u8
+program|stream|index=0|codec_name=webvtt|codec_type=subtitle
+stream|index=1|codec_name=h264|codec_type=video
+stream|index=2|codec_name=aac|codec_type=audio
+stream|index=3|codec_name=webvtt|codec_type=subtitle
+
+program|stream|index=0|codec_name=webvtt|codec_type=subtitle
+stream|index=3|codec_name=webvtt|codec_type=subtitle
+stream|index=4|codec_name=h264|codec_type=video
+stream|index=5|codec_name=aac|codec_type=audio
+
+stream|index=0|codec_name=webvtt|codec_type=subtitle|tag:language=en
+stream|index=1|codec_name=h264|codec_type=video
+stream|index=2|codec_name=aac|codec_type=audio
+stream|index=3|codec_name=webvtt|codec_type=subtitle|tag:language=es
+stream|index=4|codec_name=h264|codec_type=video
+stream|index=5|codec_name=aac|codec_type=audio
