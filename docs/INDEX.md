@@ -24,8 +24,8 @@ Types: `summary` overview page · `spec` requirements · `decision` ADR · `find
 | P-06 | spec | [Latency budget, platforms, reliability, security](prd/06-non-functional-requirements.md) | current | ~1048 |
 | P-07 | spec | [Architecture, candidate libraries and Rust crates](prd/07-proposed-architecture-and-technology.md) | current | ~1385 |
 | P-08 | spec | [Licensing, distribution, paid binaries, warranty draft](prd/08-licensing-distribution-and-business-model.md) | current | ~752 |
-| P-09 | spec | [Milestones M0 to v1.0](prd/09-milestones.md) | current | ~413 |
-| P-10 | spec | [Risks, mitigations and open questions (12 risks)](prd/10-risks-and-open-questions.md) | current | ~720 |
+| P-09 | spec | [Milestones M0 to v1.0](prd/09-milestones.md) | current | ~506 |
+| P-10 | spec | [Risks, mitigations and open questions (14 risks)](prd/10-risks-and-open-questions.md) | current | ~846 |
 
 ## Decisions
 
@@ -40,11 +40,18 @@ Types: `summary` overview page · `spec` requirements · `decision` ADR · `find
 | D-06 | decision | [ADR-0006: CTranslate2 + opus-mt translation, LLMs optional](decisions/ADR-0006-translation-backend.md) | accepted | ~431 |
 | D-T | guide | [ADR template](decisions/TEMPLATE.md) | current | ~132 |
 
+## M2 more languages
+
+| ID | Type | Title | Status | ~Tokens |
+|---|---|---|---|---|
+| M2-00 | summary | [M2 overview: research spike and work packages](m2/README.md) | current | ~488 |
+
 ## M1 first real version
 
 | ID | Type | Title | Status | ~Tokens |
 |---|---|---|---|---|
-| M1-00 | summary | [M1 overview: work packages, exit criteria, code layout](m1/README.md) | current | ~7260 |
+| M1-00 | summary | [M1 overview: work packages, exit criteria, code layout](m1/README.md) | current | ~7352 |
+| F-M1 | finding | [M1 results: measurements, live and YouTube tests, exit criteria](m1/findings/M1-results.md) | current | ~691 |
 | M1-D1 | guide | [Built-in profanity lists: LDNOOBW source, licence, attribution](../crates/multi-core/data/README.md) | current | ~340 |
 | E-WP3 | evidence | [WP3 real-model check: ASR words/WER, MT latency, kill -9 recovery](m1/evidence/WP3) | current | ~784 |
 | E-WP7 | evidence | [WP7 local check: models verify on the M0 cache, pull into a fresh dir (download + conversion)](m1/evidence/WP7) | current | ~1342 |
