@@ -49,5 +49,5 @@ Tier 1 = built and tested on every release; Tier 2 = built every release, tested
 **Security and privacy**
 
 - No telemetry by default; no network calls except configured streams and optional model download.
-- Web UI and API bound to localhost by default, with token auth when exposed.
+- Web UI and API bound to localhost by default. When exposed on a network: username + password login for people (password stored as an argon2 hash, rate-limited attempts, expiring sessions), an API token for scripts, and HTTPS (built in or via a reverse proxy) so credentials are never sent in plain text.
 
