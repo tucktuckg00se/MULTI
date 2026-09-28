@@ -120,9 +120,9 @@ const SECTIONS = [
   {
     id: "web", title: "Web GUI", lede: "Address changes apply when multi serve restarts.",
     fields: [
-      { path: "web.bind", label: "Listen address", type: "text", mono: true, help: "127.0.0.1 = this machine only; 0.0.0.0 = all networks (token required)." },
+      { path: "web.bind", label: "Listen address", type: "text", mono: true, help: "127.0.0.1 = this machine only; 0.0.0.0 = all networks (needs a password or token; HTTPS turns on by itself)." },
       { path: "web.port", label: "Port", type: "number", min: 1, max: 65535, help: "Also serves the REST API." },
-      { path: "web.token", label: "Access token", type: "password", optional: true, help: "Required when reachable from other machines. MULTI_WEB_TOKEN wins over this." },
+      { path: "web.token", label: "API token", type: "password", optional: true, help: "For scripts: Authorization: Bearer <token>. People sign in with the password (multi passwd). MULTI_WEB_TOKEN wins over this." },
       { path: "web.autostart", label: "Start the pipeline when multi serve starts", type: "checkbox" },
     ],
   },
@@ -689,3 +689,14 @@ buildSideNav();
 updateSavebar();
 loadConfig().then(refreshStatus);
 connectEvents();
+
+// ------------------------------------------------------------ sign-in (WP9)
+api("GET", "/api/me").then((r) => {
+  if (!r.ok || !r.data) return;
+  $("#logout").hidden = r.data.via !== "session";
+  if (!r.data.password_set) {
+    $("#banners").append(h("div", { class: "banner warn", role: "status" },
+      h("p", {}, "No password is set, so anyone using this computer can change these settings. ",
+        h("a", { href: "/setup" }, "Set a password"), " (or run multi passwd).")));
+  }
+}).catch(() => {});

@@ -55,6 +55,19 @@ enum Cmd {
         #[arg(long)]
         models_dir: Option<PathBuf>,
     },
+    /// Set the web GUI sign-in password (stored as an argon2id hash).
+    Passwd {
+        /// Configuration file (TOML); created with defaults if missing.
+        #[arg(long, short)]
+        config: PathBuf,
+        /// Also change the user name (default `admin`).
+        #[arg(long)]
+        username: Option<String>,
+        /// Read the password from the first line of standard input instead of
+        /// asking twice on the terminal.
+        #[arg(long)]
+        password_stdin: bool,
+    },
     /// Work with configuration files.
     #[command(subcommand)]
     Config(ConfigCmd),
@@ -160,6 +173,11 @@ fn run(cli: Cli) -> Result<()> {
             service.stop()
         }
         Cmd::Models(args) => models_cmd(args),
+        Cmd::Passwd {
+            config,
+            username,
+            password_stdin,
+        } => passwd(&config, username.as_deref(), password_stdin),
         Cmd::Serve {
             config,
             asr_worker,
@@ -216,6 +234,32 @@ fn models_cmd(args: ModelsArgs) -> Result<()> {
             Ok(())
         }
     }
+}
+
+fn passwd(path: &std::path::Path, username: Option<&str>, stdin: bool) -> Result<()> {
+    let password = if stdin {
+        let mut line = String::new();
+        std::io::stdin()
+            .read_line(&mut line)
+            .context("cannot read the password from standard input")?;
+        line.trim_end_matches(['\r', '\n']).to_string()
+    } else {
+        let first =
+            rpassword::prompt_password("New password: ").context("cannot read the password")?;
+        multi::auth::check_new_password(&first)?;
+        let again =
+            rpassword::prompt_password("Repeat it: ").context("cannot read the password")?;
+        if first != again {
+            bail!("the passwords do not match");
+        }
+        first
+    };
+    multi::auth::set_password(path, username, &password)?;
+    println!(
+        "Password set in {}. Restart `multi serve` if it is running.",
+        path.display()
+    );
+    Ok(())
 }
 
 fn check(config: &Config) -> Result<()> {

@@ -10,13 +10,9 @@
 <main class="login">
   <div class="card">
     <h2>MULTI</h2>
-    <p class="lede">This GUI is reachable from other machines, so it needs the access token (<code>MULTI_WEB_TOKEN</code> or <code>web.token</code>).</p>
+    <p class="lede">{{lede}}</p>
     {{error}}
-    <form method="post" action="/login">
-      <label class="label" for="token">Access token</label>
-      <input id="token" name="token" type="password" autocomplete="current-password" required autofocus>
-      <button class="primary" type="submit">Sign in</button>
-    </form>
+    {{form}}
   </div>
 </main>
 </body>

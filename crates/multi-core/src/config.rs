@@ -6,7 +6,7 @@
 
 use serde::{Deserialize, Serialize};
 use std::net::IpAddr;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 /// Top-level configuration.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -279,11 +279,22 @@ pub struct Gpu {
 pub struct Web {
     pub bind: IpAddr,
     pub port: u16,
-    /// Required when `bind` is not a loopback address. Prefer the
+    /// API token for scripts (`Authorization: Bearer <token>`). Prefer the
     /// `MULTI_WEB_TOKEN` environment variable over storing it here.
     pub token: Option<String>,
     /// `multi serve` starts the pipeline right away instead of waiting for Start.
     pub autostart: bool,
+    /// Sign-in name for the web GUI.
+    pub username: String,
+    /// Argon2id PHC string (`$argon2id$...`), set by `multi passwd` or the
+    /// first-run page. Never a plain-text password.
+    pub password_hash: Option<String>,
+    /// HTTPS: `auto` (on unless `bind` is a loopback address), `on` or `off`.
+    pub tls: TlsMode,
+    /// Own certificate chain (PEM); without it a self-signed one is made.
+    pub tls_cert: Option<PathBuf>,
+    /// Private key (PEM) for `tls_cert`.
+    pub tls_key: Option<PathBuf>,
 }
 
 impl Default for Web {
@@ -293,8 +304,39 @@ impl Default for Web {
             port: 8480,
             token: None,
             autostart: false,
+            username: "admin".into(),
+            password_hash: None,
+            tls: TlsMode::Auto,
+            tls_cert: None,
+            tls_key: None,
         }
     }
+}
+
+impl Web {
+    /// Whether the server speaks HTTPS.
+    pub fn tls_enabled(&self) -> bool {
+        match self.tls {
+            TlsMode::On => true,
+            TlsMode::Off => false,
+            TlsMode::Auto => !self.bind.is_loopback(),
+        }
+    }
+
+    /// Whether a password is set.
+    pub fn has_password(&self) -> bool {
+        self.password_hash.as_deref().is_some_and(|h| !h.is_empty())
+    }
+}
+
+/// When the web GUI uses HTTPS.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum TlsMode {
+    #[default]
+    Auto,
+    On,
+    Off,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -439,6 +481,26 @@ impl Config {
         v.range("srt.latency_ms", self.srt.latency_ms, 20, 8_000);
         if self.web.port == 0 {
             v.push("web.port", "port must be between 1 and 65535");
+        }
+        if self.web.username.trim().is_empty() {
+            v.push("web.username", "a user name is required");
+        }
+        if let Some(h) = self.web.password_hash.as_deref()
+            && !h.is_empty()
+            && !h.starts_with("$argon2id$")
+        {
+            v.push(
+                "web.password_hash",
+                "must be an argon2id hash: set the password with `multi passwd`",
+            );
+        }
+        if self.web.tls_cert.is_some() != self.web.tls_key.is_some() {
+            let path = if self.web.tls_cert.is_some() {
+                "web.tls_key"
+            } else {
+                "web.tls_cert"
+            };
+            v.push(path, "set both web.tls_cert and web.tls_key, or neither");
         }
         for (name, list) in [
             ("blocklist", &self.filter.blocklist),
