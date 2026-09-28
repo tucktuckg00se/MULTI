@@ -4,6 +4,7 @@
 //!    `/api/stop` against a real service with fake workers (no input needed).
 //! 2. `serve_end_to_end`: the `multi serve` binary; PUT a config, start,
 //!    feed `source.sh` over UDP, and wait for a caption on `/api/events`.
+//! 3. `passwd_stdin`: `multi passwd --password-stdin` writes a hash that verifies.
 //!
 //! This binary is its own fake worker when its first argument is
 //! `fake-worker`. Needs `ffmpeg` and `gst-launch-1.0`. Ports 9740–9746.
@@ -37,10 +38,12 @@ fn main() -> ExitCode {
         let rest = std::iter::once(args[0].clone()).chain(args[2..].iter().cloned());
         return multi_fake_worker::main_from(rest);
     }
-    let tests: [(&str, fn()); 2] = [
+    let tests: [(&str, fn()); 3] = [
         ("start_stop", start_stop),
         ("serve_end_to_end", serve_end_to_end),
+        ("passwd_stdin", passwd_stdin),
     ];
+    let n = tests.len();
     let mut failed = 0;
     for (name, f) in tests {
         let t = Instant::now();
@@ -52,7 +55,7 @@ fn main() -> ExitCode {
             }
         }
     }
-    println!("\ntest result: {} passed; {failed} failed", 2 - failed);
+    println!("\ntest result: {} passed; {failed} failed", n - failed);
     if failed == 0 {
         ExitCode::SUCCESS
     } else {
@@ -91,9 +94,12 @@ fn work_dir(name: &str) -> PathBuf {
 // ---------------------------------------------------------------- in process
 
 async fn call(app: &axum::Router, method: &str, uri: &str) -> (StatusCode, serde_json::Value) {
+    // A loopback client, as `multi serve` would see it.
+    let peer: std::net::SocketAddr = "127.0.0.1:50000".parse().unwrap();
     let req = Request::builder()
         .method(method)
         .uri(uri)
+        .extension(axum::extract::ConnectInfo(peer))
         .header("host", "localhost")
         .header("x-multi", "1")
         .body(Body::empty())
@@ -179,6 +185,48 @@ fn http(method: &str, path: &str, body: Option<&str>) -> (u16, String) {
         .map_or("", |(_, b)| b)
         .to_string();
     (code, body)
+}
+
+fn passwd_stdin() {
+    let dir = work_dir("passwd");
+    let path = dir.join("multi.toml");
+    let run = |input: &str, extra: &[&str]| {
+        let mut child = Command::new(env!("CARGO_BIN_EXE_multi"))
+            .arg("passwd")
+            .arg("-c")
+            .arg(&path)
+            .arg("--password-stdin")
+            .args(extra)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn()
+            .unwrap();
+        child
+            .stdin
+            .take()
+            .unwrap()
+            .write_all(input.as_bytes())
+            .unwrap();
+        child.wait().unwrap()
+    };
+    // Too short: refused, nothing written.
+    assert!(!run("short\n", &[]).success());
+    assert!(!path.exists());
+    assert!(run("a long passphrase\n", &["--username", "ops"]).success());
+    let text = fs::read_to_string(&path).unwrap();
+    assert!(!text.contains("a long passphrase"));
+    let c = Config::load(&path).unwrap();
+    assert_eq!(c.web.username, "ops");
+    let hash = c.web.password_hash.unwrap();
+    assert!(hash.starts_with("$argon2id$"), "{hash}");
+    assert!(multi::auth::verify_password("a long passphrase", &hash));
+    assert!(!multi::auth::verify_password("a long passphrase ", &hash));
+    use std::os::unix::fs::PermissionsExt;
+    assert_eq!(
+        fs::metadata(&path).unwrap().permissions().mode() & 0o777,
+        0o600
+    );
 }
 
 fn serve_end_to_end() {
