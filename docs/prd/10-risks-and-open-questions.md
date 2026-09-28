@@ -1,6 +1,6 @@
 # Risks and open questions
 
-> **Summary:** Twelve risks with mitigations (streaming ASR, small-model translation, 608 character limits, SEI stripping, filter misses, licence contamination, GPU driver sprawl, and five found in M0: upstream GStreamer caption bugs, Whisper hallucination, opus-mt sentence dropping, 708 visibility in players, AAC decoder licence) and the open-question checklist.
+> **Summary:** Fourteen risks with mitigations (streaming ASR, small-model translation, 608 character limits, SEI stripping, filter misses, licence contamination, GPU driver sprawl, and five found in M0: upstream GStreamer caption bugs, Whisper hallucination, opus-mt sentence dropping, 708 visibility in players, AAC decoder licence) and the open-question checklist.
 
 | Risk | Impact | Mitigation |
 | --- | --- | --- |
@@ -16,6 +16,8 @@
 | opus-mt drops later sentences in multi-sentence input | Missing translated text | Split clauses into sentences before translating |
 | 708-only languages invisible in some players (VLC 3 offers CC1–CC4 only) | Viewers can't find FR/DE captions | Document; optional 608 CC2/CC4 placement; WebVTT for web |
 | Audio decoder licence (fdkaacdec/faad fallbacks are non-LGPL) | Can't ship binaries | Ship and require `avdec_aac` (LGPL) only |
+| YouTube Live shows only one embedded caption track (English, M1 test) | Multi-language viewers on YouTube see English only | M2: YouTube HTTP caption ingestion if it supports languages; HLS + WebVTT web output with a language picker |
+| H.264/HEVC encoding for the fallback picture carries patent-licensing questions (openh264 coverage is for Cisco's binary; x265 is GPL-2.0-or-later) | Legal risk for paid binaries | Decide with a lawyer before selling binaries; confirm x265 licence compatibility |
 
 **Open questions**
 
