@@ -164,6 +164,12 @@ pub struct Stats {
 
 #[derive(Clone, Debug, Default, Serialize)]
 pub struct OutputStats {
+    /// Stable id while the pipeline runs (not across restarts).
+    pub id: u64,
+    /// Label from the config, if any.
+    pub name: Option<String>,
+    /// False when stopped by the user; `running` is then false too.
+    pub enabled: bool,
     /// The output URL with secrets removed.
     pub url: String,
     pub running: bool,

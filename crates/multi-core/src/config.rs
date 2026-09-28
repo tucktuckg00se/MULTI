@@ -32,9 +32,7 @@ impl Default for Config {
     fn default() -> Self {
         Self {
             input: Input::default(),
-            outputs: vec![Output {
-                url: "srt://0.0.0.0:9001?mode=listener".into(),
-            }],
+            outputs: vec![Output::new("srt://0.0.0.0:9001?mode=listener")],
             video: Video::default(),
             captions: Captions::default(),
             languages: default_languages(),
@@ -71,6 +69,30 @@ impl Default for Input {
 pub struct Output {
     /// `srt://`, `udp://` or `rtmp(s)://` URL.
     pub url: String,
+    /// Label shown in the GUI and logs (optional).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    /// A stopped output keeps its settings but sends nothing.
+    #[serde(default = "yes")]
+    pub enabled: bool,
+}
+
+fn yes() -> bool {
+    true
+}
+
+/// Longest output name accepted.
+pub const OUTPUT_NAME_MAX: usize = 64;
+
+impl Output {
+    /// An enabled output with no name.
+    pub fn new(url: impl Into<String>) -> Self {
+        Self {
+            url: url.into(),
+            name: None,
+            enabled: true,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
@@ -397,6 +419,14 @@ impl Config {
                 &o.url,
                 &["srt", "udp", "rtmp", "rtmps"],
             );
+            if let Some(n) = &o.name
+                && (n.chars().count() > OUTPUT_NAME_MAX || n.chars().any(char::is_control))
+            {
+                v.push(
+                    &format!("outputs[{i}].name"),
+                    &format!("at most {OUTPUT_NAME_MAX} characters, no control characters"),
+                );
+            }
         }
 
         v.range("video.delay_ms", self.video.delay_ms, 0, 10_000);
@@ -653,9 +683,7 @@ mod tests {
     fn bad_urls_are_reported() {
         let mut c = Config::default();
         c.input.url = "http://x".into();
-        c.outputs = vec![Output {
-            url: "rtmp://".into(),
-        }];
+        c.outputs = vec![Output::new("rtmp://")];
         let paths = issue_paths(&c);
         assert!(paths.contains(&"input.url".to_string()));
         assert!(paths.contains(&"outputs[0].url".to_string()));
@@ -697,6 +725,32 @@ mod tests {
         );
         // Warnings never block: validity is judged separately.
         assert!(!c.validate().iter().any(|i| i.path == "languages[2].code"));
+    }
+
+    #[test]
+    fn output_enabled_defaults_true_and_name_is_optional() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let c = Config::from_toml("[[outputs]]\nurl = \"udp://127.0.0.1:5000\"\n")?;
+        assert!(c.outputs[0].enabled);
+        assert_eq!(c.outputs[0].name, None);
+        let c = Config::from_toml(
+            "[[outputs]]\nurl = \"udp://127.0.0.1:5000\"\nname = \"Studio\"\nenabled = false\n",
+        )?;
+        assert!(!c.outputs[0].enabled);
+        assert_eq!(c.outputs[0].name.as_deref(), Some("Studio"));
+        assert_eq!(Config::from_toml(&c.to_toml()?)?, c);
+        Ok(())
+    }
+
+    #[test]
+    fn bad_output_names_are_reported() {
+        let mut c = Config::default();
+        c.outputs[0].name = Some("x".repeat(OUTPUT_NAME_MAX + 1));
+        assert!(issue_paths(&c).contains(&"outputs[0].name".to_string()));
+        c.outputs[0].name = Some("a\nb".into());
+        assert!(issue_paths(&c).contains(&"outputs[0].name".to_string()));
+        c.outputs[0].name = Some("Main".into());
+        assert!(!issue_paths(&c).contains(&"outputs[0].name".to_string()));
     }
 
     #[test]

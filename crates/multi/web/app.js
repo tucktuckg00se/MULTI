@@ -68,7 +68,7 @@ const LANG_NAMES = {
 // Help text from PRD §5 (docs/prd/05-configuration-and-tuning.md).
 const SECTIONS = [
   { id: "input", title: "Input", lede: "Where the program feed comes from. H.264 or HEVC in MPEG-TS; video is never re-encoded.", custom: renderInput },
-  { id: "outputs", title: "Outputs", lede: "Where the captioned stream goes. Each output runs and restarts on its own.", custom: renderOutputs },
+  { id: "outputs", title: "Outputs", lede: "Where the captioned stream goes. Each output runs and restarts on its own; adding, removing, starting or stopping one never interrupts the others.", custom: renderOutputs },
   { id: "languages", title: "Languages", lede: "One spoken (source) language; every other language is a translation. Each language needs a CEA-608 channel, a CEA-708 service, or both.", custom: renderLanguages },
   {
     id: "captions", title: "Captions", lede: "How captions look on screen.",
@@ -306,12 +306,15 @@ function renderOutputs(card) {
   S.draft.outputs.forEach((o, i) => {
     list.append(h("div", { class: "endpoint" },
       h("div", { class: "endpoint-head" },
-        h("span", { class: "label" }, "Output " + (i + 1)),
+        h("span", { class: "label" }, o.name || "Output " + (i + 1)),
         h("button", { type: "button", class: "icon", "aria-label": "Remove output " + (i + 1), onclick: () => { S.draft.outputs.splice(i, 1); onChange(); renderSettings(); } }, "Remove")),
+      h("div", { class: "grid" },
+        renderField({ path: `outputs[${i}].name`, label: "Name", type: "text", optional: true, help: "Optional label shown in Status and logs." }),
+        renderField({ path: `outputs[${i}].enabled`, label: "Enabled", type: "checkbox", help: "A stopped output keeps its settings but sends nothing." })),
       endpointEditor(`outputs[${i}].url`, ["srt", "udp", "rtmp", "rtmps"], true)));
   });
   card.append(list, errSlot("outputs"),
-    h("button", { type: "button", onclick: () => { S.draft.outputs.push({ url: "udp://127.0.0.1:5000" }); onChange(); renderSettings(); } }, "+ Add output"));
+    h("button", { type: "button", onclick: () => { S.draft.outputs.push({ url: "udp://127.0.0.1:5000", enabled: true }); onChange(); renderSettings(); } }, "+ Add output"));
 }
 
 function renderLanguages(card) {
@@ -528,9 +531,21 @@ function renderStatus(st) {
   const table = (heads, rows, empty) => rows.length
     ? h("table", {}, h("thead", {}, h("tr", {}, heads.map(([t, c]) => h("th", { class: c }, t)))), h("tbody", {}, rows))
     : h("p", { class: "empty" }, empty);
-  $("#st-outputs").replaceChildren(table([["URL"], ["State"], ["Errors", "num"], ["Starts", "num"]],
-    (m ? m.outputs : []).map((o) => h("tr", {}, h("td", { class: "mono" }, o.url), h("td", {}, pill(o.running ? "Up" : "Down", o.running ? "ok" : "err")),
-      h("td", { class: "num" }, fmt(o.errors)), h("td", { class: "num" }, fmt(o.starts)))), "Not running."));
+  // One row per saved output (config order = index in the API); live stats
+  // line up with it while the pipeline runs.
+  const outs = (S.saved && S.saved.outputs) || [];
+  const live = m && m.outputs.length === outs.length ? m.outputs : null;
+  $("#st-outputs").replaceChildren(table([["Output"], ["State"], ["Errors", "num"], ["Starts", "num"], [""]],
+    outs.map((c, i) => {
+      const o = live && live[i];
+      const state = !c.enabled ? pill("Stopped", "") : !o ? pill(m ? "–" : "Idle", "") : pill(o.running ? "Up" : "Down", o.running ? "ok" : "err");
+      return h("tr", {},
+        h("td", {}, c.name ? h("div", {}, c.name) : null, h("div", { class: "mono" }, o ? o.url : c.url)),
+        h("td", {}, state),
+        h("td", { class: "num" }, o ? fmt(o.errors) : "–"), h("td", { class: "num" }, o ? fmt(o.starts) : "–"),
+        h("td", {}, h("button", { type: "button", "aria-label": (c.enabled ? "Stop " : "Start ") + (c.name || "output " + (i + 1)),
+          onclick: () => outputStartStop(i, !c.enabled) }, c.enabled ? "Stop" : "Start")));
+    }), "No outputs."));
   const WNAME = { asr: "Speech recognition", mt: "Translation" };
   const WCLS = { ready: "ok", starting: "warn", restarting: "warn", failed: "err", stopped: "" };
   $("#st-workers").replaceChildren(table([["Worker"], ["State"], ["Restarts", "num"], ["Last error"]],
@@ -550,6 +565,17 @@ function renderStatus(st) {
     h("time", { datetime: new Date(e.at_ms).toISOString() }, new Date(e.at_ms).toLocaleTimeString()),
     h("span", { class: "src" }, e.source), h("span", {}, e.message))) : [h("li", { class: "empty", style: "display:block" }, "None.")]));
   prev = st;
+}
+
+async function outputStartStop(i, on) {
+  const r = await api("POST", `/api/outputs/${i}/${on ? "start" : "stop"}`);
+  if (!r.ok) { banner("err", "Could not " + (on ? "start" : "stop") + " the output: " + ((r.data && r.data.error) || r.status)); return; }
+  // Keep unsaved edits, but take the new state so a later Save keeps it.
+  S.saved.outputs[i].enabled = on;
+  if (S.draft.outputs[i] && S.draft.outputs[i].url === S.saved.outputs[i].url) S.draft.outputs[i].enabled = on;
+  renderSettings();
+  onChange();
+  refreshStatus();
 }
 
 async function refreshStatus() {

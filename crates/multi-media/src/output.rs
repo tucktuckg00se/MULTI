@@ -9,9 +9,15 @@
 //! SRT/UDP outputs get the muxed MPEG-TS; RTMP outputs get the elementary
 //! streams as they enter the muxer (video already carrying the caption SEI)
 //! and mux them to FLV.
+//!
+//! The outputs form an [`OutputSet`] that changes while running: outputs are
+//! added, removed, started and stopped one at a time, keyed by a stable id,
+//! without touching the others. The fan-out takes a snapshot of the set for
+//! each buffer (a brief read lock to clone an `Arc`), so no lock is held
+//! while pushing.
 
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::sync::{Arc, Mutex, MutexGuard, RwLock};
 use std::time::{Duration, Instant};
 
 use anyhow::{Context, Result};
@@ -51,7 +57,123 @@ pub(crate) struct OutputManager {
     bridge: Arc<Bridge>,
     captioner: Arc<Mutex<Captioner>>,
     counters: Arc<Counters>,
-    pub sinks: Arc<Vec<Arc<OutSink>>>,
+    pub sinks: Arc<OutputSet>,
+}
+
+/// One output as configured: URL, optional name, and whether it runs.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct OutputSpec {
+    pub url: String,
+    pub name: Option<String>,
+    pub enabled: bool,
+}
+
+type SinkList = Arc<Vec<Arc<OutSink>>>;
+
+/// The outputs, keyed by a stable id, changeable while the pipeline runs.
+/// Readers take a snapshot ([`OutputSet::snapshot`]); writers swap in a new
+/// list, so a push never waits on a change and a change never pauses a push.
+pub(crate) struct OutputSet {
+    list: RwLock<SinkList>,
+    next_id: AtomicU64,
+    srt_latency_ms: u32,
+}
+
+impl OutputSet {
+    pub fn new(srt_latency_ms: u32) -> Self {
+        Self {
+            list: RwLock::new(Arc::new(Vec::new())),
+            next_id: AtomicU64::new(0),
+            srt_latency_ms,
+        }
+    }
+
+    /// The current outputs, in order.
+    pub fn snapshot(&self) -> SinkList {
+        self.list.read().unwrap_or_else(|e| e.into_inner()).clone()
+    }
+
+    fn edit<R>(&self, f: impl FnOnce(&mut Vec<Arc<OutSink>>) -> R) -> R {
+        let mut g = self.list.write().unwrap_or_else(|e| e.into_inner());
+        let mut v: Vec<Arc<OutSink>> = g.as_ref().clone();
+        let r = f(&mut v);
+        *g = Arc::new(v);
+        r
+    }
+
+    fn find(&self, id: u64) -> Option<Arc<OutSink>> {
+        self.snapshot().iter().find(|s| s.id == id).cloned()
+    }
+
+    /// Adds an output at the end; an enabled one starts at the next poll.
+    /// Fails only on a URL that is not an output URL.
+    pub fn add(&self, spec: &OutputSpec) -> Result<u64> {
+        output_kind(&spec.url)?;
+        let id = self.next_id.fetch_add(1, Ordering::Relaxed);
+        let sink = Arc::new(OutSink::new(id, spec, self.srt_latency_ms));
+        self.edit(|v| v.push(sink));
+        info!(id, url = %redact(&spec.url), enabled = spec.enabled, "output added");
+        Ok(id)
+    }
+
+    /// Removes an output and tears its pipeline down. False if unknown.
+    pub fn remove(&self, id: u64) -> bool {
+        let gone = self.edit(|v| {
+            let i = v.iter().position(|s| s.id == id)?;
+            Some(v.remove(i))
+        });
+        let Some(sink) = gone else { return false };
+        // A poll still holding the old snapshot must not start it again.
+        sink.enabled.store(false, Ordering::Release);
+        sink.stop();
+        info!(id, url = %redact(&sink.url), "output removed");
+        true
+    }
+
+    /// Starts (at the next poll) or stops an output. False if unknown.
+    pub fn set_enabled(&self, id: u64, on: bool) -> bool {
+        let Some(sink) = self.find(id) else {
+            return false;
+        };
+        sink.set_enabled(on);
+        true
+    }
+
+    /// Renames an output. False if unknown.
+    pub fn set_name(&self, id: u64, name: Option<String>) -> bool {
+        let Some(sink) = self.find(id) else {
+            return false;
+        };
+        *lock(&sink.name) = name;
+        true
+    }
+
+    /// Puts the outputs in the order of `ids`; unlisted ones go last.
+    pub fn arrange(&self, ids: &[u64]) {
+        self.edit(|v| {
+            v.sort_by_key(|s| ids.iter().position(|i| *i == s.id).unwrap_or(usize::MAX));
+        });
+    }
+
+    pub fn ids(&self) -> Vec<u64> {
+        self.snapshot().iter().map(|s| s.id).collect()
+    }
+
+    pub fn poll(&self) {
+        for s in self.snapshot().iter() {
+            s.poll();
+        }
+    }
+
+    pub fn stop_all(&self) {
+        for s in self.snapshot().iter() {
+            s.stop();
+        }
+    }
+
+    pub fn stats(&self) -> Vec<OutputStats> {
+        self.snapshot().iter().map(|s| s.stats()).collect()
+    }
 }
 
 impl OutputManager {
@@ -59,20 +181,20 @@ impl OutputManager {
         bridge: Arc<Bridge>,
         captioner: Captioner,
         counters: Arc<Counters>,
-        outputs: &[String],
+        outputs: &[OutputSpec],
         srt_latency_ms: u32,
-    ) -> Self {
-        let sinks = outputs
-            .iter()
-            .map(|u| Arc::new(OutSink::new(u.clone(), srt_latency_ms)))
-            .collect();
-        Self {
+    ) -> Result<Self> {
+        let sinks = OutputSet::new(srt_latency_ms);
+        for o in outputs {
+            sinks.add(o)?;
+        }
+        Ok(Self {
             side: Mutex::new(None),
             bridge,
             captioner: Arc::new(Mutex::new(captioner)),
             counters,
             sinks: Arc::new(sinks),
-        }
+        })
     }
 
     /// Makes sure an output pipeline for `codec` is running.
@@ -141,9 +263,7 @@ impl OutputManager {
 
     pub fn stop(&self) {
         self.stop_pipeline();
-        for s in self.sinks.iter() {
-            s.stop();
-        }
+        self.sinks.stop_all();
     }
 
     fn build(&self, codec: Codec) -> Result<(gst::Pipeline, Targets)> {
@@ -258,7 +378,7 @@ impl OutputManager {
         mux_v.add_probe(gst::PadProbeType::BUFFER, move |pad, info| {
             inc(&counters.frames_out);
             if let Some(buf) = info.buffer() {
-                for o in fan.iter() {
+                for o in fan.snapshot().iter() {
                     o.push_es(VIDEO, pad, buf);
                 }
             }
@@ -267,7 +387,7 @@ impl OutputManager {
         let fan = self.sinks.clone();
         mux_a.add_probe(gst::PadProbeType::BUFFER, move |pad, info| {
             if let Some(buf) = info.buffer() {
-                for o in fan.iter() {
+                for o in fan.snapshot().iter() {
                     o.push_es(AUDIO, pad, buf);
                 }
             }
@@ -282,7 +402,7 @@ impl OutputManager {
                         return Err(gst::FlowError::Eos);
                     };
                     if let Some(buf) = sample.buffer_owned() {
-                        for o in fan.iter() {
+                        for o in fan.snapshot().iter() {
                             o.push_ts(&buf);
                         }
                     }
@@ -329,6 +449,10 @@ struct SinkState {
 /// `appsrc ! h264parse ! flvmux ! rtmp2sink` plus `appsrc ! aacparse ! flvmux`.
 /// Rebuilt on its own with backoff when it fails.
 pub(crate) struct OutSink {
+    id: u64,
+    name: Mutex<Option<String>>,
+    /// Off: the sink pipeline is torn down and not restarted.
+    enabled: AtomicBool,
     url: String,
     kind: Option<OutputKind>,
     srt_latency_ms: u32,
@@ -352,14 +476,17 @@ fn leaky_src(format: gst::Format, live: bool, max_bytes: u64) -> gst_app::AppSrc
 }
 
 impl OutSink {
-    fn new(url: String, srt_latency_ms: u32) -> Self {
+    fn new(id: u64, spec: &OutputSpec, srt_latency_ms: u32) -> Self {
         Self {
-            kind: output_kind(&url).ok(),
-            url,
+            id,
+            name: Mutex::new(spec.name.clone()),
+            enabled: AtomicBool::new(spec.enabled),
+            kind: output_kind(&spec.url).ok(),
+            url: spec.url.clone(),
             srt_latency_ms,
             st: Mutex::new(SinkState {
                 running: None,
-                retry_at: Some(Instant::now()),
+                retry_at: spec.enabled.then(Instant::now),
                 backoff: BACKOFF_INITIAL,
                 started: None,
             }),
@@ -371,6 +498,9 @@ impl OutSink {
 
     pub fn stats(&self) -> OutputStats {
         OutputStats {
+            id: self.id,
+            name: lock(&self.name).clone(),
+            enabled: self.enabled.load(Ordering::Acquire),
             url: redact(&self.url),
             running: lock(&self.st).running.is_some(),
             errors: self.errors.load(Ordering::Relaxed),
@@ -463,68 +593,107 @@ impl OutSink {
         }
     }
 
-    /// Called periodically: drains the bus, restarts after errors with backoff.
+    /// Called periodically: drains the bus, restarts after errors with
+    /// backoff. Pipelines are built and torn down outside the state lock, so
+    /// the fan-out never waits on them.
     pub fn poll(&self) {
         let shown = redact(&self.url);
-        let mut st = lock(&self.st);
-        let mut failed = false;
-        if let Some(r) = st.running.as_ref()
-            && let Some(bus) = r.pipeline.bus()
-        {
-            while let Some(msg) = bus.pop() {
-                match msg.view() {
-                    gst::MessageView::Error(e) => {
-                        warn!(url = %shown, err = %e.error(), dbg = ?e.debug(), "output error; restarting it");
-                        self.errors.fetch_add(1, Ordering::Relaxed);
-                        failed = true;
+        let (dead, build) = {
+            let mut st = lock(&self.st);
+            let mut failed = false;
+            if let Some(r) = st.running.as_ref()
+                && let Some(bus) = r.pipeline.bus()
+            {
+                while let Some(msg) = bus.pop() {
+                    match msg.view() {
+                        gst::MessageView::Error(e) => {
+                            warn!(url = %shown, err = %e.error(), dbg = ?e.debug(), "output error; restarting it");
+                            self.errors.fetch_add(1, Ordering::Relaxed);
+                            failed = true;
+                        }
+                        gst::MessageView::Warning(w) => {
+                            warn!(url = %shown, warn = %w.error(), "output warning")
+                        }
+                        gst::MessageView::Eos(_) => failed = true,
+                        _ => {}
                     }
-                    gst::MessageView::Warning(w) => {
-                        warn!(url = %shown, warn = %w.error(), "output warning")
-                    }
-                    gst::MessageView::Eos(_) => failed = true,
-                    _ => {}
                 }
             }
-        }
-        if failed {
-            if let Some(r) = st.running.take() {
-                let _ = r.pipeline.set_state(gst::State::Null);
+            let mut dead = None;
+            if failed {
+                dead = st.running.take();
+                st.retry_at = Some(Instant::now() + st.backoff);
+                st.backoff = (st.backoff * 2).min(BACKOFF_MAX);
             }
-            st.retry_at = Some(Instant::now() + st.backoff);
-            st.backoff = (st.backoff * 2).min(BACKOFF_MAX);
-        }
-        if st.running.is_some() {
-            // Running a while without errors resets the backoff.
-            if st.started.is_some_and(|t| t.elapsed() >= HEALTHY_RESET) {
-                st.backoff = BACKOFF_INITIAL;
+            if st.running.is_some() {
+                // Running a while without errors resets the backoff.
+                if st.started.is_some_and(|t| t.elapsed() >= HEALTHY_RESET) {
+                    st.backoff = BACKOFF_INITIAL;
+                }
             }
+            let build = st.running.is_none()
+                && self.enabled.load(Ordering::Acquire)
+                && st.retry_at.is_some_and(|t| Instant::now() >= t);
+            (dead, build)
+        };
+        if let Some(r) = dead {
+            let _ = r.pipeline.set_state(gst::State::Null);
+        }
+        if !build {
             return;
         }
-        if st.retry_at.is_some_and(|t| Instant::now() >= t) {
-            match self.try_build() {
-                Ok(r) => {
-                    info!(url = %shown, "output started");
-                    self.starts.fetch_add(1, Ordering::Relaxed);
-                    st.running = Some(r);
-                    st.retry_at = None;
-                    st.started = Some(Instant::now());
-                }
-                Err(e) => {
-                    warn!(url = %shown, err = %format!("{e:#}"), retry_in_ms = st.backoff.as_millis() as u64, "output start failed");
-                    self.errors.fetch_add(1, Ordering::Relaxed);
-                    st.retry_at = Some(Instant::now() + st.backoff);
-                    st.backoff = (st.backoff * 2).min(BACKOFF_MAX);
-                }
+        let built = self.try_build();
+        let mut st = lock(&self.st);
+        match built {
+            // Stopped or removed while building: throw it away.
+            Ok(r) if !self.enabled.load(Ordering::Acquire) || st.running.is_some() => {
+                drop(st);
+                let _ = r.pipeline.set_state(gst::State::Null);
+            }
+            Ok(r) => {
+                info!(url = %shown, "output started");
+                self.starts.fetch_add(1, Ordering::Relaxed);
+                st.running = Some(r);
+                st.retry_at = None;
+                st.started = Some(Instant::now());
+            }
+            Err(e) => {
+                warn!(url = %shown, err = %format!("{e:#}"), retry_in_ms = st.backoff.as_millis() as u64, "output start failed");
+                self.errors.fetch_add(1, Ordering::Relaxed);
+                st.retry_at = Some(Instant::now() + st.backoff);
+                st.backoff = (st.backoff * 2).min(BACKOFF_MAX);
             }
         }
     }
 
+    /// Enables (started at the next poll, backoff reset) or disables
+    /// (pipeline torn down now) this output.
+    pub fn set_enabled(&self, on: bool) {
+        let was = self.enabled.swap(on, Ordering::AcqRel);
+        if on {
+            let mut st = lock(&self.st);
+            if st.running.is_none() {
+                st.retry_at = Some(Instant::now());
+                st.backoff = BACKOFF_INITIAL;
+            }
+        } else {
+            self.stop();
+        }
+        if was != on {
+            info!(id = self.id, url = %redact(&self.url), enabled = on, "output {}", if on { "enabled" } else { "stopped" });
+        }
+    }
+
+    /// Tears the pipeline down (outside the state lock) and stops retrying.
     pub fn stop(&self) {
-        let mut st = lock(&self.st);
-        if let Some(r) = st.running.take() {
+        let r = {
+            let mut st = lock(&self.st);
+            st.retry_at = None;
+            st.running.take()
+        };
+        if let Some(r) = r {
             let _ = r.pipeline.set_state(gst::State::Null);
         }
-        st.retry_at = None;
     }
 }
 
@@ -560,4 +729,75 @@ fn rtmp_chain(p: &gst::Pipeline, url: &str) -> Result<[gst_app::AppSrc; 2]> {
     }
     srcs.try_into()
         .map_err(|_| anyhow::anyhow!("RTMP chain needs two sources"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn spec(url: &str, enabled: bool) -> OutputSpec {
+        OutputSpec {
+            url: url.into(),
+            name: None,
+            enabled,
+        }
+    }
+
+    fn running(set: &OutputSet, id: u64) -> bool {
+        set.stats().iter().any(|s| s.id == id && s.running)
+    }
+
+    #[test]
+    fn add_remove_rename_arrange() -> Result<()> {
+        let set = OutputSet::new(200);
+        let a = set.add(&spec("udp://127.0.0.1:9756", true))?;
+        let b = set.add(&spec("srt://127.0.0.1:9757", false))?;
+        assert_eq!((a, b), (0, 1));
+        assert!(set.add(&spec("http://x", true)).is_err());
+        assert!(set.set_name(b, Some("Backup".into())));
+        let st = set.stats();
+        assert_eq!(st[1].name.as_deref(), Some("Backup"));
+        assert!(st[0].enabled && !st[1].enabled);
+        set.arrange(&[b, a]);
+        assert_eq!(set.ids(), vec![b, a]);
+        // A snapshot taken before a change keeps its list; new ones see the change.
+        let before = set.snapshot();
+        assert!(set.remove(a));
+        assert!(!set.remove(a));
+        assert_eq!(before.len(), 2);
+        assert_eq!(set.ids(), vec![b]);
+        // Ids are never reused.
+        assert_eq!(set.add(&spec("udp://127.0.0.1:9758", true))?, 2);
+        assert!(!set.set_enabled(a, true));
+        Ok(())
+    }
+
+    #[test]
+    fn stop_and_start_one_output_leaves_the_other_running() -> Result<()> {
+        gst::init()?;
+        let set = OutputSet::new(200);
+        let a = set.add(&spec("udp://127.0.0.1:9756", true))?;
+        let b = set.add(&spec("udp://127.0.0.1:9757", true))?;
+        let c = set.add(&spec("udp://127.0.0.1:9758", false))?;
+        set.poll();
+        assert!(running(&set, a) && running(&set, b) && !running(&set, c));
+        assert!(set.set_enabled(a, false));
+        assert!(!running(&set, a) && running(&set, b));
+        set.poll();
+        assert!(!running(&set, a), "a disabled output must not restart");
+        assert!(set.set_enabled(a, true) && set.set_enabled(c, true));
+        set.poll();
+        assert!(running(&set, a) && running(&set, b) && running(&set, c));
+        assert_eq!(set.stats()[1].starts, 1, "b was never restarted");
+        // A removed output is torn down, even through an old snapshot.
+        let old = set.snapshot();
+        assert!(set.remove(a));
+        for s in old.iter() {
+            s.poll();
+        }
+        assert!(old.iter().all(|s| s.id != a || !s.stats().running));
+        set.stop_all();
+        assert!(set.stats().iter().all(|s| !s.running));
+        Ok(())
+    }
 }

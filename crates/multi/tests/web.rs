@@ -75,9 +75,7 @@ fn workers() -> Workers {
 fn config(in_port: u16, out_port: u16) -> Config {
     let mut c = Config::default();
     c.input.url = format!("udp://127.0.0.1:{in_port}");
-    c.outputs = vec![Output {
-        url: format!("udp://127.0.0.1:{out_port}"),
-    }];
+    c.outputs = vec![Output::new(format!("udp://127.0.0.1:{out_port}"))];
     c.web.port = WEB_PORT;
     c
 }
