@@ -13,10 +13,12 @@ One branch and PR per package; CI must pass before merge.
 | 3 Workers | `multi-asr`, `multi-mt` worker binaries; supervisor with heartbeats and restart | in review |
 | 4 Caption quality | Segmenter, word filters, text cleaning, backlog cap, lane restart, degrade policy, CC2/CC4 option | in review |
 | 5 Web GUI | Control layer, API + live events, embedded page: settings, status, live captions | in review |
-| 6 Validate | B-frames, 4-hour soak, live OBS test from the GUI, YouTube RTMP test, findings | not started |
+| 6 Validate | B-frames and 4-hour soak **done** ([summary](evidence/WP6/soak-summary.txt)); live OBS test from the GUI and YouTube RTMP test still to do; findings | in progress |
 | 7 Models | Model registry (PRD MD-4); `multi models list/pull/verify/remove`; storage folders; hosted pre-converted opus-mt; clear error and GUI warning when a language's model is missing | in review |
 | 8 GUI follow-ups | Input audio level meter and a warning after ~10 s of silence; warn when a language has no installed model or its script can't go on 608/708; fix output mode label ("waits for the receiver") | in review |
 | 9 Web login and HTTPS | Username + password login for the web GUI (argon2 hash in config, `multi passwd` or first-run setup, rate-limited attempts, expiring session cookie, Log out); API token kept for scripts; HTTPS built in or a documented reverse-proxy setup (Caddy/nginx), since passwords over plain HTTP can be read on the network | not started |
+| 10 Per-output control | `enabled` flag and Start/Stop per output (GUI Outputs list + API); add, remove or change an output without restarting the pipeline or interrupting the others. Outputs already run as separate sink pipelines, so this is mostly control plumbing | not started |
+| 11 Fallback picture on input loss | While the input is gone, send black or a slate image plus silence, encoded to match the stream's codec and resolution, so downstream (YouTube, decoders) stays connected; configurable timeout. Makes PRD IO-8 "keep output alive" real. May move to M2 | not started |
 
 ## Warnings and audio level (WP8)
 
@@ -155,6 +157,7 @@ multi models remove <id>
 
 Newest first.
 
+- 2026-09-28 — WP6: B-frame test passed; 4-hour soak passed (video never interrupted, +33.8 ms, 0 errors, memory flat, worker kill recovery 1.5 s / 0.8 s, EN caption lag p95 1.20–1.28 s). Added WP9–WP11 to the to-do.
 - 2026-09-27 — WP7 in review: model registry, `multi models list/pull/verify/remove`, XDG models directory, workers resolve models from the registry, `missing_models` for WP8. Local pull/verify in [evidence/WP7](evidence/WP7).
 - 2026-09-27 — WP4 in review: segmenter, word filter, text cleaning, age cap, flow-error rebuild, degrade policy; CC2/CC4 refused. No real-model run (worker binaries not built here).
 - 2026-09-25 — WP5 in review: `service` control layer (`multi run` now uses it), `multi serve` web GUI and API.

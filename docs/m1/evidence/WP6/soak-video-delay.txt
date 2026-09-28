@@ -1,0 +1,5 @@
+frames: in=431564 out=431547 matched=90899 (method: pts)
+unmatched in window: in=0 out=0  duplicate input matches=0  bad CSV rows=0
+pts offset: 323828787 ticks (3598097.633 ms), 90899/90899 content-matched frames agree
+delay ms: p50=33.755 p95=34.552 p99=34.834 max=35.770 mean=33.757 min=31.974
+jitter ms: stddev=0.486 mean|successive diff|=0.679  drift=-0.000 ms/min
