@@ -19,6 +19,7 @@ One branch and PR per package; CI must pass before merge.
 | 9 Web login and HTTPS | Username + password login for the web GUI (argon2 hash in config, `multi passwd` or first-run setup, rate-limited attempts, expiring session cookie, Log out); API token kept for scripts; HTTPS built in or a documented reverse-proxy setup (Caddy/nginx), since passwords over plain HTTP can be read on the network | not started |
 | 10 Per-output control | `enabled` flag and Start/Stop per output (GUI Outputs list + API); add, remove or change an output without restarting the pipeline or interrupting the others. Outputs already run as separate sink pipelines, so this is mostly control plumbing | not started |
 | 11 Fallback picture on input loss | While the input is gone, send black or a slate image plus silence, encoded to match the stream's codec and resolution, so downstream (YouTube, decoders) stays connected; configurable timeout. Makes PRD IO-8 "keep output alive" real. May move to M2 | not started |
+| 12 Models in the GUI and more languages | **Two lists:** (1) *installed* models, what's on disk; the GUI's model and language choices only offer these; (2) the *catalogue* of models you can pull: the built-in registry plus a user-editable file (e.g. `~/.config/multi/models.toml`) merged on top, so users can add their own models with source, checksum and licence. **GUI Models section:** list, pull (with progress and licence shown), verify, remove, the same as `multi models`. **More languages:** grow the catalogue from 4 translation targets to every permissively licensed opus-mt English pair (dozens), each marked with the caption formats that can carry it (608/708 Latin only; others wait for WebVTT/TTML). Source language stays English in M1 | planned, likely M2 |
 
 ## Warnings and audio level (WP8)
 
@@ -157,6 +158,7 @@ multi models remove <id>
 
 Newest first.
 
+- 2026-09-28 — Added WP12 (models in the GUI, user-editable catalogue, more languages) to the to-do.
 - 2026-09-28 — WP6: B-frame test passed; 4-hour soak passed (video never interrupted, +33.8 ms, 0 errors, memory flat, worker kill recovery 1.5 s / 0.8 s, EN caption lag p95 1.20–1.28 s). Added WP9–WP11 to the to-do.
 - 2026-09-27 — WP7 in review: model registry, `multi models list/pull/verify/remove`, XDG models directory, workers resolve models from the registry, `missing_models` for WP8. Local pull/verify in [evidence/WP7](evidence/WP7).
 - 2026-09-27 — WP4 in review: segmenter, word filter, text cleaning, age cap, flow-error rebuild, degrade policy; CC2/CC4 refused. No real-model run (worker binaries not built here).
