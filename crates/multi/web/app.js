@@ -508,7 +508,7 @@ function renderStatus(st) {
 
   const m = st.media;
   const rate = (k) => (prev && prev.media && m ? Math.max(0, m[k] - prev.media[k]) : null);
-  $("#t-input").replaceChildren(m ? pill(m.input_live ? "Live" : "No signal", m.input_live ? "ok" : "err") : "–");
+  $("#t-input").replaceChildren(m ? (m.fallback_active ? pill("Fallback (no input)", "warn") : pill(m.input_live ? "Live" : "No signal", m.input_live ? "ok" : "err")) : "–");
   $("#t-input-d").textContent = m ? `${m.input_restarts} restart${m.input_restarts === 1 ? "" : "s"}` : " ";
   $("#t-in").textContent = m ? fmt(m.frames_in) : "–";
   $("#t-out").textContent = m ? fmt(m.frames_out) : "–";
