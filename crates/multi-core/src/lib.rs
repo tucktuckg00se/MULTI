@@ -6,6 +6,7 @@ pub mod config;
 pub mod degrade;
 pub mod filter;
 pub mod ipc;
+pub mod models;
 pub mod quality;
 pub mod segment;
 pub mod types;

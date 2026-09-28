@@ -1,0 +1,135 @@
+# MULTI model registry (PRD §7 "Model storage and download", M1 WP7).
+#
+# Embedded in the binary and parsed by `multi_core::models`. Each model is
+# fetched in exactly one way:
+#   - `files`: plain downloads (`base_url/<path>` unless the file has its own
+#     `url`), each checked against its SHA-256 and size;
+#   - `archive`: one .tar.bz2 download checked by SHA-256, extracted into `dir`
+#     (top-level folder stripped); `files` then lists what must be inside;
+#   - `convert`: a Hugging Face repo at a pinned revision, converted locally
+#     to CTranslate2 by scripts/convert-opus-mt.sh; `multi models pull` then
+#     writes `manifest.json` with the SHA-256 of each output file.
+# `dir` is relative to the models directory. `vram_mb` and `disk_mb` are
+# approximate. Sources and licences: docs/m0/evidence/S4 and S5 models.txt.
+
+# ---------------------------------------------------------------- ASR
+
+[[model]]
+id = "nemotron-3.5-streaming-560ms"
+kind = "asr"
+backend = "sherpa-onnx"
+default = true
+languages = ["en", "es", "fr", "it", "pt", "nl", "de", "tr", "ru", "ar", "hi", "ja", "ko", "vi", "uk",
+             "pl", "sv", "cs", "nb", "da", "bg", "fi", "hr", "sk", "zh", "hu", "ro", "et"]
+licence = "OpenMDW-1.1"
+attribution = "NVIDIA Nemotron 3.5 ASR Streaming 0.6B (nvidia/nemotron-3.5-asr-streaming-0.6b @ ea30d66d), NVIDIA, OpenMDW-1.1; sherpa-onnx export by the k2-fsa project (csukuangfj2)"
+vram_mb = 3000
+disk_mb = 2594
+cpu_variant = "nemotron-3.5-streaming-560ms-int8"
+dir = "sherpa/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-560ms-2026-06-11-fp32"
+revision = "2072aba9fb2d6ee6202b69e441761599ab7520b8"
+base_url = "https://huggingface.co/csukuangfj2/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-560ms-2026-06-11/resolve/2072aba9fb2d6ee6202b69e441761599ab7520b8"
+files = [
+  { path = "tokens.txt",   size = 131440,     sha256 = "729cc103155bafa785f9cd45746cd41cabe97eab7182fc04d594129587958f8a" },
+  { path = "decoder.onnx", size = 59764944,   sha256 = "f9c59ee6fa130bc2ba349dbcbba7c74a4a960a98d4196295ba4e8e5d6bde6b68" },
+  { path = "joiner.onnx",  size = 37824291,   sha256 = "a6bd74c0a31cbde0da0368c1e29d171752108c7ad1231630e079a7d97ceee6f0" },
+  { path = "encoder.onnx", size = 42247484,   sha256 = "f1e540e03cb2cc57f5c0f6416b893768cfda23e756bfc0a2c4d502a1350325af" },
+  { path = "encoder.data", size = 2454405120, sha256 = "7584f85df76bc9ae6fbdfa53aa8d97b07a842525d1c501d536d77fd9e4f57ac7" },
+]
+
+[[model]]
+id = "nemotron-3.5-streaming-560ms-int8"
+kind = "asr"
+backend = "sherpa-onnx"
+default = true
+languages = ["en", "es", "fr", "it", "pt", "nl", "de", "tr", "ru", "ar", "hi", "ja", "ko", "vi", "uk",
+             "pl", "sv", "cs", "nb", "da", "bg", "fi", "hr", "sk", "zh", "hu", "ro", "et"]
+licence = "OpenMDW-1.1"
+attribution = "NVIDIA Nemotron 3.5 ASR Streaming 0.6B (nvidia/nemotron-3.5-asr-streaming-0.6b @ ea30d66d), NVIDIA, OpenMDW-1.1; int8 sherpa-onnx export by the k2-fsa project"
+vram_mb = 800
+disk_mb = 682
+dir = "sherpa/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-560ms-int8-2026-06-11"
+# GitHub release tag `asr-models` is not immutable; the SHA-256 pins the content.
+revision = "asr-models"
+archive = { url = "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-560ms-int8-2026-06-11.tar.bz2", size = 475271763, sha256 = "c6bf5e0df765f9d5b43bc9e0536d4b4b3e7d40bdf5ecf13e45f134c51c05ae3a" }
+files = [
+  { path = "tokens.txt",        size = 131440,    sha256 = "729cc103155bafa785f9cd45746cd41cabe97eab7182fc04d594129587958f8a" },
+  { path = "decoder.int8.onnx", size = 14978075,  sha256 = "19f9c98fc6d0a2c33a65a43b36fdb2e914c26c0aa9764be3aebc502a1e982fb0" },
+  { path = "joiner.int8.onnx",  size = 9504438,   sha256 = "4101c7c679a0bc30483794b27a059e34e79232aa2068d78d51231a22c8b0d7ce" },
+  { path = "encoder.int8.onnx", size = 657601403, sha256 = "012e9321373af99021415e0b0eb3ec827b4be3153be6f30d9b448fe65e896e68" },
+]
+
+# ---------------------------------------------------------------- VAD
+
+[[model]]
+id = "silero-vad"
+kind = "vad"
+backend = "sherpa-onnx"
+default = true
+licence = "MIT"
+attribution = "Silero VAD v5, Silero Team (MIT); ONNX file from the sherpa-onnx project"
+vram_mb = 0
+disk_mb = 1
+dir = "sherpa"
+revision = "asr-models"
+files = [
+  { path = "silero_vad.onnx", size = 643854, sha256 = "9e2449e1087496d8d4caba907f23e0bd3f78d91fa552479bb9c23ac09cbb1fd6", url = "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx" },
+]
+
+# ---------------------------------------------------------------- Translation
+
+[[model]]
+id = "opus-mt-en-es"
+kind = "mt"
+backend = "ctranslate2"
+default = true
+source = "en"
+targets = ["es"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-es, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 152
+dir = "ct2/opus-mt-en-es"
+convert = { repo = "Helsinki-NLP/opus-mt-en-es", revision = "5bc4493d463cf000c1f0b50f8d56886a392ed4ab" }
+
+[[model]]
+id = "opus-mt-en-fr"
+kind = "mt"
+backend = "ctranslate2"
+default = true
+source = "en"
+targets = ["fr"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-fr, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 146
+dir = "ct2/opus-mt-en-fr"
+convert = { repo = "Helsinki-NLP/opus-mt-en-fr", revision = "dd7f6540a7a48a7f4db59e5c0b9c42c8eea67f18" }
+
+[[model]]
+id = "opus-mt-en-de"
+kind = "mt"
+backend = "ctranslate2"
+default = true
+source = "en"
+targets = ["de"]
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT en-de, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 144
+dir = "ct2/opus-mt-en-de"
+convert = { repo = "Helsinki-NLP/opus-mt-en-de", revision = "6183067f769a302e3861815543b9f312c71b0ca4" }
+
+[[model]]
+id = "opus-mt-tc-big-en-pt"
+kind = "mt"
+backend = "ctranslate2"
+default = true
+source = "en"
+targets = ["pt"]
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT tc-big en-pt, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 500
+disk_mb = 448
+dir = "ct2/opus-mt-tc-big-en-pt"
+convert = { repo = "Helsinki-NLP/opus-mt-tc-big-en-pt", revision = "9f2863d807ecf91a374bdbecb8d01e402e90622e" }
