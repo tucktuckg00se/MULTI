@@ -327,6 +327,19 @@ impl Default for Degrade {
     }
 }
 
+/// Languages written in non-Latin scripts, which CEA-608 can't carry and
+/// MULTI's 708 path doesn't support.
+const NON_LATIN: &[&str] = &[
+    "am", "ar", "be", "bg", "bn", "el", "fa", "gu", "he", "hi", "hy", "ja", "ka", "kk", "km", "kn",
+    "ko", "lo", "mk", "ml", "mr", "my", "ne", "pa", "ru", "si", "sr", "ta", "te", "th", "uk", "ur",
+    "yi", "zh",
+];
+
+/// Latin-script languages with letters outside CEA-608's character sets.
+const LATIN_EXTENDED: &[&str] = &[
+    "cs", "et", "hr", "hu", "lt", "lv", "pl", "ro", "sk", "sl", "tr", "vi",
+];
+
 /// A single validation problem, keyed by the setting's dotted path.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct Issue {
@@ -446,6 +459,30 @@ impl Config {
             seen.push(*step);
         }
         v.issues
+    }
+
+    /// Advice that doesn't block saving or starting: settings that will work
+    /// but probably not as the user expects.
+    pub fn warnings(&self) -> Vec<Issue> {
+        let mut out = Vec::new();
+        for (i, l) in self.languages.iter().enumerate() {
+            if l.cc608.is_none() && l.cea708_service.is_none() {
+                continue;
+            }
+            let code = l.code.as_str();
+            let message = if NON_LATIN.contains(&code) {
+                "this language's script can't be carried in CEA-608/708 captions; it needs WebVTT or TTML output, which MULTI doesn't have yet"
+            } else if LATIN_EXTENDED.contains(&code) && l.cc608.is_some() {
+                "CEA-608 can't show every letter of this language; some accented letters will be replaced with plain ones (708 is unaffected)"
+            } else {
+                continue;
+            };
+            out.push(Issue {
+                path: format!("languages[{i}].code"),
+                message: message.into(),
+            });
+        }
+        out
     }
 
     fn validate_languages(&self, v: &mut Validator) {
@@ -637,6 +674,29 @@ mod tests {
         assert!(paths.contains(&"filter.blocklist[1]".to_string()));
         assert!(!paths.contains(&"filter.blocklist[0]".to_string()));
         assert!(paths.contains(&"filter.allowlist[0]".to_string()));
+    }
+
+    #[test]
+    fn default_config_has_no_warnings() {
+        assert_eq!(Config::default().warnings(), Vec::new());
+    }
+
+    #[test]
+    fn script_warnings() {
+        let mut c = Config::default();
+        c.languages[2].code = "ja".into();
+        c.languages[3].code = "pl".into();
+        c.languages[3].cc608 = Some(Cc608::Cc4);
+        let w: Vec<String> = c.warnings().into_iter().map(|i| i.path).collect();
+        assert_eq!(
+            w,
+            vec![
+                "languages[2].code".to_string(),
+                "languages[3].code".to_string()
+            ]
+        );
+        // Warnings never block: validity is judged separately.
+        assert!(!c.validate().iter().any(|i| i.path == "languages[2].code"));
     }
 
     #[test]
