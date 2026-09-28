@@ -36,11 +36,13 @@ fn media_sink(name: &str, core: Arc<Core>, stream: usize) -> gst_app::AppSink {
                 let Ok(sample) = s.pull_sample() else {
                     return Err(gst::FlowError::Eos);
                 };
-                core.last_data.store(wall_ns(), Ordering::Relaxed);
+                let now = wall_ns();
+                core.last_data.store(now, Ordering::Relaxed);
+                core.last_media.store(now, Ordering::Relaxed);
                 if stream == VIDEO {
                     inc(&core.counters.frames_in);
                 }
-                core.bridge.push(stream, &sample);
+                core.fallback.gate.push_input(&core.bridge, stream, &sample);
                 Ok(gst::FlowSuccess::Ok)
             })
             .build(),
@@ -198,6 +200,7 @@ pub(crate) fn build(core: &Arc<Core>) -> Result<Input> {
             _ => None,
         };
         let target = if let Some(codec) = codec {
+            core2.fallback.gate.input_codec(codec);
             match core2.output.ensure(codec) {
                 Ok(()) => vs.static_pad("sink").filter(|s| !s.is_linked()),
                 Err(e) => {

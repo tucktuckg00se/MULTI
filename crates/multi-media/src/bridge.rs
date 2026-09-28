@@ -58,6 +58,9 @@ struct Rebase {
     seen: [bool; 2],
     last_out: [i64; 2],
     force_new: bool,
+    /// The next session starts at once, without the startup hold (a live
+    /// generated source has no startup burst).
+    no_hold: bool,
     /// Some(until_rt) while the session's startup hold is running.
     hold_until: Option<i64>,
     min_off: i64,
@@ -92,9 +95,13 @@ impl Rebase {
             self.seen = [false; 2];
             self.last_in = [None; 2];
             self.force_new = false;
-            self.hold_until = Some(now_rt + HOLD_NS);
             self.min_off = now_rt - in_pts;
             self.first_in = in_pts;
+            if std::mem::take(&mut self.no_hold) {
+                self.finish_hold();
+            } else {
+                self.hold_until = Some(now_rt + HOLD_NS);
+            }
             new = true;
         }
         if s == VIDEO && self.hold_until.is_some() {
@@ -207,6 +214,17 @@ impl Bridge {
     pub fn reset(&self) {
         let mut st = lock(&self.st);
         st.r.force_new = true;
+        st.r.no_hold = false;
+        st.held.clear();
+        st.r.hold_until = None;
+    }
+
+    /// Like [`Bridge::reset`], but the next session starts without the
+    /// startup hold (for the live fallback source).
+    pub fn reset_without_hold(&self) {
+        let mut st = lock(&self.st);
+        st.r.force_new = true;
+        st.r.no_hold = true;
         st.held.clear();
         st.r.hold_until = None;
     }
@@ -249,7 +267,9 @@ impl Bridge {
             .current_running_time()
             .map(|t| t.nseconds() as i64)
             .unwrap_or(0);
-        match st.r.classify(s, in_pts, now_rt) {
+        let verdict = st.r.classify(s, in_pts, now_rt);
+        let opened = verdict == Verdict::Session { new: true };
+        match verdict {
             Verdict::Drop => {
                 drop(st);
                 self.drop_one();
@@ -261,7 +281,10 @@ impl Bridge {
                 inc(&self.counters.sessions);
                 info!(
                     session = st.r.session,
-                    in_pts, now_rt, "new input session (holding)"
+                    in_pts,
+                    now_rt,
+                    holding = st.r.hold_until.is_some(),
+                    "new input session"
                 );
             }
             Verdict::Session { new: false } => {}
@@ -296,7 +319,7 @@ impl Bridge {
         }
         let out = st.r.out_ts(s, in_pts, dts_shift(&buf, in_pts), now_rt);
         drop(st);
-        self.forward(&targets, s, buf, caps.as_ref(), out, false);
+        self.forward(&targets, s, buf, caps.as_ref(), out, opened);
     }
 
     fn forward(
@@ -440,6 +463,28 @@ mod tests {
             late = rt - r.out_pts(VIDEO, pts, rt);
         }
         assert!((0..=LATE_TOL_NS).contains(&late), "late {late}");
+    }
+
+    #[test]
+    fn no_hold_session_continues_after_last_output() {
+        let mut r = Rebase::default();
+        open(&mut r, &[(50 * SEC, 10 * SEC)]);
+        let last = r.out_pts(VIDEO, 51 * SEC, 11 * SEC);
+        // Fallback source, PTS from 0, starts 1.5 s later without a hold.
+        r.force_new = true;
+        r.no_hold = true;
+        assert_eq!(
+            r.classify(VIDEO, 0, 12500 * MS),
+            Verdict::Session { new: true }
+        );
+        assert!(r.hold_until.is_none());
+        let first = r.out_pts(VIDEO, 0, 12500 * MS);
+        assert!(first > last && first <= 12500 * MS, "first {first}");
+        assert!(r.out_pts(VIDEO, 33 * MS, 12533 * MS) > first);
+        // The next reset holds again.
+        r.force_new = true;
+        let _ = r.classify(VIDEO, 7 * SEC, 20 * SEC);
+        assert!(r.hold_until.is_some());
     }
 
     #[test]

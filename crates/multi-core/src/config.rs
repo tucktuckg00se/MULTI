@@ -95,11 +95,42 @@ impl Output {
     }
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct Video {
     /// Hold video back so captions line up with speech. 0 = pass-through.
     pub delay_ms: u32,
+    /// What the outputs carry while the input is gone.
+    pub fallback: FallbackMode,
+    /// PNG or JPEG shown when `fallback = "image"`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fallback_image: Option<PathBuf>,
+    /// Input silence before the fallback picture starts.
+    pub fallback_after_ms: u32,
+}
+
+impl Default for Video {
+    fn default() -> Self {
+        Self {
+            delay_ms: 0,
+            fallback: FallbackMode::Black,
+            fallback_image: None,
+            fallback_after_ms: 1000,
+        }
+    }
+}
+
+/// Fallback picture sent while the input is gone (with silent audio).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum FallbackMode {
+    /// Black frames.
+    #[default]
+    Black,
+    /// `video.fallback_image`, scaled to the stream's size.
+    Image,
+    /// Send nothing (outputs stay connected but idle).
+    Off,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -472,6 +503,29 @@ impl Config {
         }
 
         v.range("video.delay_ms", self.video.delay_ms, 0, 10_000);
+        v.range(
+            "video.fallback_after_ms",
+            self.video.fallback_after_ms,
+            200,
+            10_000,
+        );
+        if self.video.fallback == FallbackMode::Image {
+            let ext = self
+                .video
+                .fallback_image
+                .as_deref()
+                .and_then(Path::extension)
+                .and_then(|e| e.to_str())
+                .map(str::to_ascii_lowercase);
+            match ext.as_deref() {
+                None if self.video.fallback_image.is_none() => v.push(
+                    "video.fallback_image",
+                    "required when video.fallback = \"image\"",
+                ),
+                Some("png" | "jpg" | "jpeg") => {}
+                _ => v.push("video.fallback_image", "must be a .png, .jpg or .jpeg file"),
+            }
+        }
         v.range("captions.offset_ms", self.captions.offset_ms, -5_000, 5_000);
         v.range("captions.rows", self.captions.rows, 1, 4);
         v.range(
@@ -711,6 +765,28 @@ mod tests {
         assert_eq!(c.asr.chunk_ms, 160);
         assert_eq!(c.asr.model, Asr::default().model);
         assert_eq!(c.web.port, 9000);
+        Ok(())
+    }
+
+    #[test]
+    fn fallback_defaults_and_validation() -> Result<(), toml::de::Error> {
+        let c = Config::default();
+        assert_eq!(c.video.fallback, FallbackMode::Black);
+        assert_eq!(c.video.fallback_after_ms, 1000);
+        let c = Config::from_toml("[video]\nfallback = \"off\"\nfallback_after_ms = 150\n")?;
+        assert_eq!(c.video.fallback, FallbackMode::Off);
+        assert_eq!(issue_paths(&c), vec!["video.fallback_after_ms"]);
+        let c = Config::from_toml("[video]\nfallback = \"image\"\n")?;
+        assert_eq!(issue_paths(&c), vec!["video.fallback_image"]);
+        let c =
+            Config::from_toml("[video]\nfallback = \"image\"\nfallback_image = \"slate.gif\"\n")?;
+        assert_eq!(issue_paths(&c), vec!["video.fallback_image"]);
+        let c = Config::from_toml(
+            "[video]\nfallback = \"image\"\nfallback_image = \"/srv/Slate.JPG\"\nfallback_after_ms = 10000\n",
+        )?;
+        assert!(c.validate().is_empty());
+        assert_eq!(Config::from_toml(&c.to_toml().unwrap_or_default())?, c);
+        assert!(Config::from_toml("[video]\nfallback = \"blue\"\n").is_err());
         Ok(())
     }
 

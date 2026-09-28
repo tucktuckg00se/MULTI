@@ -218,6 +218,28 @@ impl OutputManager {
         Ok(())
     }
 
+    /// The stream format the output pipeline last carried (codec, parsed
+    /// video caps, audio caps), or `None` before any video was parsed.
+    pub fn format(&self) -> Option<crate::fallback::Format> {
+        let side = lock(&self.side);
+        let s = side.as_ref()?;
+        let video = s
+            .pipeline
+            .by_name("vparse")?
+            .static_pad("src")?
+            .current_caps()?;
+        let audio = s
+            .pipeline
+            .by_name("aq")
+            .and_then(|e| e.static_pad("src"))
+            .and_then(|p| p.current_caps());
+        Some(crate::fallback::Format {
+            codec: s.codec,
+            video,
+            audio,
+        })
+    }
+
     /// Drains the output pipeline's bus; on an error the pipeline is rebuilt.
     pub fn poll(&self) {
         let failed = {

@@ -428,6 +428,8 @@ fn log_stats(media: &Media, asr: &Supervisor, mt: Option<&Supervisor>) {
         frames_out = s.frames_out,
         input_live = s.input_live,
         input_restarts = s.input_restarts,
+        fallback_active = s.fallback_active,
+        fallback_activations = s.fallback_activations,
         sessions = s.sessions,
         caption_frames = s.caption_frames,
         audio_chunks = s.audio_chunks,

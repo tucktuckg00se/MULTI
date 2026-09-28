@@ -16,6 +16,7 @@
 
 mod bridge;
 mod captions;
+mod fallback;
 mod gstcc;
 mod input;
 mod output;
@@ -30,7 +31,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use anyhow::{Context, Result, bail};
 use gst::prelude::*;
 use multi_core::Config;
-use multi_core::config::{Captions, Language};
+use multi_core::config::{Captions, FallbackMode, Language};
 use tracing::{error, info, warn};
 
 pub use captions::{CaptionHandle, LaneSpec, lane_specs};
@@ -68,6 +69,11 @@ pub struct MediaConfig {
     pub audio_channel: Option<u32>,
     /// Restart the input when data stops for this long (after it has flowed).
     pub watchdog: Duration,
+    /// Picture sent while the input is gone.
+    pub fallback: FallbackMode,
+    pub fallback_image: Option<std::path::PathBuf>,
+    /// Input silence before the fallback starts.
+    pub fallback_after: Duration,
 }
 
 impl MediaConfig {
@@ -89,6 +95,9 @@ impl MediaConfig {
             audio_track: c.audio.track,
             audio_channel: c.audio.channel,
             watchdog: Duration::from_secs(2),
+            fallback: c.video.fallback,
+            fallback_image: c.video.fallback_image.clone(),
+            fallback_after: Duration::from_millis(u64::from(c.video.fallback_after_ms)),
         }
     }
 }
@@ -233,6 +242,11 @@ pub(crate) struct Core {
     pub audio: AudioCallback,
     /// Wall ns of the last buffer from the current input (0 = none yet).
     pub last_data: AtomicU64,
+    /// Wall ns of the last input buffer from any input (0 = never); not
+    /// reset when the input is rebuilt.
+    pub last_media: AtomicU64,
+    /// Fallback picture while the input is gone.
+    pub fallback: fallback::Fallback,
     /// Input audio level, from the audio tap.
     pub level: stats::LevelMeter,
 }
@@ -264,6 +278,7 @@ impl Media {
             &cfg.outputs,
             cfg.srt_latency_ms,
         )?;
+        let fallback = fallback::Fallback::new(&cfg, counters.clone());
         let core = Arc::new(Core {
             cfg,
             counters,
@@ -271,6 +286,8 @@ impl Media {
             output,
             audio,
             last_data: AtomicU64::new(0),
+            last_media: AtomicU64::new(0),
+            fallback,
             level: stats::LevelMeter::default(),
         });
         core.output.sinks.poll();
@@ -321,6 +338,8 @@ impl Media {
             caption_errors: get(&c.caption_errors),
             audio_chunks: get(&c.audio_chunks),
             audio_drops: get(&c.audio_drops),
+            fallback_active: self.core.fallback.active(),
+            fallback_activations: get(&c.fallback_activations),
             input_live: last > 0
                 && wall_ns().saturating_sub(last) < self.core.cfg.watchdog.as_nanos() as u64,
             audio_rms_dbfs,
@@ -372,7 +391,11 @@ fn control(core: &Arc<Core>, stop: &AtomicBool, first: input::Input) {
     let mut next = Some(first);
     let watchdog_ns = core.cfg.watchdog.as_nanos() as u64;
     'outer: while !stop.load(Ordering::Acquire) {
-        core.bridge.reset();
+        // While the fallback feeds the bridge its session carries on; the
+        // switch back to the input resets the bridge itself.
+        if !core.fallback.active() {
+            core.bridge.reset();
+        }
         let inp = match next.take().map_or_else(|| input::build(core), Ok) {
             Ok(i) => i,
             Err(e) => {
@@ -432,15 +455,18 @@ fn control(core: &Arc<Core>, stop: &AtomicBool, first: input::Input) {
             }
             core.output.poll();
             core.output.sinks.poll();
+            core.fallback.tick(core);
         }
         let _ = inp.pipeline.set_state(gst::State::Null);
         core.last_data.store(0, Ordering::Relaxed);
         inc(&c.input_restarts);
+        core.fallback.tick(core);
         if nap(stop, backoff) {
             break;
         }
         backoff = (backoff * 2).min(INPUT_BACKOFF_MAX);
     }
+    core.fallback.shutdown();
     core.bridge.set_targets(None);
     core.output.stop();
 }

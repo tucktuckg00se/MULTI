@@ -19,6 +19,7 @@ pub(crate) struct Counters {
     pub caption_errors: AtomicU64,
     pub audio_chunks: AtomicU64,
     pub audio_drops: AtomicU64,
+    pub fallback_activations: AtomicU64,
 }
 
 /// Level below which input audio counts as silent.
@@ -153,6 +154,10 @@ pub struct Stats {
     pub audio_drops: u64,
     /// Data arrived from the input within the watchdog window.
     pub input_live: bool,
+    /// The outputs carry the fallback picture (input gone).
+    pub fallback_active: bool,
+    /// Times the fallback picture started.
+    pub fallback_activations: u64,
     /// Input audio level over the last 250 ms, in dBFS (`None` before any audio).
     pub audio_rms_dbfs: Option<f32>,
     pub audio_peak_dbfs: Option<f32>,
