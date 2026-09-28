@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MULTI</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">MULTI<span>Live captions</span></div>
+    <nav role="tablist" aria-label="Sections">
+      <button role="tab" id="tab-settings" aria-controls="panel-settings" aria-selected="true">Settings</button>
+      <button role="tab" id="tab-status" aria-controls="panel-status" aria-selected="false" tabindex="-1">Status</button>
+      <button role="tab" id="tab-captions" aria-controls="panel-captions" aria-selected="false" tabindex="-1">Live captions</button>
+    </nav>
+    <div class="top-right">
+      <span id="state-pill" class="pill" aria-live="polite">Stopped</span>
+      <button class="startstop primary" type="button">Start</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div id="banners" aria-live="polite"></div>
+
+  <section role="tabpanel" id="panel-settings" aria-labelledby="tab-settings">
+    <div id="issues"></div>
+    <form id="settings" novalidate></form>
+  </section>
+
+  <section role="tabpanel" id="panel-status" aria-labelledby="tab-status" hidden>
+    <div class="status-head">
+      <div>
+        <div class="state" id="st-state">Stopped</div>
+        <div class="sub" id="st-sub">Pipeline not running</div>
+      </div>
+      <div class="spacer"></div>
+      <button class="startstop primary" type="button">Start</button>
+    </div>
+    <div class="tiles">
+      <div class="tile"><div class="k">Input</div><div class="v" id="t-input">–</div><div class="d" id="t-input-d">&nbsp;</div></div>
+      <div class="tile"><div class="k">Video frames in</div><div class="v" id="t-in">–</div><div class="d" id="t-in-d">&nbsp;</div></div>
+      <div class="tile"><div class="k">Video frames out</div><div class="v" id="t-out">–</div><div class="d" id="t-out-d">&nbsp;</div></div>
+      <div class="tile"><div class="k">Caption lag</div><div class="v" id="t-lag">–</div><div class="d">speech to caption (source)</div></div>
+      <div class="tile"><div class="k">Frames with captions</div><div class="v" id="t-cc">–</div><div class="d" id="t-cc-d">&nbsp;</div></div>
+    </div>
+    <div class="cols">
+      <div class="card"><h2>Outputs</h2><p class="lede">Each output restarts on its own after an error.</p><div class="table-wrap" id="st-outputs"></div></div>
+      <div class="card"><h2>Workers</h2><p class="lede">Speech recognition and translation run in separate processes.</p><div class="table-wrap" id="st-workers"></div></div>
+    </div>
+    <div class="cols">
+      <div class="card"><h2>Caption lanes</h2><p class="lede">Text pieces per language.</p><div class="table-wrap" id="st-lanes"></div></div>
+      <div class="card"><h2>GPU</h2><p class="lede">From <code>nvidia-smi</code>, every 5 s.</p><div id="st-gpu"></div></div>
+    </div>
+    <div class="card"><h2>Recent errors</h2><ul class="errors" id="st-errors"></ul></div>
+  </section>
+
+  <section role="tabpanel" id="panel-captions" aria-labelledby="tab-captions" hidden>
+    <div class="toolbar">
+      <span class="conn" id="conn">Connecting…</span>
+      <div class="spacer"></div>
+      <button type="button" id="clear-captions">Clear</button>
+    </div>
+    <div class="caption-grid" id="lanes"></div>
+  </section>
+</main>
+
+<div class="savebar" id="savebar">
+  <div class="savebar-inner">
+    <span class="note" id="save-note">No changes</span>
+    <button type="button" id="load-defaults">Load defaults</button>
+    <button type="button" id="revert" disabled>Revert</button>
+    <button type="button" class="primary" id="save" disabled>Save</button>
+  </div>
+</div>
+<script src="/app.js"></script>
+</body>
+</html>

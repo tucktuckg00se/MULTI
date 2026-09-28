@@ -57,3 +57,10 @@ The hard part of the Rust build is the C/C++ dependencies (FFmpeg, whisper.cpp, 
 
 **Model choice strategy.** Ship a model registry, not a hard-coded model: the operator picks speed vs accuracy per stream, and models download on first run (so their licences travel with them, not with our binary).
 
+**Model storage and download** (added 2026-09-27; built in M1 WP7):
+- **Registry:** a file shipped with MULTI lists each model: purpose, languages, licence and attribution, VRAM, and download URL with a pinned revision and a SHA-256 per file.
+- **Never bundled:** binaries and images stay small; models are fetched with `multi models pull` (or prompted when missing) and verified against the registry.
+- **Where:** native installs use `~/.local/share/multi/models` (user) or `/var/lib/multi/models` (system service); Docker mounts a volume at `/models` so models survive image upgrades. `--models-dir` / `MULTI_MODELS` override.
+- **Offline sites:** copy the models folder or a tarball from another machine; `multi models verify` checks it.
+- **Hosting:** speech models come from the sherpa-onnx project's published exports. opus-mt needs converting to CTranslate2's format, so MULTI hosts pre-converted copies (licences allow redistribution) with attribution, and users never need the conversion tools.
+

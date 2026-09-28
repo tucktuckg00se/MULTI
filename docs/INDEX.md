@@ -22,7 +22,7 @@ Types: `summary` overview page · `spec` requirements · `decision` ADR · `find
 | P-04 | spec | [Functional requirements by ID and priority](prd/04-functional-requirements.md) | current | ~1655 |
 | P-05 | spec | [Configuration settings, defaults and presets](prd/05-configuration-and-tuning.md) | current | ~779 |
 | P-06 | spec | [Latency budget, platforms, reliability, security](prd/06-non-functional-requirements.md) | current | ~991 |
-| P-07 | spec | [Architecture, candidate libraries and Rust crates](prd/07-proposed-architecture-and-technology.md) | current | ~1134 |
+| P-07 | spec | [Architecture, candidate libraries and Rust crates](prd/07-proposed-architecture-and-technology.md) | current | ~1385 |
 | P-08 | spec | [Licensing, distribution, paid binaries, warranty draft](prd/08-licensing-distribution-and-business-model.md) | current | ~752 |
 | P-09 | spec | [Milestones M0 to v1.0](prd/09-milestones.md) | current | ~413 |
 | P-10 | spec | [Risks, mitigations and open questions (12 risks)](prd/10-risks-and-open-questions.md) | current | ~720 |
@@ -44,9 +44,10 @@ Types: `summary` overview page · `spec` requirements · `decision` ADR · `find
 
 | ID | Type | Title | Status | ~Tokens |
 |---|---|---|---|---|
-| M1-00 | summary | [M1 overview: work packages, exit criteria, code layout](m1/README.md) | current | ~3192 |
+| M1-00 | summary | [M1 overview: work packages, exit criteria, code layout](m1/README.md) | current | ~3972 |
 | M1-D1 | guide | [Built-in profanity lists: LDNOOBW source, licence, attribution](../crates/multi-core/data/README.md) | current | ~340 |
 | E-WP3 | evidence | [WP3 real-model check: ASR words/WER, MT latency, kill -9 recovery](m1/evidence/WP3) | current | ~784 |
+| E-WP5 | evidence | [WP5 web GUI screenshots: settings, status, live captions](m1/evidence/WP5) | current | ~50989 |
 | E-WP2 | evidence | [WP2 real-model check: video delay, EN caption lag, CC1/CC3 output](m1/evidence/WP2) | current | ~11479 |
 
 ## M0 spikes
