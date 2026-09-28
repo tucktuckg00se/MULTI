@@ -1,6 +1,6 @@
 # M1 — First real version
 
-> **Summary:** Turns the M0 spikes into product code in `crates/`: SRT/UDP in, SRT/UDP/RTMP out, English speech captioned in EN plus ES/FR/DE translations on 608/708, word filters, ASR and translation in supervised worker processes, a TOML config, and a web GUI for settings, status and live captions. CPU-only CI on GitHub.
+> **Summary:** **Done 2026-09-28** ([results](findings/M1-results.md)). Turns the M0 spikes into product code in `crates/`: SRT/UDP in, SRT/UDP/RTMP out, English speech captioned in EN plus ES/FR/DE translations on 608/708, word filters, ASR and translation in supervised worker processes, a TOML config, and a web GUI for settings, status and live captions. CPU-only CI on GitHub.
 
 ## Work packages
 
@@ -8,18 +8,18 @@ One branch and PR per package; CI must pass before merge.
 
 | WP | Contents | Status |
 |---|---|---|
-| 1 Skeleton | Workspace, `multi-core` (config with PRD defaults, text types, worker IPC framing), `multi` CLI stub, CI | in progress |
-| 2 Media | `multi-media`: GStreamer input, restamping bridge, caption lanes, SRT/UDP/RTMP outputs, reconnect; fake-worker integration test | in review |
-| 3 Workers | `multi-asr`, `multi-mt` worker binaries; supervisor with heartbeats and restart | in review |
-| 4 Caption quality | Segmenter, word filters, text cleaning, backlog cap, lane restart, degrade policy, CC2/CC4 option | in review |
-| 5 Web GUI | Control layer, API + live events, embedded page: settings, status, live captions | in review |
-| 6 Validate | B-frames and 4-hour soak **done** ([summary](evidence/WP6/soak-summary.txt)); live OBS test from the GUI and YouTube RTMP test still to do; findings | in progress |
-| 7 Models | Model registry (PRD MD-4); `multi models list/pull/verify/remove`; storage folders; hosted pre-converted opus-mt; clear error and GUI warning when a language's model is missing | in review |
-| 8 GUI follow-ups | Input audio level meter and a warning after ~10 s of silence; warn when a language has no installed model or its script can't go on 608/708; fix output mode label ("waits for the receiver") | in review |
-| 9 Web login and HTTPS | Username + password login for the web GUI (argon2 hash in config, `multi passwd` or first-run setup, rate-limited attempts, expiring session cookie, Log out); API token kept for scripts; HTTPS built in or a documented reverse-proxy setup (Caddy/nginx), since passwords over plain HTTP can be read on the network | in review |
-| 10 Per-output control | `enabled` flag and Start/Stop per output (GUI Outputs list + API); add, remove or change an output without restarting the pipeline or interrupting the others. Outputs already run as separate sink pipelines, so this is mostly control plumbing | in review |
-| 11 Fallback picture on input loss | While the input is gone, send black or a slate image plus silence, encoded to match the stream's codec and resolution, so downstream (YouTube, decoders) stays connected; configurable timeout. Makes PRD IO-8 "keep output alive" real | in review |
-| 12 Models in the GUI and more languages | **Two lists:** (1) *installed* models, what's on disk; the GUI's model and language choices only offer these; (2) the *catalogue* of models you can pull: the built-in registry plus a user-editable file (e.g. `~/.config/multi/models.toml`) merged on top, so users can add their own models with source, checksum and licence. **GUI Models section:** list, pull (with progress and licence shown), verify, remove, the same as `multi models`. **More languages:** grow the catalogue from 4 translation targets to every permissively licensed opus-mt English pair (dozens), each marked with the caption formats that can carry it (608/708 Latin only; others wait for WebVTT/TTML). Source language stays English in M1 | planned, likely M2 |
+| 1 Skeleton | Workspace, `multi-core` (config with PRD defaults, text types, worker IPC framing), `multi` CLI stub, CI | done |
+| 2 Media | `multi-media`: GStreamer input, restamping bridge, caption lanes, SRT/UDP/RTMP outputs, reconnect; fake-worker integration test | done |
+| 3 Workers | `multi-asr`, `multi-mt` worker binaries; supervisor with heartbeats and restart | done |
+| 4 Caption quality | Segmenter, word filters, text cleaning, backlog cap, lane restart, degrade policy, CC2/CC4 option | done |
+| 5 Web GUI | Control layer, API + live events, embedded page: settings, status, live captions | done |
+| 6 Validate | B-frames and 4-hour soak **done** ([summary](evidence/WP6/soak-summary.txt)); live OBS test from the GUI and YouTube RTMP test still to do; findings | done |
+| 7 Models | Model registry (PRD MD-4); `multi models list/pull/verify/remove`; storage folders; hosted pre-converted opus-mt; clear error and GUI warning when a language's model is missing | done |
+| 8 GUI follow-ups | Input audio level meter and a warning after ~10 s of silence; warn when a language has no installed model or its script can't go on 608/708; fix output mode label ("waits for the receiver") | done |
+| 9 Web login and HTTPS | Username + password login for the web GUI (argon2 hash in config, `multi passwd` or first-run setup, rate-limited attempts, expiring session cookie, Log out); API token kept for scripts; HTTPS built in or a documented reverse-proxy setup (Caddy/nginx), since passwords over plain HTTP can be read on the network | done |
+| 10 Per-output control | `enabled` flag and Start/Stop per output (GUI Outputs list + API); add, remove or change an output without restarting the pipeline or interrupting the others. Outputs already run as separate sink pipelines, so this is mostly control plumbing | done |
+| 11 Fallback picture on input loss | While the input is gone, send black or a slate image plus silence, encoded to match the stream's codec and resolution, so downstream (YouTube, decoders) stays connected; configurable timeout. Makes PRD IO-8 "keep output alive" real | done |
+| 12 Models in the GUI and more languages | **Two lists:** (1) *installed* models, what's on disk; the GUI's model and language choices only offer these; (2) the *catalogue* of models you can pull: the built-in registry plus a user-editable file (e.g. `~/.config/multi/models.toml`) merged on top, so users can add their own models with source, checksum and licence. **GUI Models section:** list, pull (with progress and licence shown), verify, remove, the same as `multi models`. **More languages:** grow the catalogue from 4 translation targets to every permissively licensed opus-mt English pair (dozens), each marked with the caption formats that can carry it (608/708 Latin only; others wait for WebVTT/TTML). Source language stays English in M1 | moved to M2 (M2-1) |
 
 ## Warnings and audio level (WP8)
 
@@ -32,13 +32,15 @@ One branch and PR per package; CI must pass before merge.
 
 ## Exit criteria
 
+All met except FR/DE on CC2/CC4 (dropped); see [M1 results](findings/M1-results.md).
+
 - `multi models pull` installs the default model set on a clean machine, with checksums verified.
 
 - 4-hour live run: no video interruptions, memory flat, no errors.
 - EN caption lag P95 ≤ 1.5 s; translated ≤ 2.5 s.
 - Killing the ASR or translation worker never interrupts video; captions return within 5 s.
 - A blocklisted word never appears in any caption language.
-- Captions visible on YouTube via RTMP; EN/ES in VLC; FR/DE via the CC2/CC4 option.
+- Captions visible on YouTube via RTMP; EN/ES in VLC; FR/DE via the CC2/CC4 option. *(YouTube: met, English only. CC2/CC4: dropped — GStreamer's encoders support CC1/CC3 only.)*
 - Set up, start and monitor a stream using only the web GUI.
 - CI green on `main`.
 
@@ -164,6 +166,7 @@ multi models remove <id>
 
 Newest first.
 
+- 2026-09-28 — **M1 done.** Live OBS test (login, fallback picture, per-output control) and YouTube RTMP test passed; YouTube shows English only. See [M1 results](findings/M1-results.md).
 - 2026-09-28 — WP9 in review: username/password sign-in (argon2id, `multi passwd`, loopback-only `/setup`), sessions with expiry, per-IP back-off, Log out, Bearer token kept for scripts, built-in HTTPS (`web.tls`, self-signed certificate made on first use).
 - 2026-09-28 — Added WP12 (models in the GUI, user-editable catalogue, more languages) to the to-do.
 - 2026-09-28 — WP6: B-frame test passed; 4-hour soak passed (video never interrupted, +33.8 ms, 0 errors, memory flat, worker kill recovery 1.5 s / 0.8 s, EN caption lag p95 1.20–1.28 s). Added WP9–WP11 to the to-do.
