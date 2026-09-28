@@ -1,0 +1,5 @@
+2026-09-28T08:40:57.079046Z  WARN multi_media: input warning err=Could not get/set settings from/on resource.
+2026-09-28T09:41:12.172949Z  WARN multi::supervisor: worker failed: worker exited (signal: 9 (SIGKILL)); restarting worker=asr
+2026-09-28T10:41:12.150048Z  WARN multi::supervisor: worker failed: worker closed stdout; restarting worker=mt
+2026-09-28T12:40:59.088717Z  WARN multi_media: input silent; restarting input silent_ms=2044
+2026-09-28T12:40:59.350579Z  WARN multi_media: input warning err=Could not get/set settings from/on resource.

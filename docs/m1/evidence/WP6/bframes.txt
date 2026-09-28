@@ -1,0 +1,5 @@
+B-frame test, 2026-09-28: H.264 with -bf 0 (control) and -bf 2 -> multi run (fake workers) -> UDP out, 25 s each.
+Output has_b_frames: 0 (control), 2 (test). multi logged 0 errors in both runs.
+bf=0: CC1 caption lines=114, word pairs=400, out of order=0
+bf=2: CC1 caption lines=114, word pairs=400, out of order=0
+Result: pass. Captions follow display order with B-frames; identical to the no-B-frame control.
