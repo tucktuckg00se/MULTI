@@ -3,9 +3,12 @@
 //!
 //! Text for a lane waits in a per-lane queue and is handed to the lane's
 //! encoder once the encoder is less than [`LEAD_FRAMES`] ahead of the current
-//! frame. If queued text plus encoder lead exceed [`MAX_BACKLOG_S`], the
-//! oldest queued text is dropped and counted. Callers push text through a
-//! [`CaptionHandle`], which never blocks.
+//! frame. Backlog cap: text older than [`MAX_AGE`] (from its origin, e.g. the
+//! clause closing for a translation) is dropped on arrival or while queued,
+//! and if queued text plus encoder lead exceed [`MAX_BACKLOG_S`], the oldest
+//! queued text is dropped; both are counted. A failed push into the encoder
+//! (flow error) rebuilds it, as do bus errors and stalls. Callers push text
+//! through a [`CaptionHandle`], which never blocks.
 
 use std::collections::{BTreeMap, VecDeque};
 use std::sync::Arc;
@@ -28,6 +31,8 @@ const REANCHOR: i64 = 90;
 const LEAD_FRAMES: u64 = 6;
 /// Per-lane backlog cap (queued text plus encoder lead), seconds.
 const MAX_BACKLOG_S: f64 = 6.0;
+/// Text older than this is dropped instead of shown (M1 WP4).
+pub const MAX_AGE: Duration = Duration::from_millis(multi_core::quality::MAX_AGE_MS);
 /// Rough caption bandwidth for the backlog estimate (608 is the bottleneck).
 const CHARS_PER_S: f64 = 40.0;
 /// Text waiting between callers and the caption stage.
@@ -48,8 +53,10 @@ pub struct LaneSpec {
 
 /// Maps the configured languages to encoder tracks. A language with a 708
 /// service gets a `tttocea708` track (plus 608 compatibility bytes on its
-/// channel); a 608-only language gets a `tttocea608` track. CC2/CC4 are not
-/// supported yet (M1 WP4).
+/// channel); a 608-only language gets a `tttocea608` track. CC2/CC4 are
+/// refused: they share field 1/2 with CC1/CC3, `tttocea708` writes 608
+/// bytes on CC1/CC3 only and `tttocea608` on CC1 only, and two encoders
+/// cannot share one field's two bytes per frame without a 608 multiplexer.
 pub fn lane_specs(langs: &[Language], c: &Captions) -> Result<Vec<LaneSpec>> {
     let rows = u32::from(c.rows.clamp(2, 4));
     let mut out = Vec::new();
@@ -59,7 +66,8 @@ pub fn lane_specs(langs: &[Language], c: &Captions) -> Result<Vec<LaneSpec>> {
             Some(Cc608::Cc1) => 1,
             Some(Cc608::Cc3) => 3,
             Some(other) => bail!(
-                "language {}: {other:?} is not supported yet (only CC1 and CC3)",
+                "language {}: {other:?} is not supported (CC1 and CC3 only); \
+                 carry it on a 708 service instead",
                 l.code
             ),
         };
@@ -102,6 +110,8 @@ struct Line {
     new_row: bool,
     /// When the text may be shown (arrival + `captions.offset_ms`).
     due: Instant,
+    /// Where the text's age counts from.
+    born: Instant,
 }
 
 /// Pushes caption text into the lanes. Cheap to clone; never blocks.
@@ -118,6 +128,13 @@ impl CaptionHandle {
     /// first. Returns false if the language has no lane or the text was
     /// dropped because the caption stage is not keeping up.
     pub fn push(&self, lang: &str, text: &str, new_row: bool) -> bool {
+        self.push_aged(lang, text, new_row, Duration::ZERO)
+    }
+
+    /// Like [`push`](Self::push), for text that is already `age` old (a
+    /// translation: time since its clause closed). Text older than
+    /// [`MAX_AGE`] is dropped and counted as stale.
+    pub fn push_aged(&self, lang: &str, text: &str, new_row: bool, age: Duration) -> bool {
         let Some(lane) = self.langs.iter().position(|l| l == lang) else {
             return false;
         };
@@ -125,13 +142,22 @@ impl CaptionHandle {
         if text.is_empty() {
             return true;
         }
+        if age > MAX_AGE {
+            if let Some(c) = self.counters.get(lane) {
+                c.dropped.fetch_add(1, Ordering::Relaxed);
+                c.stale.fetch_add(1, Ordering::Relaxed);
+            }
+            return false;
+        }
+        let now = Instant::now();
         let line = Line {
             lane,
             // No leading space: in roll-up, tttocea708 already puts one
             // between consecutive text buffers (S6 gotcha 3).
             text: text.to_string(),
             new_row,
-            due: Instant::now() + self.offset,
+            due: now + self.offset,
+            born: now.checked_sub(age).unwrap_or(now),
         };
         match self.tx.try_send(line) {
             Ok(()) => true,
@@ -159,6 +185,8 @@ pub(crate) fn lane_stats(langs: &[String], counters: &[LaneCounters]) -> Vec<Lan
             pushed: c.pushed.load(Ordering::Relaxed),
             dropped: c.dropped.load(Ordering::Relaxed),
             queued: c.queued.load(Ordering::Relaxed),
+            stale: c.stale.load(Ordering::Relaxed),
+            oldest_ms: c.oldest_ms.load(Ordering::Relaxed),
         })
         .collect()
 }
@@ -299,12 +327,22 @@ impl Captioner {
         let fps = 1e9 / self.frame_ns;
         let hold = self.hold_frames();
         let now = Instant::now();
+        let mut flow_error = None;
         for lane in 0..self.queues.len() {
             let Some(enc) = self.enc.as_mut() else { return };
             let lead = enc.lead(lane, slot);
             let (Some(q), Some(ctr)) = (self.queues.get_mut(lane), self.counters.get(lane)) else {
                 continue;
             };
+            // Age cap: drop text that would be shown too late to be useful.
+            while let Some(l) = q.front()
+                && now.saturating_duration_since(l.born) > MAX_AGE
+            {
+                ctr.dropped.fetch_add(1, Ordering::Relaxed);
+                ctr.stale.fetch_add(1, Ordering::Relaxed);
+                warn!(lane, text = %l.text, "caption older than {} s: dropped", MAX_AGE.as_secs());
+                q.pop_front();
+            }
             // Backlog cap: drop the oldest queued text.
             loop {
                 let chars: usize = q.iter().map(|l| l.text.chars().count()).sum();
@@ -328,12 +366,26 @@ impl Captioner {
                         ctr.pushed.fetch_add(1, Ordering::Relaxed);
                     }
                     Err(e) => {
+                        // Drop the text (it may be what the encoder
+                        // rejects) and rebuild the encoder.
                         ctr.dropped.fetch_add(1, Ordering::Relaxed);
-                        warn!(lane, err = %e, "caption push failed");
+                        warn!(lane, err = %e, text = %line.text, "caption push failed");
+                        flow_error = Some(format!("lane {lane}: {e:#}"));
                     }
                 }
             }
             ctr.queued.store(q.len() as u64, Ordering::Relaxed);
+            let oldest = q
+                .front()
+                .map_or(0, |l| now.saturating_duration_since(l.born).as_millis());
+            ctr.oldest_ms
+                .store(u64::try_from(oldest).unwrap_or(u64::MAX), Ordering::Relaxed);
+            if flow_error.is_some() {
+                break;
+            }
+        }
+        if let Some(e) = flow_error {
+            self.fail(&format!("caption push failed ({e})"));
         }
     }
 
@@ -453,6 +505,24 @@ mod tests {
             (line.lane, line.text.as_str(), line.new_row),
             (1, "hola", true)
         );
+    }
+
+    #[test]
+    fn stale_text_is_dropped_on_arrival_and_in_queue() {
+        if gst::init().is_err() || gst::ElementFactory::find("tttocea708").is_none() {
+            return;
+        }
+        let specs = lane_specs(&default_languages(), &Captions::default()).unwrap();
+        let (mut cap, h) = Captioner::new(specs, &Captions::default());
+        assert!(!h.push_aged("es", "late", true, MAX_AGE + Duration::from_millis(1)));
+        assert!(h.push_aged("es", "old", true, MAX_AGE - Duration::from_millis(5)));
+        assert!(h.push_aged("es", "fresh", false, Duration::ZERO));
+        std::thread::sleep(Duration::from_millis(20));
+        for i in 0..10i64 {
+            cap.meta_for(i * 33_333_333, (30, 1));
+        }
+        let st = lane_stats(h.languages(), &cap.counters);
+        assert_eq!((st[1].pushed, st[1].dropped, st[1].stale), (1, 2, 2));
     }
 
     #[test]
