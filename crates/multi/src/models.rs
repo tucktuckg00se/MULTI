@@ -274,7 +274,12 @@ pub fn pull(reg: &Registry, ids: &[String], root: &Path) -> Result<()> {
     fs::create_dir_all(root).with_context(|| format!("cannot create {}", root.display()))?;
     let mut failed = Vec::new();
     for m in models {
-        println!("{} ({}, ~{} MB)", m.id, format!("{:?}", m.kind).to_lowercase(), m.disk_mb);
+        println!(
+            "{} ({}, ~{} MB)",
+            m.id,
+            format!("{:?}", m.kind).to_lowercase(),
+            m.disk_mb
+        );
         println!("  licence: {}", m.licence);
         println!("  attribution: {}", m.attribution);
         if m.installed(root) {

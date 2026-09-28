@@ -333,6 +333,24 @@ fn lock(m: &Mutex<St>) -> MutexGuard<'_, St> {
 }
 
 impl Service {
+    /// Warnings for models the default workers need but that are missing
+    /// from the models directory (none for an overridden worker).
+    pub fn missing_models(&self, config: &Config) -> Vec<multi_core::config::Issue> {
+        let w = &self.inner.workers;
+        if w.asr.is_some() && w.mt.is_some() {
+            return Vec::new();
+        }
+        let dir = crate::models::resolve_dir(w.models_dir.as_deref());
+        let src = config.languages.iter().position(|l| l.source);
+        let mut issues = crate::models::missing_models(config, &dir);
+        issues.retain(|i| {
+            let asr = i.path == "asr.model"
+                || src.is_some_and(|s| i.path == format!("languages[{s}].code"));
+            if asr { w.asr.is_none() } else { w.mt.is_none() }
+        });
+        issues
+    }
+
     pub fn new(config: Config, workers: Workers) -> Self {
         let (events, _) = broadcast::channel(EVENT_CAPACITY);
         Self {

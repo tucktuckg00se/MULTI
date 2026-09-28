@@ -408,6 +408,33 @@ struct StatusOut {
     #[serde(flatten)]
     status: ServiceStatus,
     config_issues: Vec<Issue>,
+    /// Advice that doesn't block starting: config warnings and live conditions.
+    warnings: Vec<Issue>,
+}
+
+/// Seconds of silent input audio (while video flows) before the GUI warns.
+const SILENCE_WARN_S: f64 = 10.0;
+
+/// Warnings about the running pipeline, as opposed to the saved config.
+fn live_warnings(status: &ServiceStatus) -> Vec<Issue> {
+    let mut out = Vec::new();
+    if status.state != crate::service::RunState::Running {
+        return out;
+    }
+    if let Some(m) = &status.media
+        && m.input_live
+        && m.audio_silent_s.is_some_and(|s| s >= SILENCE_WARN_S)
+    {
+        out.push(Issue {
+            path: "audio".into(),
+            message: format!(
+                "Input audio has been silent (below {} dBFS) for over {} s, so there is no speech to caption. Check the source: is the microphone connected, unmuted and on the streamed audio track?",
+                multi_media::SILENCE_DBFS,
+                SILENCE_WARN_S
+            ),
+        });
+    }
+    out
 }
 
 fn full_status(state: &AppState) -> StatusOut {
@@ -422,9 +449,13 @@ fn full_status(state: &AppState) -> StatusOut {
         .collect();
     let mut config_issues = config.validate();
     config_issues.extend(server_issues(state, &config));
+    let mut warnings = config.warnings();
+    warnings.extend(live_warnings(&status));
+    warnings.extend(state.service.missing_models(&config));
     StatusOut {
         status,
         config_issues,
+        warnings,
     }
 }
 
@@ -591,6 +622,36 @@ mod tests {
         _dir: TempDir,
         host: &'static str,
         _tx: watch::Sender<bool>,
+    }
+
+    fn running_with(silent_s: Option<f64>, live: bool) -> ServiceStatus {
+        let media = multi_media::Stats {
+            input_live: live,
+            audio_silent_s: silent_s,
+            ..Default::default()
+        };
+        ServiceStatus {
+            state: crate::service::RunState::Running,
+            uptime_s: Some(30),
+            media: Some(media),
+            workers: Vec::new(),
+            caption_lag_ms: None,
+            gpu: None,
+            errors: Vec::new(),
+            restart_pending: Vec::new(),
+            server_restart_pending: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn silence_warning_only_when_live_and_silent_long_enough() {
+        assert_eq!(live_warnings(&running_with(Some(12.0), true)).len(), 1);
+        assert!(live_warnings(&running_with(Some(3.0), true)).is_empty());
+        assert!(live_warnings(&running_with(Some(60.0), false)).is_empty());
+        assert!(live_warnings(&running_with(None, true)).is_empty());
+        let mut stopped = running_with(Some(60.0), true);
+        stopped.state = crate::service::RunState::Stopped;
+        assert!(live_warnings(&stopped).is_empty());
     }
 
     struct TempDir(PathBuf);
