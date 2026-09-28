@@ -32,7 +32,7 @@ Evidence: [asr-wer-mls.tsv](../evidence/R1/asr-wer-mls.tsv) (includes utterance 
 Caveats:
 - With about 700–900 reference words per language, the numbers are ±~2 points.
 - MLS is read audiobook speech, not live talk.
-- DE Nemotron errors are mostly compound and rare-word substitutions (e.g. "Schussdauwerkstatt").
+- DE Nemotron errors are mostly compound-word substitutions.
 - An explicit language prompt beats `auto` slightly, so the source language should be set, not detected.
 
 ## opus-mt pairs (Helsinki-NLP)
@@ -56,4 +56,4 @@ Evidence: [opus-mt-pairs.txt](../evidence/R1/opus-mt-pairs.txt)
 | PT | Nemotron | Via EN (ROMANCE-en, then EN→X). No direct PT→X pairs |
 | Other transcription-ready (it nl ru ar hi ja…) | Nemotron (untested here) | Via EN |
 
-**Rule:** use the direct pair when one exists and scores at least as well as the pivot; otherwise pivot through English. The pivot adds one MT hop, a few ms on GPU. Always ask for the source language explicitly.
+**Rule:** use the direct pair when one exists and scores at least as well as the pivot; otherwise pivot through English. A pivot adds one MT hop. Always ask for the source language explicitly.

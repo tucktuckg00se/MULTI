@@ -16,9 +16,9 @@ Evidence: [gst-hls-elements.txt](../evidence/R1/gst-hls-elements.txt)
 | `webvttenc` | yes | gst-plugins-base (subenc) | text → WebVTT |
 | `jsontovtt` | yes | `gst-plugin-rsclosedcaption` | cea608 JSON → `application/x-subtitle-vtt-fragmented` |
 
-I checked the rs packages without sudo by extracting their `.pkg.tar.zst` files into a scratch `GST_PLUGIN_PATH`. The m3u8 library inside them knows `TYPE=SUBTITLES`, but no sink exposes a text pad.
+rs elements were checked by extracting the Arch packages into a scratch `GST_PLUGIN_PATH` (no sudo).
 
-A GStreamer-only route would need our own code: `webvttenc` or `jsontovtt` per language, cut into segments, plus hand-written media and master playlists next to `hlssink3`'s. That is doable, but it is custom work.
+A GStreamer-only route needs our own code: per-language `webvttenc`/`jsontovtt` segments and hand-written playlists.
 
 ## FFmpeg proof (works)
 
@@ -33,12 +33,12 @@ The input was a pre-encoded H.264/AAC `.ts` plus `en.srt` and `es.srt`, with vid
 **Gotchas found:**
 1. FFmpeg puts each subtitle stream in its own variant, and a subtitle-only variant fails with "Could not write header". So video and audio have to be mapped once per language. That duplicates the A/V segments on disk (copy only, no re-encode). The fix is to write the master playlist ourselves: one video variant and N subtitle renditions, using only one copy of the A/V.
 2. The VTT segments carry no `X-TIMESTAMP-MAP`. Safari and hls.js need it to align cues with MPEG-TS PTS once the stream no longer starts at 0. Plan to write it ourselves or verify it in a player.
-3. In a live pipeline, captions arrive as timed text from MULTI, not as .srt files. So FFmpeg would take them via a pipe or `-f webvtt` input per language, or MULTI writes the VTT segments itself.
+3. Live, MULTI's captions would reach FFmpeg as a piped WebVTT input per language.
 
 ## Latency
 
-A player starts about 3 target durations behind live. With `hls_time 2` that is ≈6 s plus encode and upload, so ≈6–8 s glass-to-glass. The caption lag MULTI adds (about 1 s ASR plus MT) sits inside the segment window. LL-HLS parts could get to ~2–3 s, but that is out of scope for M2.
+A player starts about 3 target durations behind live. With `hls_time 2` that is ≈6 s plus encode and upload, so ≈6–8 s glass-to-glass. MULTI's ~1 s caption lag fits inside that window.
 
 ## Recommendation
 
-Use the **FFmpeg HLS muxer** for M2's web output. Stream-copy the A/V from the tee, feed one WebVTT input per language, and write the master playlist ourselves to avoid the duplicate-variant problem. Alternatively, and simpler to control, have MULTI write the `.vtt` segments and playlists in Rust next to an A/V-only HLS from FFmpeg or `hlssink3`. The VTT format is trivial and doesn't touch the video path. Revisit `hlsmultivariantsink` if upstream adds subtitle pads. Add `gst-plugin-hlssink3` + `gst-plugin-isobmff` only if we want CMAF A/V.
+Use the **FFmpeg HLS muxer** for M2's web output. Stream-copy the A/V from the tee, feed one WebVTT input per language, and write the master playlist ourselves to avoid the duplicate-variant problem. Alternatively, and simpler to control, have MULTI write the `.vtt` segments and playlists in Rust next to an A/V-only HLS from FFmpeg or `hlssink3`. The VTT format is trivial and doesn't touch the video path.
