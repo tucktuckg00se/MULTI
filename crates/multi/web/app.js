@@ -353,19 +353,27 @@ function renderLanguages(card) {
   h("button", { type: "button", onclick: () => { S.draft.languages.push({ code: "", source: false, cc608: null, cea708_service: null, priority: S.draft.languages.length }); onChange(); renderSettings(); } }, "+ Add language"));
 }
 
+const OPEN_GROUPS = new Set();
+
 function renderSettings() {
   const form = $("#settings-form");
   const focusId = document.activeElement && document.activeElement.id;
   form.replaceChildren();
   for (const s of SECTIONS) {
-    const card = h("section", { class: "card", id: "sec-" + s.id, "aria-labelledby": "h-" + s.id },
-      h("h2", { id: "h-" + s.id }, s.title), s.lede ? h("p", { class: "lede" }, s.lede) : null);
+    // Each group collapses on its own; which ones are open survives re-renders.
+    const card = h("details", { class: "card settings-group", id: "sec-" + s.id, open: OPEN_GROUPS.has(s.id) },
+      h("summary", {}, h("h2", { id: "h-" + s.id }, s.title), s.lede ? h("span", { class: "lede" }, s.lede) : null));
+    card.addEventListener("toggle", () => {
+      if (card.open) OPEN_GROUPS.add(s.id); else OPEN_GROUPS.delete(s.id);
+      updateSavebar();
+    });
     if (s.custom) s.custom(card);
     else card.append(h("div", { class: "grid" }, s.fields.map(renderField)));
     form.append(card);
   }
   showIssues();
   if (focusId && document.getElementById(focusId)) document.getElementById(focusId).focus();
+  markSection();
 }
 
 function showIssues() {
@@ -379,9 +387,10 @@ function showIssues() {
     if (slot) slot.textContent = slot.textContent ? slot.textContent + " " + i.message : i.message;
     const input = document.querySelector(`[data-path="${CSS.escape(i.path)}"]`);
     if (input) input.setAttribute("aria-invalid", "true");
+    reveal(input || slot);
     const target = input || (slot && slot.closest(".card"));
     return h("li", {}, target
-      ? h("button", { type: "button", class: "link", onclick: () => { openSettings(); target.scrollIntoView({ block: "center" }); if (input) input.focus(); } }, h("code", {}, i.path || "config"))
+      ? h("button", { type: "button", class: "link", onclick: () => { reveal(target); target.scrollIntoView({ block: "center" }); if (input) input.focus(); } }, h("code", {}, i.path || "config"))
       : h("code", {}, i.path || "config"), " — ", i.message);
   });
   box.append(h("div", { class: "banner err", role: "alert" },
@@ -405,7 +414,6 @@ async function save() {
   if (r.status === 422) {
     S.issues = r.data.issues || [];
     showIssues();
-    openSettings();
     $("#issues").scrollIntoView({ block: "start" });
     onChange();
     return;
@@ -460,7 +468,7 @@ function renderWarningBanners(st) {
   for (const w of st.warnings || []) {
     const input = w.path && document.querySelector(`[data-path="${CSS.escape(w.path)}"]`);
     const where = w.path === "audio" || !w.path ? null
-      : input ? h("button", { type: "button", class: "link", onclick: () => { openSettings(); input.scrollIntoView({ block: "center" }); input.focus(); } }, h("code", {}, w.path))
+      : input ? h("button", { type: "button", class: "link", onclick: () => { reveal(input); input.scrollIntoView({ block: "center" }); input.focus(); } }, h("code", {}, w.path))
       : h("code", {}, w.path);
     $("#banners").append(h("div", { class: "banner warn warn-banner", role: "status" },
       h("p", {}, where ? [where, " — ", w.message] : w.message)));
@@ -556,8 +564,8 @@ async function startStop() {
   const r = await api("POST", active ? "/api/stop" : "/api/start");
   if (r.status === 422) {
     S.issues = r.data.issues || [];
-    openSettings();
     showIssues();
+    openSettings();
   } else if (!r.ok) {
     banner("err", "Could not start: " + ((r.data && r.data.error) || r.status));
   }
@@ -618,20 +626,41 @@ function connectEvents() {
 // One page: status, live captions, then settings in a collapsible section.
 // The save bar shows while settings are open or there are unsaved changes.
 
+// Opens the settings group that holds `el` (a field or error slot).
+function reveal(el) {
+  const group = el && el.closest("details.settings-group");
+  if (group && !group.open) group.open = true;
+}
+// Brings the settings section into view; groups with problems are opened by showIssues.
 function openSettings() {
-  $("#settings").open = true;
-  updateSavebar();
+  $("#settings").scrollIntoView({ block: "start" });
 }
+// Sidebar: one link per settings group (opens it), and the link for the
+// section in view is marked with aria-current.
+let markSection = () => {};
+function buildSideNav() {
+  $("#nav-groups").replaceChildren(...SECTIONS.map((sec) =>
+    h("li", {}, h("a", { href: "#sec-" + sec.id, onclick: () => { const g = $("#sec-" + sec.id); if (g) g.open = true; } }, sec.title))));
+  // Current section = the last one whose heading has scrolled past the header.
+  const links = $$(".side-nav > a");
+  const ids = ["status", "captions", "settings"];
+  const mark = () => {
+    let cur = ids[0];
+    for (const id of ids) if ($("#" + id).getBoundingClientRect().top <= 100) cur = id;
+    const root = document.documentElement;
+    if (window.scrollY > 0 && window.innerHeight + window.scrollY >= root.scrollHeight - 2) cur = ids[ids.length - 1];
+    links.forEach((a) => (a.getAttribute("href") === "#" + cur ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current")));
+  };
+  markSection = mark;
+  window.addEventListener("scroll", mark, { passive: true });
+  window.addEventListener("resize", mark);
+  mark();
+}
+
 function updateSavebar() {
-  const box = $("#settings");
-  $("#savebar").hidden = !(box && (box.open || dirty()));
+  const anyOpen = $$("details.settings-group[open]").length > 0;
+  $("#savebar").hidden = !(anyOpen || dirty());
 }
-$("#settings").addEventListener("toggle", () => {
-  updateSavebar();
-  const hash = $("#settings").open ? "#settings" : "";
-  if (location.hash !== hash) history.replaceState(null, "", hash || location.pathname);
-});
-$$('.jump a[href="#settings"]').forEach((a) => a.addEventListener("click", () => openSettings()));
 
 // ------------------------------------------------------------ boot
 
@@ -650,13 +679,13 @@ $("#load-defaults").addEventListener("click", async () => {
 });
 $("#settings-form").addEventListener("submit", (e) => { e.preventDefault(); if (dirty()) save(); });
 document.addEventListener("keydown", (e) => {
-  if ((e.ctrlKey || e.metaKey) && e.key === "s" && $("#settings").open) { e.preventDefault(); if (dirty()) save(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === "s" && $$("details.settings-group[open]").length > 0) { e.preventDefault(); if (dirty()) save(); }
 });
 $$(".startstop").forEach((b) => b.addEventListener("click", startStop));
 $("#clear-captions").addEventListener("click", () => $$(".lane-body").forEach((l) => l.replaceChildren()));
 window.addEventListener("beforeunload", (e) => { if (S.draft && dirty()) e.preventDefault(); });
 
-if (location.hash === "#settings") openSettings();
+buildSideNav();
 updateSavebar();
 loadConfig().then(refreshStatus);
 connectEvents();

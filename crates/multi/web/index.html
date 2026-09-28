@@ -10,11 +10,6 @@
 <header class="top">
   <div class="top-inner">
     <div class="brand">MULTI<span>Live captions</span></div>
-    <nav class="jump" aria-label="Sections">
-      <a href="#status">Status</a>
-      <a href="#captions">Live captions</a>
-      <a href="#settings">Settings</a>
-    </nav>
     <div class="top-right">
       <span id="state-pill" class="pill" aria-live="polite">Stopped</span>
       <button class="startstop primary" type="button">Start</button>
@@ -22,6 +17,15 @@
   </div>
 </header>
 
+<div class="layout">
+<aside class="side">
+  <nav class="side-nav" aria-label="Sections">
+    <a href="#status">Status</a>
+    <a href="#captions">Live captions</a>
+    <a href="#settings">Settings</a>
+    <ul id="nav-groups" class="side-sub"></ul>
+  </nav>
+</aside>
 <main>
   <div id="banners" aria-live="polite"></div>
 
@@ -61,12 +65,13 @@
     </div>
     <div class="caption-grid" id="lanes"></div>
   </section>
-  <details id="settings" class="block settings-block">
-    <summary><h1 class="block-title">Settings</h1><span class="summary-hint">Inputs, outputs, languages, filters and timing</span></summary>
+  <section id="settings" class="block" aria-labelledby="h-settings">
+    <h1 id="h-settings" class="block-title">Settings</h1>
     <div id="issues"></div>
     <form id="settings-form" novalidate></form>
-  </details>
+  </section>
 </main>
+</div>
 
 <div class="savebar" id="savebar" hidden>
   <div class="savebar-inner">
