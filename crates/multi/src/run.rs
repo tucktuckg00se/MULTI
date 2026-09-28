@@ -23,7 +23,7 @@ use anyhow::{Context, Result, bail};
 use multi_core::Config;
 use multi_core::ipc::Message;
 use multi_core::quality::CaptionQuality;
-use multi_media::{AudioChunk, CaptionHandle, Media, MediaConfig, Stats};
+use multi_media::{AudioChunk, CaptionHandle, Media, MediaConfig, OutputControl, Stats};
 use tracing::{debug, info, warn};
 
 use crate::segment::{Event, Segmenter};
@@ -55,6 +55,9 @@ pub trait Observer: Send + Sync {
     fn snapshot(&self, _s: Snapshot) {}
     /// A worker reported an error.
     fn worker_error(&self, _worker: &str, _message: &str) {}
+    /// The media pipeline is up; `outputs` controls its outputs live (ids
+    /// `0..n` in config order).
+    fn media_started(&self, _outputs: OutputControl) {}
 }
 
 /// No observer.
@@ -227,6 +230,7 @@ pub fn run(opts: RunOptions, stop: &AtomicBool, obs: &dyn Observer) -> Result<()
             return Err(e.context("cannot start the media pipeline"));
         }
     };
+    obs.media_started(media.outputs());
 
     let text = TextPath {
         seg: Segmenter::new(Duration::from_millis(u64::from(
@@ -403,7 +407,11 @@ fn log_stats(media: &Media, asr: &Supervisor, mt: Option<&Supervisor>) {
             format!(
                 "{}:{}:err={}",
                 o.url,
-                if o.running { "up" } else { "down" },
+                match (o.enabled, o.running) {
+                    (false, _) => "off",
+                    (true, true) => "up",
+                    (true, false) => "down",
+                },
                 o.errors
             )
         })

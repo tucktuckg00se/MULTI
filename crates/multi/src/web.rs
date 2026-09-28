@@ -45,6 +45,9 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::{broadcast, watch};
 use tracing::{info, warn};
 
+#[path = "web_outputs.rs"]
+mod outputs;
+
 use crate::auth::{self, Clock, Limiter, Sessions, eq_ct};
 use crate::service::{
     ApplyReport, Effect, Service, ServiceStatus, Workers, changed_paths, effect_of,
@@ -153,6 +156,8 @@ pub fn router(state: AppState) -> Router {
         .route("/api/config/default", get(default_config))
         .route("/api/start", post(start))
         .route("/api/stop", post(stop))
+        .route("/api/outputs/{index}/start", post(outputs::start))
+        .route("/api/outputs/{index}/stop", post(outputs::stop))
         .route("/api/status", get(status))
         .route("/api/events", get(events))
         .layer(middleware::from_fn_with_state(state.clone(), guard))
@@ -1237,12 +1242,8 @@ mod tests {
         let mut c = Config::default();
         c.input.url = "srt://0.0.0.0:9000?mode=listener&passphrase=inputsecret".into();
         c.outputs = vec![
-            Output {
-                url: "rtmp://a.rtmp.youtube.com/live2/abcd-efgh-key".into(),
-            },
-            Output {
-                url: "srt://h:1?mode=caller&passphrase=outsecret".into(),
-            },
+            Output::new("rtmp://a.rtmp.youtube.com/live2/abcd-efgh-key"),
+            Output::new("srt://h:1?mode=caller&passphrase=outsecret"),
         ];
         c.web.token = Some("tok-123".into());
         c.web.password_hash = Some(auth::hash_password("hunter2hunter2").unwrap());

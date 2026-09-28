@@ -34,12 +34,12 @@ use multi_core::config::{Captions, Language};
 use tracing::{error, info, warn};
 
 pub use captions::{CaptionHandle, LaneSpec, lane_specs};
-pub use output::Codec;
+pub use output::{Codec, OutputSpec};
 pub use stats::{LaneStats, OutputStats, SILENCE_DBFS, Stats, level_dbfs};
 
 use crate::bridge::Bridge;
 use crate::captions::Captioner;
-use crate::output::OutputManager;
+use crate::output::{OutputManager, OutputSet};
 use crate::stats::{Counters, LaneCounters, get, inc};
 
 /// 16 kHz mono PCM from the audio tap. `start_ms` is the input audio PTS of
@@ -58,7 +58,7 @@ pub type AudioCallback = Arc<dyn Fn(AudioChunk) + Send + Sync>;
 #[derive(Clone, Debug)]
 pub struct MediaConfig {
     pub input_url: String,
-    pub outputs: Vec<String>,
+    pub outputs: Vec<OutputSpec>,
     pub srt_latency_ms: u32,
     pub languages: Vec<Language>,
     pub captions: Captions,
@@ -74,7 +74,15 @@ impl MediaConfig {
     pub fn from_config(c: &Config) -> Self {
         Self {
             input_url: c.input.url.clone(),
-            outputs: c.outputs.iter().map(|o| o.url.clone()).collect(),
+            outputs: c
+                .outputs
+                .iter()
+                .map(|o| OutputSpec {
+                    url: o.url.clone(),
+                    name: o.name.clone(),
+                    enabled: o.enabled,
+                })
+                .collect(),
             srt_latency_ms: c.srt.latency_ms,
             languages: c.languages.clone(),
             captions: c.captions.clone(),
@@ -122,7 +130,7 @@ pub fn check_elements(cfg: &MediaConfig) -> Result<()> {
     ];
     let mut schemes = vec![url::input_kind(&cfg.input_url).map(|k| format!("{k:?}"))?];
     for o in &cfg.outputs {
-        schemes.push(format!("out-{:?}", url::output_kind(o)?));
+        schemes.push(format!("out-{:?}", url::output_kind(&o.url)?));
     }
     for s in &schemes {
         match s.as_str() {
@@ -149,6 +157,71 @@ pub fn check_elements(cfg: &MediaConfig) -> Result<()> {
         bail!("missing GStreamer elements: {}", missing.join(", "));
     }
     Ok(())
+}
+
+/// Checks that the elements an output URL needs are installed (for outputs
+/// added while running; [`check_elements`] covers the ones at start).
+fn check_output_elements(u: &str) -> Result<()> {
+    let need: &[&str] = match url::output_kind(u)? {
+        url::OutputKind::Srt => &["srtsink"],
+        url::OutputKind::Udp => &["udpsink"],
+        url::OutputKind::Rtmp => &["flvmux", "rtmp2sink", "h264parse", "aacparse"],
+    };
+    let missing: Vec<&str> = need
+        .iter()
+        .copied()
+        .filter(|f| gst::ElementFactory::find(f).is_none())
+        .collect();
+    if !missing.is_empty() {
+        bail!("missing GStreamer elements: {}", missing.join(", "));
+    }
+    Ok(())
+}
+
+/// Live control of the outputs of a running [`Media`]: add, remove, start
+/// and stop one output without touching the others. Cheap to clone. Ids are
+/// stable while the pipeline runs; the outputs from [`MediaConfig`] get ids
+/// `0..n` in order.
+#[derive(Clone)]
+pub struct OutputControl {
+    set: Arc<OutputSet>,
+}
+
+impl OutputControl {
+    /// Adds an output at the end (started at once if enabled) and returns its id.
+    pub fn add(&self, spec: &OutputSpec) -> Result<u64> {
+        check_output_elements(&spec.url)?;
+        self.set.add(spec)
+    }
+
+    /// Removes an output, tearing its pipeline down. False if unknown.
+    pub fn remove(&self, id: u64) -> bool {
+        self.set.remove(id)
+    }
+
+    /// Starts or stops an output. False if unknown.
+    pub fn set_enabled(&self, id: u64, on: bool) -> bool {
+        self.set.set_enabled(id, on)
+    }
+
+    /// Renames an output. False if unknown.
+    pub fn set_name(&self, id: u64, name: Option<String>) -> bool {
+        self.set.set_name(id, name)
+    }
+
+    /// Orders the outputs (and their stats) as `ids`.
+    pub fn arrange(&self, ids: &[u64]) {
+        self.set.arrange(ids);
+    }
+
+    /// Current ids, in order.
+    pub fn ids(&self) -> Vec<u64> {
+        self.set.ids()
+    }
+
+    pub fn stats(&self) -> Vec<OutputStats> {
+        self.set.stats()
+    }
 }
 
 /// State shared by the control thread and streaming-thread callbacks.
@@ -190,7 +263,7 @@ impl Media {
             counters.clone(),
             &cfg.outputs,
             cfg.srt_latency_ms,
-        );
+        )?;
         let core = Arc::new(Core {
             cfg,
             counters,
@@ -200,9 +273,7 @@ impl Media {
             last_data: AtomicU64::new(0),
             level: stats::LevelMeter::default(),
         });
-        for s in core.output.sinks.iter() {
-            s.poll();
-        }
+        core.output.sinks.poll();
         let first = input::build(&core)?;
         let stop = Arc::new(AtomicBool::new(false));
         let thread = {
@@ -219,6 +290,13 @@ impl Media {
             stop,
             thread: Mutex::new(Some(thread)),
         })
+    }
+
+    /// Handle for adding, removing, starting and stopping outputs live.
+    pub fn outputs(&self) -> OutputControl {
+        OutputControl {
+            set: self.core.output.sinks.clone(),
+        }
     }
 
     /// Handle for pushing caption text; cheap to clone.
@@ -248,7 +326,7 @@ impl Media {
             audio_rms_dbfs,
             audio_peak_dbfs,
             audio_silent_s,
-            outputs: self.core.output.sinks.iter().map(|s| s.stats()).collect(),
+            outputs: self.core.output.sinks.stats(),
             lanes: captions::lane_stats(self.captions.languages(), &self.lane_counters),
         }
     }
@@ -353,9 +431,7 @@ fn control(core: &Arc<Core>, stop: &AtomicBool, first: input::Input) {
                 backoff = INPUT_BACKOFF_INITIAL;
             }
             core.output.poll();
-            for s in core.output.sinks.iter() {
-                s.poll();
-            }
+            core.output.sinks.poll();
         }
         let _ = inp.pipeline.set_state(gst::State::Null);
         core.last_data.store(0, Ordering::Relaxed);

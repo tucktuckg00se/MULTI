@@ -58,3 +58,9 @@ harness = false
 [[test]]
 name = "web"
 harness = false
+
+# Live per-output control with the fake workers; re-runs itself as the fake
+# worker, so it has its own main().
+[[test]]
+name = "outputs"
+harness = false

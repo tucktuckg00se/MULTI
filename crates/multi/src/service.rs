@@ -18,7 +18,8 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{Context, Result, anyhow, bail};
 use multi_core::Config;
-use multi_media::Stats;
+use multi_core::config::Output;
+use multi_media::{OutputControl, OutputSpec, Stats};
 use serde::Serialize;
 use tokio::sync::broadcast;
 use tracing::{info, warn};
@@ -139,6 +140,8 @@ pub enum Effect {
 /// Per-setting rules (dotted-path prefixes). Anything not listed restarts the
 /// pipeline: when in doubt, restart.
 const RULES: &[(&str, Effect)] = &[
+    // Added, removed, started or stopped one at a time (see `apply_outputs`).
+    ("outputs", Effect::Live),
     ("web.token", Effect::Live),
     ("web.autostart", Effect::Live),
     ("web.username", Effect::Live),
@@ -207,8 +210,49 @@ struct Running {
     stop: Arc<AtomicBool>,
     thread: JoinHandle<Result<()>>,
     started: Instant,
+    /// What the pipeline runs; `config.outputs` follows live output changes.
     config: Config,
     snapshot: Arc<Mutex<Option<Snapshot>>>,
+    /// Set once the media pipeline is up.
+    outputs: Arc<Mutex<Option<OutputControl>>>,
+    /// Media output id of each `config.outputs` entry.
+    output_ids: Vec<u64>,
+}
+
+/// For each new output, the old output it continues (same URL, preferring
+/// the same name, then the same position), or `None` for a new one. Old
+/// outputs no new one continues are removed; a changed URL is a new output.
+pub fn match_outputs(old: &[Output], new: &[Output]) -> Vec<Option<usize>> {
+    let mut used = vec![false; old.len()];
+    let mut out = vec![None; new.len()];
+    let mut take =
+        |j: usize, pick: &dyn Fn(usize, &Output) -> bool, out: &mut Vec<Option<usize>>| {
+            if out[j].is_some() {
+                return;
+            }
+            if let Some(i) = (0..old.len()).find(|&i| !used[i] && pick(i, &old[i])) {
+                used[i] = true;
+                out[j] = Some(i);
+            }
+        };
+    for (j, n) in new.iter().enumerate() {
+        take(j, &|_, o| o.url == n.url && o.name == n.name, &mut out);
+    }
+    for (j, n) in new.iter().enumerate() {
+        take(j, &|i, o| i == j && o.url == n.url, &mut out);
+    }
+    for (j, n) in new.iter().enumerate() {
+        take(j, &|_, o| o.url == n.url, &mut out);
+    }
+    out
+}
+
+fn spec(o: &Output) -> OutputSpec {
+    OutputSpec {
+        url: o.url.clone(),
+        name: o.name.clone(),
+        enabled: o.enabled,
+    }
 }
 
 struct St {
@@ -257,6 +301,7 @@ impl ErrorLog {
 struct Obs {
     events: broadcast::Sender<Event>,
     snapshot: Arc<Mutex<Option<Snapshot>>>,
+    outputs: Arc<Mutex<Option<OutputControl>>>,
     errors: Arc<ErrorLog>,
 }
 
@@ -282,6 +327,12 @@ impl Observer for Obs {
 
     fn worker_error(&self, worker: &str, message: &str) {
         self.errors.push(worker, message.into());
+    }
+
+    fn media_started(&self, outputs: OutputControl) {
+        if let Ok(mut slot) = self.outputs.lock() {
+            *slot = Some(outputs);
+        }
     }
 }
 
@@ -311,11 +362,12 @@ impl Obs {
                 .media
                 .outputs
                 .iter()
-                .find(|p| p.url == o.url)
+                .find(|p| p.id == o.id)
                 .map_or(0, |p| p.errors);
             if o.errors > before {
+                let label = o.name.as_deref().unwrap_or(&o.url);
                 self.errors
-                    .push("output", format!("{}: error; restarting", o.url));
+                    .push("output", format!("{label}: error; restarting"));
             }
         }
         if s.media.caption_errors > prev.media.caption_errors {
@@ -432,9 +484,11 @@ impl Service {
         };
         let stop = Arc::new(AtomicBool::new(false));
         let snapshot = Arc::new(Mutex::new(None));
+        let outputs = Arc::new(Mutex::new(None));
         let obs = Obs {
             events: self.inner.events.clone(),
             snapshot: snapshot.clone(),
+            outputs: outputs.clone(),
             errors: self.inner.errors.clone(),
         };
         let flag = stop.clone();
@@ -444,12 +498,15 @@ impl Service {
             .context("cannot start the pipeline thread")?;
         info!("pipeline starting");
         st.failed = false;
+        let output_ids = (0..config.outputs.len() as u64).collect();
         st.run = Some(Running {
             stop,
             thread,
             started: Instant::now(),
             config,
             snapshot,
+            outputs,
+            output_ids,
         });
         Ok(())
     }
@@ -493,16 +550,75 @@ impl Service {
         let mut st = lock(&self.inner.st);
         self.reap(&mut st);
         let mut report = ApplyReport::default();
-        let running = st.run.as_ref().map(|r| r.config.clone());
+        let running = st.run.is_some();
         for path in changed_paths(&st.config, &config) {
             match effect_of(&path) {
                 Effect::Server => report.server_restart.push(path),
-                Effect::Restart if running.is_some() => report.restart.push(path),
+                Effect::Restart if running => report.restart.push(path),
                 _ => report.live.push(path),
             }
         }
+        if let Some(r) = st.run.as_mut()
+            && r.config.outputs != config.outputs
+            && !self.apply_outputs(r, &config.outputs)
+        {
+            report.live.retain(|p| p != "outputs");
+            report.restart.push("outputs".into());
+        }
         st.config = config;
         report
+    }
+
+    /// Adds, removes, starts, stops and renames the running pipeline's
+    /// outputs to match `new`, leaving unchanged outputs alone. False if
+    /// the pipeline is not up yet or an output could not be added (the rest
+    /// is applied; `status` then lists `outputs` as waiting for a restart).
+    fn apply_outputs(&self, r: &mut Running, new: &[Output]) -> bool {
+        let ctl = r.outputs.lock().ok().and_then(|c| c.clone());
+        let Some(ctl) = ctl else {
+            return false;
+        };
+        let old = &r.config.outputs;
+        let plan = match_outputs(old, new);
+        for (i, id) in r.output_ids.iter().enumerate() {
+            if !plan.contains(&Some(i)) {
+                ctl.remove(*id);
+            }
+        }
+        let mut applied = Vec::new();
+        let mut ids = Vec::new();
+        let mut ok = true;
+        for (n, m) in new.iter().zip(&plan) {
+            let id = match m.and_then(|i| Some((i, *r.output_ids.get(i)?))) {
+                Some((i, id)) => {
+                    let o = &old[i];
+                    if o.name != n.name {
+                        ctl.set_name(id, n.name.clone());
+                    }
+                    if o.enabled != n.enabled {
+                        ctl.set_enabled(id, n.enabled);
+                    }
+                    id
+                }
+                None => match ctl.add(&spec(n)) {
+                    Ok(id) => id,
+                    Err(e) => {
+                        ok = false;
+                        self.inner
+                            .errors
+                            .push("output", format!("cannot add output: {e:#}"));
+                        continue;
+                    }
+                },
+            };
+            applied.push(n.clone());
+            ids.push(id);
+        }
+        ctl.arrange(&ids);
+        info!(outputs = applied.len(), "outputs changed live");
+        r.config.outputs = applied;
+        r.output_ids = ids;
+        ok
     }
 
     pub fn status(&self) -> ServiceStatus {
@@ -525,7 +641,8 @@ impl Service {
             .map(|r| {
                 changed_paths(&r.config, &st.config)
                     .into_iter()
-                    .filter(|p| effect_of(p) == Effect::Restart)
+                    // Outputs differ only when a live change failed.
+                    .filter(|p| effect_of(p) == Effect::Restart || p == "outputs")
                     .collect()
             })
             .unwrap_or_default();
@@ -644,6 +761,48 @@ mod tests {
         assert_eq!(effect_of("web.port"), Effect::Server);
         assert_eq!(effect_of("captions.rows"), Effect::Restart);
         assert_eq!(effect_of("web.tokenx"), Effect::Restart);
+    }
+
+    fn out(url: &str, name: Option<&str>) -> Output {
+        Output {
+            url: url.into(),
+            name: name.map(Into::into),
+            enabled: true,
+        }
+    }
+
+    #[test]
+    fn outputs_match_by_url_and_name_then_position() {
+        let (a, b, c) = ("udp://h:1", "udp://h:2", "srt://h:3");
+        let old = vec![out(a, None), out(b, Some("B")), out(a, Some("A2"))];
+        // Unchanged, reordered, and one removed.
+        assert_eq!(
+            match_outputs(&old, &[out(a, Some("A2")), out(a, None)]),
+            vec![Some(2), Some(0)]
+        );
+        // A rename keeps the output (same URL, same position first).
+        assert_eq!(
+            match_outputs(&old, &[out(a, Some("x")), out(b, None), out(a, Some("y"))]),
+            vec![Some(0), Some(1), Some(2)]
+        );
+        // A changed URL is a new output; an added one is new.
+        assert_eq!(
+            match_outputs(
+                &old,
+                &[
+                    out(c, None),
+                    out(b, Some("B")),
+                    out(a, Some("A2")),
+                    out(b, None)
+                ]
+            ),
+            vec![None, Some(1), Some(2), None]
+        );
+    }
+
+    #[test]
+    fn outputs_apply_live() {
+        assert_eq!(effect_of("outputs"), Effect::Live);
     }
 
     #[test]
