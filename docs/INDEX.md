@@ -44,7 +44,7 @@ Types: `summary` overview page · `spec` requirements · `decision` ADR · `find
 
 | ID | Type | Title | Status | ~Tokens |
 |---|---|---|---|---|
-| M1-00 | summary | [M1 overview: work packages, exit criteria, code layout](m1/README.md) | current | ~5188 |
+| M1-00 | summary | [M1 overview: work packages, exit criteria, code layout](m1/README.md) | current | ~5247 |
 | M1-D1 | guide | [Built-in profanity lists: LDNOOBW source, licence, attribution](../crates/multi-core/data/README.md) | current | ~340 |
 | E-WP3 | evidence | [WP3 real-model check: ASR words/WER, MT latency, kill -9 recovery](m1/evidence/WP3) | current | ~784 |
 | E-WP7 | evidence | [WP7 local check: models verify on the M0 cache, pull into a fresh dir (download + conversion)](m1/evidence/WP7) | current | ~1342 |

@@ -63,18 +63,30 @@ header.top {
 }
 .brand { font-weight: 700; letter-spacing: .08em; font-size: 15px; }
 .brand span { font-weight: 400; letter-spacing: 0; color: var(--muted); margin-left: 8px; font-size: 13px; }
-[role="tablist"] { display: flex; gap: 4px; align-self: stretch; }
-[role="tab"] {
-  border: 0; background: none; color: var(--muted);
-  font: inherit; font-weight: 500; padding: 0 12px; cursor: pointer;
+.jump { display: flex; gap: 4px; align-self: stretch; }
+.jump a {
+  display: flex; align-items: center; padding: 0 12px;
+  color: var(--muted); text-decoration: none; font-weight: 500;
   border-bottom: 2px solid transparent;
 }
-[role="tab"][aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
-[role="tab"]:hover { color: var(--text); }
+.jump a:hover, .jump a:focus-visible { color: var(--text); border-bottom-color: var(--accent); }
 .top-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
 
 main { max-width: 1120px; margin: 0 auto; padding: 20px 20px 96px; }
-[role="tabpanel"][hidden] { display: none; }
+/* Dashboard sections: status, live captions, settings (collapsible). */
+.block { margin-bottom: 32px; scroll-margin-top: 72px; }
+.block-title { font-size: 18px; font-weight: 600; margin: 0 0 14px; }
+.settings-block > summary {
+  list-style: none; cursor: pointer; display: flex; align-items: baseline; gap: 12px;
+  padding: 12px 0; border-top: 1px solid color-mix(in srgb, var(--muted) 25%, transparent);
+}
+.settings-block > summary::-webkit-details-marker { display: none; }
+.settings-block > summary::before { content: "\25B8"; color: var(--muted); width: 1em; transition: transform .15s; }
+.settings-block[open] > summary::before { transform: rotate(90deg); }
+.settings-block > summary .block-title { margin: 0; }
+.settings-block > summary .summary-hint { color: var(--muted); font-size: 13px; }
+.settings-block > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.savebar[hidden] { display: none; }
 
 /* Buttons */
 button, .btn {

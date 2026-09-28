@@ -10,10 +10,10 @@
 <header class="top">
   <div class="top-inner">
     <div class="brand">MULTI<span>Live captions</span></div>
-    <nav role="tablist" aria-label="Sections">
-      <button role="tab" id="tab-settings" aria-controls="panel-settings" aria-selected="true">Settings</button>
-      <button role="tab" id="tab-status" aria-controls="panel-status" aria-selected="false" tabindex="-1">Status</button>
-      <button role="tab" id="tab-captions" aria-controls="panel-captions" aria-selected="false" tabindex="-1">Live captions</button>
+    <nav class="jump" aria-label="Sections">
+      <a href="#status">Status</a>
+      <a href="#captions">Live captions</a>
+      <a href="#settings">Settings</a>
     </nav>
     <div class="top-right">
       <span id="state-pill" class="pill" aria-live="polite">Stopped</span>
@@ -25,19 +25,13 @@
 <main>
   <div id="banners" aria-live="polite"></div>
 
-  <section role="tabpanel" id="panel-settings" aria-labelledby="tab-settings">
-    <div id="issues"></div>
-    <form id="settings" novalidate></form>
-  </section>
-
-  <section role="tabpanel" id="panel-status" aria-labelledby="tab-status" hidden>
+  <section id="status" class="block" aria-labelledby="h-status">
+    <h1 id="h-status" class="block-title">Status</h1>
     <div class="status-head">
       <div>
         <div class="state" id="st-state">Stopped</div>
         <div class="sub" id="st-sub">Pipeline not running</div>
       </div>
-      <div class="spacer"></div>
-      <button class="startstop primary" type="button">Start</button>
     </div>
     <div class="tiles">
       <div class="tile"><div class="k">Input</div><div class="v" id="t-input">–</div><div class="d" id="t-input-d">&nbsp;</div></div>
@@ -58,7 +52,8 @@
     <div class="card"><h2>Recent errors</h2><ul class="errors" id="st-errors"></ul></div>
   </section>
 
-  <section role="tabpanel" id="panel-captions" aria-labelledby="tab-captions" hidden>
+  <section id="captions" class="block" aria-labelledby="h-captions">
+    <h1 id="h-captions" class="block-title">Live captions</h1>
     <div class="toolbar">
       <span class="conn" id="conn">Connecting…</span>
       <div class="spacer"></div>
@@ -66,9 +61,14 @@
     </div>
     <div class="caption-grid" id="lanes"></div>
   </section>
+  <details id="settings" class="block settings-block">
+    <summary><h1 class="block-title">Settings</h1><span class="summary-hint">Inputs, outputs, languages, filters and timing</span></summary>
+    <div id="issues"></div>
+    <form id="settings-form" novalidate></form>
+  </details>
 </main>
 
-<div class="savebar" id="savebar">
+<div class="savebar" id="savebar" hidden>
   <div class="savebar-inner">
     <span class="note" id="save-note">No changes</span>
     <button type="button" id="load-defaults">Load defaults</button>

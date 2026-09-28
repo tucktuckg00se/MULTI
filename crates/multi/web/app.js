@@ -139,6 +139,7 @@ function onChange() {
   const note = $("#save-note");
   note.textContent = d ? "Unsaved changes" : "No changes";
   note.classList.toggle("dirty", d);
+  updateSavebar();
 }
 
 function errSlot(path) { return h("p", { class: "err-msg", "data-err": path, id: "err-" + path }); }
@@ -353,7 +354,7 @@ function renderLanguages(card) {
 }
 
 function renderSettings() {
-  const form = $("#settings");
+  const form = $("#settings-form");
   const focusId = document.activeElement && document.activeElement.id;
   form.replaceChildren();
   for (const s of SECTIONS) {
@@ -380,7 +381,7 @@ function showIssues() {
     if (input) input.setAttribute("aria-invalid", "true");
     const target = input || (slot && slot.closest(".card"));
     return h("li", {}, target
-      ? h("button", { type: "button", class: "link", onclick: () => { target.scrollIntoView({ block: "center" }); if (input) input.focus(); } }, h("code", {}, i.path || "config"))
+      ? h("button", { type: "button", class: "link", onclick: () => { openSettings(); target.scrollIntoView({ block: "center" }); if (input) input.focus(); } }, h("code", {}, i.path || "config"))
       : h("code", {}, i.path || "config"), " — ", i.message);
   });
   box.append(h("div", { class: "banner err", role: "alert" },
@@ -404,6 +405,7 @@ async function save() {
   if (r.status === 422) {
     S.issues = r.data.issues || [];
     showIssues();
+    openSettings();
     $("#issues").scrollIntoView({ block: "start" });
     onChange();
     return;
@@ -458,7 +460,7 @@ function renderWarningBanners(st) {
   for (const w of st.warnings || []) {
     const input = w.path && document.querySelector(`[data-path="${CSS.escape(w.path)}"]`);
     const where = w.path === "audio" || !w.path ? null
-      : input ? h("button", { type: "button", class: "link", onclick: () => { select("settings"); input.scrollIntoView({ block: "center" }); input.focus(); } }, h("code", {}, w.path))
+      : input ? h("button", { type: "button", class: "link", onclick: () => { openSettings(); input.scrollIntoView({ block: "center" }); input.focus(); } }, h("code", {}, w.path))
       : h("code", {}, w.path);
     $("#banners").append(h("div", { class: "banner warn warn-banner", role: "status" },
       h("p", {}, where ? [where, " — ", w.message] : w.message)));
@@ -554,7 +556,7 @@ async function startStop() {
   const r = await api("POST", active ? "/api/stop" : "/api/start");
   if (r.status === 422) {
     S.issues = r.data.issues || [];
-    select("settings");
+    openSettings();
     showIssues();
   } else if (!r.ok) {
     banner("err", "Could not start: " + ((r.data && r.data.error) || r.status));
@@ -612,31 +614,24 @@ function connectEvents() {
   };
 }
 
-// ------------------------------------------------------------ tabs
+// ------------------------------------------------------------ layout
+// One page: status, live captions, then settings in a collapsible section.
+// The save bar shows while settings are open or there are unsaved changes.
 
-const TABS = ["settings", "status", "captions"];
-function select(name, focus) {
-  for (const t of TABS) {
-    const on = t === name;
-    const tab = $("#tab-" + t);
-    tab.setAttribute("aria-selected", on);
-    tab.tabIndex = on ? 0 : -1;
-    $("#panel-" + t).hidden = !on;
-    if (on && focus) tab.focus();
-  }
-  $("#savebar").hidden = name !== "settings";
-  if (location.hash !== "#" + name) history.replaceState(null, "", "#" + name);
+function openSettings() {
+  $("#settings").open = true;
+  updateSavebar();
 }
-TABS.forEach((t, i) => {
-  const tab = $("#tab-" + t);
-  tab.addEventListener("click", () => select(t));
-  tab.addEventListener("keydown", (e) => {
-    const d = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
-    if (d) { e.preventDefault(); select(TABS[(i + d + TABS.length) % TABS.length], true); }
-    if (e.key === "Home") { e.preventDefault(); select(TABS[0], true); }
-    if (e.key === "End") { e.preventDefault(); select(TABS[TABS.length - 1], true); }
-  });
+function updateSavebar() {
+  const box = $("#settings");
+  $("#savebar").hidden = !(box && (box.open || dirty()));
+}
+$("#settings").addEventListener("toggle", () => {
+  updateSavebar();
+  const hash = $("#settings").open ? "#settings" : "";
+  if (location.hash !== hash) history.replaceState(null, "", hash || location.pathname);
 });
+$$('.jump a[href="#settings"]').forEach((a) => a.addEventListener("click", () => openSettings()));
 
 // ------------------------------------------------------------ boot
 
@@ -653,14 +648,15 @@ $("#load-defaults").addEventListener("click", async () => {
   onChange();
   flash("Defaults loaded (input, outputs and web kept). Review, then Save.");
 });
-$("#settings").addEventListener("submit", (e) => { e.preventDefault(); if (dirty()) save(); });
+$("#settings-form").addEventListener("submit", (e) => { e.preventDefault(); if (dirty()) save(); });
 document.addEventListener("keydown", (e) => {
-  if ((e.ctrlKey || e.metaKey) && e.key === "s" && !$("#panel-settings").hidden) { e.preventDefault(); if (dirty()) save(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === "s" && $("#settings").open) { e.preventDefault(); if (dirty()) save(); }
 });
 $$(".startstop").forEach((b) => b.addEventListener("click", startStop));
 $("#clear-captions").addEventListener("click", () => $$(".lane-body").forEach((l) => l.replaceChildren()));
 window.addEventListener("beforeunload", (e) => { if (S.draft && dirty()) e.preventDefault(); });
 
-select(TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "settings");
+if (location.hash === "#settings") openSettings();
+updateSavebar();
 loadConfig().then(refreshStatus);
 connectEvents();
