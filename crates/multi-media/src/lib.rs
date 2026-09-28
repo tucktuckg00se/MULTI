@@ -35,7 +35,7 @@ use tracing::{error, info, warn};
 
 pub use captions::{CaptionHandle, LaneSpec, lane_specs};
 pub use output::Codec;
-pub use stats::{LaneStats, OutputStats, Stats};
+pub use stats::{LaneStats, OutputStats, SILENCE_DBFS, Stats, level_dbfs};
 
 use crate::bridge::Bridge;
 use crate::captions::Captioner;
@@ -160,6 +160,8 @@ pub(crate) struct Core {
     pub audio: AudioCallback,
     /// Wall ns of the last buffer from the current input (0 = none yet).
     pub last_data: AtomicU64,
+    /// Input audio level, from the audio tap.
+    pub level: stats::LevelMeter,
 }
 
 /// A running media pipeline. Dropping it stops it.
@@ -196,6 +198,7 @@ impl Media {
             output,
             audio,
             last_data: AtomicU64::new(0),
+            level: stats::LevelMeter::default(),
         });
         for s in core.output.sinks.iter() {
             s.poll();
@@ -226,6 +229,7 @@ impl Media {
     pub fn stats(&self) -> Stats {
         let c = &self.core.counters;
         let last = self.core.last_data.load(Ordering::Relaxed);
+        let (audio_rms_dbfs, audio_peak_dbfs, audio_silent_s) = self.core.level.snapshot(wall_ns());
         Stats {
             frames_in: get(&c.frames_in),
             frames_out: get(&c.frames_out),
@@ -241,6 +245,9 @@ impl Media {
             audio_drops: get(&c.audio_drops),
             input_live: last > 0
                 && wall_ns().saturating_sub(last) < self.core.cfg.watchdog.as_nanos() as u64,
+            audio_rms_dbfs,
+            audio_peak_dbfs,
+            audio_silent_s,
             outputs: self.core.output.sinks.iter().map(|s| s.stats()).collect(),
             lanes: captions::lane_stats(self.captions.languages(), &self.lane_counters),
         }

@@ -111,6 +111,7 @@ fn tap_sink(core: Arc<Core>) -> gst_app::AppSink {
                 let start_ms = buf.pts().map(|p| p.mseconds()).or(next_ms).unwrap_or(0);
                 next_ms = Some(start_ms + samples.len() as u64 / 16);
                 inc(&core.counters.audio_chunks);
+                core.level.add(&samples, wall_ns());
                 (core.audio)(AudioChunk { start_ms, samples });
                 Ok(gst::FlowSuccess::Ok)
             })

@@ -15,7 +15,16 @@ One branch and PR per package; CI must pass before merge.
 | 5 Web GUI | Control layer, API + live events, embedded page: settings, status, live captions | in review |
 | 6 Validate | B-frames, 4-hour soak, live OBS test from the GUI, YouTube RTMP test, findings | not started |
 | 7 Models | Model registry (PRD MD-4); `multi models list/pull/verify/remove`; storage folders; hosted pre-converted opus-mt; clear error and GUI warning when a language's model is missing | not started |
-| 8 GUI follow-ups | Input audio level meter and a warning after ~10 s of silence; warn when a language has no installed model or its script can't go on 608/708; fix output mode label ("waits for the receiver") | not started |
+| 8 GUI follow-ups | Input audio level meter and a warning after ~10 s of silence; warn when a language has no installed model or its script can't go on 608/708; fix output mode label ("waits for the receiver") | in review |
+
+## Warnings and audio level (WP8)
+
+- **Input audio meter** on the Status tab: RMS level over 250 ms from the audio tap (−60 to 0 dBFS), with the peak underneath. `Stats` carries `audio_rms_dbfs`, `audio_peak_dbfs` and `audio_silent_s`.
+- **Warnings** (`/api/status` → `warnings`) never block saving or starting. They show as amber banners:
+  - Input audio below −60 dBFS for over 10 s while video flows (e.g. a muted or unassigned OBS mic).
+  - A language in a non-Latin script on 608/708 (needs WebVTT/TTML, not in M1).
+  - A Latin-script language whose letters 608 can't all show (on 608 only).
+  - WP7 adds missing-model warnings through the same list.
 
 ## Exit criteria
 

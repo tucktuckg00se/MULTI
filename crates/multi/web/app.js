@@ -273,7 +273,7 @@ function endpointEditor(path, kinds, isOutput) {
       if (scheme === "srt") {
         const mode = get("mode") || "caller";
         const modeSel = h("select", { id: "h-" + path + "-mode" },
-          [["listener", "Listener (wait for the sender)"], ["caller", "Caller (connect out)"]].map(([v, t]) => h("option", { value: v, selected: v === mode }, t)));
+          [["listener", path.startsWith("outputs") ? "Listener (wait for the receiver)" : "Listener (wait for the sender)"], ["caller", "Caller (connect out)"]].map(([v, t]) => h("option", { value: v, selected: v === mode }, t)));
         modeSel.addEventListener("change", () => { put("mode", modeSel.value); commit(build()); });
         g.append(h("div", { class: "field" }, h("label", { for: "h-" + path + "-mode" }, "Mode"), modeSel));
       }
@@ -449,6 +449,22 @@ function renderRestartBanners(st) {
   }
 }
 
+let warnKey = "";
+function renderWarningBanners(st) {
+  const key = JSON.stringify(st.warnings || []);
+  if (key === warnKey) return;
+  warnKey = key;
+  $$(".warn-banner").forEach((b) => b.remove());
+  for (const w of st.warnings || []) {
+    const input = w.path && document.querySelector(`[data-path="${CSS.escape(w.path)}"]`);
+    const where = w.path === "audio" || !w.path ? null
+      : input ? h("button", { type: "button", class: "link", onclick: () => { select("settings"); input.scrollIntoView({ block: "center" }); input.focus(); } }, h("code", {}, w.path))
+      : h("code", {}, w.path);
+    $("#banners").append(h("div", { class: "banner warn warn-banner", role: "status" },
+      h("p", {}, where ? [where, " — ", w.message] : w.message)));
+  }
+}
+
 // ------------------------------------------------------------ status
 
 const STATE_TEXT = { stopped: "Stopped", starting: "Starting", running: "Running", stopping: "Stopping", failed: "Failed" };
@@ -475,6 +491,7 @@ function renderStatus(st) {
   $("#st-state").textContent = STATE_TEXT[st.state];
   $("#st-sub").textContent = active ? "Up " + dur(st.uptime_s) : st.state === "failed" ? "See recent errors" : "Pipeline not running";
   renderRestartBanners(st);
+  renderWarningBanners(st);
 
   const m = st.media;
   const rate = (k) => (prev && prev.media && m ? Math.max(0, m[k] - prev.media[k]) : null);
@@ -485,6 +502,15 @@ function renderStatus(st) {
   const rin = rate("frames_in"), rout = rate("frames_out");
   $("#t-in-d").textContent = rin != null ? rin + " fps" : " ";
   $("#t-out-d").textContent = rout != null ? rout + " fps" : " ";
+  const silentWarn = m && m.input_live && m.audio_silent_s != null && m.audio_silent_s >= 10;
+  const rms = m ? m.audio_rms_dbfs : null;
+  $("#t-audio").textContent = rms == null ? "–" : rms <= -99 ? "Silent" : rms.toFixed(0) + " dBFS";
+  const bar = $("#t-audio-bar");
+  bar.style.width = rms == null ? "0%" : Math.max(0, Math.min(100, ((rms + 60) / 60) * 100)) + "%";
+  bar.className = silentWarn ? "warn" : "";
+  $("#t-audio-d").textContent = m && m.audio_peak_dbfs != null
+    ? (silentWarn ? "silent for " + dur(Math.round(m.audio_silent_s)) : "peak " + m.audio_peak_dbfs.toFixed(0) + " dBFS")
+    : " ";
   $("#t-lag").textContent = st.caption_lag_ms != null ? (st.caption_lag_ms / 1000).toFixed(2) + " s" : "–";
   $("#t-cc").textContent = m ? fmt(m.caption_frames) : "–";
   $("#t-cc-d").textContent = m && m.caption_errors ? m.caption_errors + " encoder errors" : " ";

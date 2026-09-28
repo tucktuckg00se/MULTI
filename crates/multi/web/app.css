@@ -214,3 +214,8 @@ td input, td select { min-width: 60px; }
 .login { max-width: 360px; margin: 12vh auto; }
 .login form { display: flex; flex-direction: column; gap: 10px; }
 .login .err { color: var(--err); margin: 0; }
+
+/* Input audio level: -60 dBFS (empty) to 0 dBFS (full). */
+.meter { height: 6px; margin: 6px 0 2px; background: color-mix(in srgb, var(--muted) 20%, transparent); border-radius: 3px; overflow: hidden; }
+.meter span { display: block; height: 100%; width: 0; background: var(--ok); transition: width 0.2s linear; }
+.meter span.warn { background: var(--warn); }
