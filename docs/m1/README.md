@@ -16,6 +16,7 @@ One branch and PR per package; CI must pass before merge.
 | 6 Validate | B-frames, 4-hour soak, live OBS test from the GUI, YouTube RTMP test, findings | not started |
 | 7 Models | Model registry (PRD MD-4); `multi models list/pull/verify/remove`; storage folders; hosted pre-converted opus-mt; clear error and GUI warning when a language's model is missing | in review |
 | 8 GUI follow-ups | Input audio level meter and a warning after ~10 s of silence; warn when a language has no installed model or its script can't go on 608/708; fix output mode label ("waits for the receiver") | in review |
+| 9 Web login and HTTPS | Username + password login for the web GUI (argon2 hash in config, `multi passwd` or first-run setup, rate-limited attempts, expiring session cookie, Log out); API token kept for scripts; HTTPS built in or a documented reverse-proxy setup (Caddy/nginx), since passwords over plain HTTP can be read on the network | not started |
 
 ## Warnings and audio level (WP8)
 
