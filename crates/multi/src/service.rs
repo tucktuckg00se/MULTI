@@ -144,8 +144,13 @@ const RULES: &[(&str, Effect)] = &[
     ("outputs", Effect::Live),
     ("web.token", Effect::Live),
     ("web.autostart", Effect::Live),
+    ("web.username", Effect::Live),
+    ("web.password_hash", Effect::Live),
     ("web.bind", Effect::Server),
     ("web.port", Effect::Server),
+    ("web.tls", Effect::Server),
+    ("web.tls_cert", Effect::Server),
+    ("web.tls_key", Effect::Server),
 ];
 
 pub fn effect_of(path: &str) -> Effect {

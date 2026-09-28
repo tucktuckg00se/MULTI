@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MULTI · Set a password</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<main class="login">
+  <div class="card">
+    <h2>MULTI</h2>
+    <p class="lede">Create the sign-in for this web GUI. Once it is set, everyone, on this machine too, signs in with it. Change it later with <code>multi passwd</code>.</p>
+    {{error}}
+    <form method="post" action="/setup">
+      <label class="label" for="username">User name</label>
+      <input id="username" name="username" type="text" autocomplete="username" value="{{username}}" required>
+      <label class="label" for="password">Password (at least {{min}} characters)</label>
+      <input id="password" name="password" type="password" autocomplete="new-password" minlength="{{min}}" required autofocus>
+      <label class="label" for="confirm">Repeat the password</label>
+      <input id="confirm" name="confirm" type="password" autocomplete="new-password" minlength="{{min}}" required>
+      <button class="primary" type="submit">Set password and sign in</button>
+    </form>
+  </div>
+</main>
+</body>
+</html>

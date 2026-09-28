@@ -176,9 +176,12 @@ async fn call(
     uri: &str,
     body: Option<&serde_json::Value>,
 ) -> (StatusCode, serde_json::Value) {
+    // A local client with no password set gets in without signing in (WP9).
+    let peer: std::net::SocketAddr = "127.0.0.1:50000".parse().unwrap();
     let req = Request::builder()
         .method(method)
         .uri(uri)
+        .extension(axum::extract::ConnectInfo(peer))
         .header("host", "localhost")
         .header("x-multi", "1")
         .header("content-type", "application/json")
