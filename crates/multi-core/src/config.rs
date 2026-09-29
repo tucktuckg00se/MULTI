@@ -67,7 +67,9 @@ impl Default for Input {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Output {
-    /// `srt://`, `udp://` or `rtmp(s)://` URL.
+    /// `srt://`, `udp://`, `rtmp(s)://` or `hls://<name>` URL. An HLS
+    /// output takes `?segment_s=2&window=6` (segment length in seconds,
+    /// segments in the live playlist).
     pub url: String,
     /// Label shown in the GUI and logs (optional).
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -75,10 +77,35 @@ pub struct Output {
     /// A stopped output keeps its settings but sends nothing.
     #[serde(default = "yes")]
     pub enabled: bool,
+    /// HLS outputs only: `/watch/<name>` and `/hls/<name>/…` need no sign-in.
+    /// Everything else (the GUI, the API, other outputs) still does.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub public: bool,
 }
 
 fn yes() -> bool {
     true
+}
+
+fn is_true(b: &bool) -> bool {
+    *b
+}
+
+fn is_false(b: &bool) -> bool {
+    !*b
+}
+
+/// Longest HLS output name (`hls://<name>`).
+pub const HLS_NAME_MAX: usize = 32;
+
+/// Whether `name` is a valid HLS output name: 1–32 of `a-z 0-9 _ -`. It is
+/// used as a directory name and in URLs.
+pub fn hls_name_ok(name: &str) -> bool {
+    !name.is_empty()
+        && name.len() <= HLS_NAME_MAX
+        && name
+            .bytes()
+            .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'_' || b == b'-')
 }
 
 /// Longest output name accepted.
@@ -91,6 +118,7 @@ impl Output {
             url: url.into(),
             name: None,
             enabled: true,
+            public: false,
         }
     }
 }
@@ -188,6 +216,9 @@ pub struct Language {
     /// CEA-708 service number (1–6), if any.
     #[serde(default)]
     pub cea708_service: Option<u8>,
+    /// Shown as a WebVTT subtitle rendition on HLS outputs (any script).
+    #[serde(default = "yes", skip_serializing_if = "is_true")]
+    pub webvtt: bool,
     /// Lower numbers are kept longest when shedding load.
     #[serde(default)]
     pub priority: u8,
@@ -201,6 +232,7 @@ pub fn default_languages() -> Vec<Language> {
         source,
         cc608,
         cea708_service: Some(svc),
+        webvtt: true,
         priority,
     };
     vec![
@@ -487,12 +519,38 @@ impl Config {
         if self.outputs.is_empty() {
             v.push("outputs", "at least one output is required");
         }
+        let mut hls_names = Vec::new();
         for (i, o) in self.outputs.iter().enumerate() {
-            v.url(
-                &format!("outputs[{i}].url"),
-                &o.url,
-                &["srt", "udp", "rtmp", "rtmps"],
-            );
+            let at = format!("outputs[{i}].url");
+            v.url(&at, &o.url, &["srt", "udp", "rtmp", "rtmps", "hls"]);
+            if let Some(rest) = o.url.strip_prefix("hls://") {
+                let (name, query) = rest.split_once('?').unwrap_or((rest, ""));
+                if !hls_name_ok(name) {
+                    v.push(
+                        &at,
+                        &format!("HLS output name: 1–{HLS_NAME_MAX} of a-z, 0-9, _ and -"),
+                    );
+                } else if hls_names.contains(&name) {
+                    v.push(&at, "another HLS output has this name");
+                }
+                hls_names.push(name);
+                for kv in query.split('&').filter(|kv| !kv.is_empty()) {
+                    let (k, val) = kv.split_once('=').unwrap_or((kv, ""));
+                    let n: Option<u32> = val.parse().ok();
+                    match (k, n) {
+                        ("segment_s", Some(n)) if (1..=10).contains(&n) => {}
+                        ("window", Some(n)) if (3..=30).contains(&n) => {}
+                        ("segment_s", _) => v.push(&at, "segment_s must be 1–10 seconds"),
+                        ("window", _) => v.push(&at, "window must be 3–30 segments"),
+                        _ => v.push(&at, &format!("unknown HLS option {k}")),
+                    }
+                }
+            } else if o.public {
+                v.push(
+                    &format!("outputs[{i}].public"),
+                    "only HLS outputs can be public",
+                );
+            }
             if let Some(n) = &o.name
                 && (n.chars().count() > OUTPUT_NAME_MAX || n.chars().any(char::is_control))
             {
@@ -612,13 +670,20 @@ impl Config {
     /// but probably not as the user expects.
     pub fn warnings(&self) -> Vec<Issue> {
         let mut out = Vec::new();
+        let has_hls = self.outputs.iter().any(|o| o.url.starts_with("hls://"));
         for (i, l) in self.languages.iter().enumerate() {
             if l.cc608.is_none() && l.cea708_service.is_none() {
+                if !has_hls {
+                    out.push(Issue {
+                        path: format!("languages[{i}].webvtt"),
+                        message: "this language is carried only as WebVTT, which only an hls:// output shows; add one".into(),
+                    });
+                }
                 continue;
             }
             let code = l.code.as_str();
             let message = if NON_LATIN.contains(&code) {
-                "this language's script can't be carried in CEA-608/708 captions; it needs WebVTT or TTML output, which MULTI doesn't have yet"
+                "this language's script can't be carried in CEA-608/708 captions; carry it as WebVTT only (no 608 channel or 708 service) and add an hls:// output"
             } else if LATIN_EXTENDED.contains(&code) && l.cc608.is_some() {
                 crate::models::LATIN_EXTENDED_NOTE
             } else {
@@ -659,10 +724,10 @@ impl Config {
                 v.push(&at("code"), "language listed twice");
             }
             codes.push(l.code.clone());
-            if l.cc608.is_none() && l.cea708_service.is_none() {
+            if l.cc608.is_none() && l.cea708_service.is_none() && !l.webvtt {
                 v.push(
                     &at("cc608"),
-                    "carry the language on a 608 channel, a 708 service, or both",
+                    "carry the language on a 608 channel, a 708 service or WebVTT (at least one)",
                 );
             }
             if let Some(ch) = l.cc608 {
@@ -812,10 +877,40 @@ mod tests {
         c.languages[1].source = true;
         c.languages[2].cea708_service = Some(1);
         c.languages[3].cea708_service = None;
+        c.languages[3].webvtt = false;
         let paths = issue_paths(&c);
         assert!(paths.contains(&"languages".to_string()));
         assert!(paths.contains(&"languages[2].cea708_service".to_string()));
         assert!(paths.contains(&"languages[3].cc608".to_string()));
+    }
+
+    #[test]
+    fn webvtt_only_language_and_hls_outputs() {
+        let mut c = Config::default();
+        c.languages[3].cea708_service = None;
+        c.languages[3].code = "ja".into();
+        assert!(c.validate().is_empty(), "{:?}", c.validate());
+        // Without an HLS output a WebVTT-only language is shown nowhere.
+        assert!(c.warnings().iter().any(|i| i.path == "languages[3].webvtt"));
+        c.outputs.push(Output {
+            public: true,
+            ..Output::new("hls://web?segment_s=2&window=6")
+        });
+        assert!(c.validate().is_empty(), "{:?}", c.validate());
+        assert!(c.warnings().is_empty());
+        c.outputs.push(Output::new("hls://web"));
+        c.outputs.push(Output::new("hls://../x"));
+        c.outputs.push(Output::new("hls://ok?window=99"));
+        c.outputs.push(Output {
+            public: true,
+            ..Output::new("udp://127.0.0.1:5000")
+        });
+        let paths = issue_paths(&c);
+        for i in 2..=4 {
+            assert!(paths.contains(&format!("outputs[{i}].url")), "{paths:?}");
+        }
+        assert!(paths.contains(&"outputs[5].public".to_string()));
+        assert!(hls_name_ok("web-1_a") && !hls_name_ok("Web") && !hls_name_ok(""));
     }
 
     #[test]

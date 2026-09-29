@@ -773,6 +773,7 @@ mod tests {
             url: url.into(),
             name: name.map(Into::into),
             enabled: true,
+            public: false,
         }
     }
 

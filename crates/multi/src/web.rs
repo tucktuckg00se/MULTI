@@ -2,7 +2,8 @@
 //!
 //! Routes: `/` (the page), `/api/config` (GET/PUT), `/api/config/default`,
 //! `/api/start`, `/api/stop`, `/api/status`, `/api/events` (SSE), `/api/me`,
-//! `/login`, `/logout`, `/setup`.
+//! `/login`, `/logout`, `/setup`; `/watch/<name>` and `/hls/<name>/…` for
+//! HLS outputs (`web_hls.rs`).
 //!
 //! Security:
 //! - People sign in with `web.username` and the password whose argon2id hash
@@ -18,6 +19,8 @@
 //!   rebinding). Every POST/PUT under `/api` must carry `X-Multi: 1`, which a
 //!   cross-site form cannot send; `/login`, `/logout` and `/setup` refuse a
 //!   foreign `Origin`.
+//! - An HLS output with `public = true` opens `/watch/<name>` and
+//!   `/hls/<name>/…` to anyone without sign-in; nothing else.
 //! - Secrets (stream keys, passphrases, the token, the password hash) are
 //!   masked in every response; a masked value sent back keeps the stored one.
 
@@ -45,6 +48,8 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::{broadcast, watch};
 use tracing::{info, warn};
 
+#[path = "web_hls.rs"]
+mod hls;
 #[path = "web_models.rs"]
 mod models_api;
 #[path = "web_outputs.rs"]
@@ -175,6 +180,10 @@ pub fn router(state: AppState) -> Router {
         .route("/api/outputs/{index}/stop", post(outputs::stop))
         .route("/api/status", get(status))
         .route("/api/events", get(events))
+        .route("/watch/{name}", get(hls::watch))
+        .route("/watch.js", get(hls::watch_js))
+        .route("/hls.min.js", get(hls::hls_js))
+        .route("/hls/{name}/{file}", get(hls::file))
         .route("/api/models", get(models_api::list))
         .route("/api/models/events", get(models_api::events))
         .route("/api/models/{id}/pull", post(models_api::pull))
@@ -295,6 +304,10 @@ async fn guard(State(state): State<AppState>, mut req: Request, next: Next) -> R
         return next.run(req).await;
     }
     if matches!(path.as_str(), "/login" | "/logout" | "/setup" | "/app.css") {
+        return next.run(req).await;
+    }
+    // A public HLS output: its viewer page and stream only (M2-3).
+    if !write && hls::public(&state.config(), &path) {
         return next.run(req).await;
     }
     if api {

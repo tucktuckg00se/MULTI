@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MULTI live</title>
+<style>
+  :root { color-scheme: dark; --bg: #0d0f12; --fg: #e8eaed; --muted: #9aa0a6; --line: #2a2e35; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.4 system-ui, sans-serif; }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px; }
+  video { width: 100%; aspect-ratio: 16 / 9; background: #000; display: block; border-radius: 6px; }
+  video::cue { font-size: 1.1em; background: rgba(0, 0, 0, .75); }
+  .bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 10px; }
+  label { color: var(--muted); }
+  select { background: #1b1f25; color: var(--fg); border: 1px solid var(--line); border-radius: 4px; padding: 5px 8px; font: inherit; }
+  #state { color: var(--muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<main>
+  <video id="v" controls muted autoplay playsinline></video>
+  <div class="bar">
+    <label for="lang">Captions</label>
+    <select id="lang"><option value="-1">Off</option></select>
+    <span id="state">Connecting…</span>
+  </div>
+</main>
+<script src="/hls.min.js"></script>
+<script src="/watch.js"></script>
+</body>
+</html>
