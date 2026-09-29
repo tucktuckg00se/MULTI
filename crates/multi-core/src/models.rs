@@ -29,7 +29,31 @@ pub enum Kind {
 pub enum Backend {
     SherpaOnnx,
     Ctranslate2,
+    WhisperCpp,
 }
+
+/// How `multi-asr` runs an ASR model (`multi-asr --engine`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum AsrEngine {
+    /// sherpa-onnx online transducer (Nemotron 3.5 Streaming): a folder.
+    SherpaStreaming,
+    /// whisper.cpp with LocalAgreement: one ggml `.bin` file.
+    Whisper,
+}
+
+impl AsrEngine {
+    /// The `multi-asr --engine` value.
+    pub fn arg(self) -> &'static str {
+        match self {
+            Self::SherpaStreaming => "sherpa-streaming",
+            Self::Whisper => "whisper",
+        }
+    }
+}
+
+/// Chunk sizes the Nemotron streaming exports exist for.
+pub const SHERPA_CHUNKS: [u32; 5] = [80, 160, 320, 560, 1120];
 
 /// Where a catalogue entry comes from.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize)]
@@ -124,6 +148,19 @@ pub struct Model {
     /// Spoken languages (ASR).
     #[serde(default)]
     pub languages: Vec<String>,
+    /// How `multi-asr` runs it (ASR, required).
+    #[serde(default)]
+    pub engine: Option<AsrEngine>,
+    /// ASR: sherpa-streaming, the chunk the model was exported with (sets
+    /// `asr.chunk_ms`); whisper, the interval between passes.
+    #[serde(default)]
+    pub chunk_ms: Option<u32>,
+    /// ASR: typical caption lag after a word is spoken (S4/M2-5 runs).
+    #[serde(default)]
+    pub lag_ms: Option<u32>,
+    /// ASR: one line on lag and accuracy for the model picker.
+    #[serde(default)]
+    pub note: Option<String>,
     /// Translation direction (MT).
     #[serde(default)]
     pub source: Option<String>,
@@ -250,7 +287,47 @@ impl Model {
                 err("translation models need source and targets")
             }
             Kind::Asr if m.languages.is_empty() => err("ASR models need languages"),
+            Kind::Asr => match (m.asr_engine(), m.chunk_ms) {
+                (None, _) => err("ASR models need an engine (sherpa-streaming or whisper)"),
+                (Some(AsrEngine::SherpaStreaming), Some(c)) if !SHERPA_CHUNKS.contains(&c) => {
+                    err("sherpa-streaming chunk_ms must be 80, 160, 320, 560 or 1120")
+                }
+                (Some(AsrEngine::Whisper), Some(c)) if !(200..=3000).contains(&c) => {
+                    err("whisper chunk_ms (pass interval) must be 200-3000")
+                }
+                (Some(AsrEngine::Whisper), _) if m.whisper_file().is_none() => {
+                    err("whisper models need exactly one .bin file")
+                }
+                _ => Ok(()),
+            },
             _ => Ok(()),
+        }
+    }
+
+    /// The ASR engine: `engine`, or for entries written before M2-5, the
+    /// one their backend implies.
+    pub fn asr_engine(&self) -> Option<AsrEngine> {
+        match (self.kind, self.engine, self.backend) {
+            (Kind::Asr, Some(e), _) => Some(e),
+            (Kind::Asr, None, Backend::SherpaOnnx) => Some(AsrEngine::SherpaStreaming),
+            (Kind::Asr, None, Backend::WhisperCpp) => Some(AsrEngine::Whisper),
+            _ => None,
+        }
+    }
+
+    /// The ggml file of a whisper model: its only file, ending in `.bin`.
+    pub fn whisper_file(&self) -> Option<&File> {
+        match self.files.as_slice() {
+            [f] if f.path.ends_with(".bin") => Some(f),
+            _ => None,
+        }
+    }
+
+    /// What `multi-asr --model` gets: the folder, or a whisper model's file.
+    pub fn asr_model_path(&self, root: &Path) -> PathBuf {
+        match (self.asr_engine(), self.whisper_file()) {
+            (Some(AsrEngine::Whisper), Some(f)) => self.path(root).join(&f.path),
+            _ => self.path(root),
         }
     }
 
@@ -550,7 +627,10 @@ mod tests {
         let r = Registry::builtin()?;
         let asr = r.asr("nemotron-3.5-streaming", 560).map(|m| m.id.as_str());
         assert_eq!(asr, Some("nemotron-3.5-streaming-560ms"));
-        assert!(r.asr("nemotron-3.5-streaming", 160).is_none());
+        let asr = r.asr("nemotron-3.5-streaming", 160).map(|m| m.id.as_str());
+        assert_eq!(asr, Some("nemotron-3.5-streaming-160ms"));
+        assert!(r.asr("nemotron-3.5-streaming", 320).is_none());
+        assert!(r.asr("opus-mt-en-es", 560).is_none(), "not an ASR model");
         assert_eq!(
             r.mt("en", "pt").map(|m| m.id.as_str()),
             Some("opus-mt-tc-big-en-pt")
@@ -752,6 +832,90 @@ sorce = "en"
                 assert!(m.languages.iter().any(|x| x == l), "{id}: {l}");
             }
             assert!(!m.languages.iter().any(|x| x == "zh" || x == "pl"), "{id}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn asr_entries_carry_engine_languages_and_licence() -> Result<(), String> {
+        let r = Registry::builtin()?;
+        let asr: Vec<&Model> = r.models.iter().filter(|m| m.kind == Kind::Asr).collect();
+        let ids: Vec<&str> = asr.iter().map(|m| m.id.as_str()).collect();
+        for chunk in [160, 560, 1120] {
+            for suffix in ["", "-int8"] {
+                let id = format!("nemotron-3.5-streaming-{chunk}ms{suffix}");
+                let m = r.get(&id).ok_or(id.clone())?;
+                assert_eq!(m.engine, Some(AsrEngine::SherpaStreaming), "{id}");
+                assert_eq!(m.chunk_ms, Some(chunk), "{id}");
+                assert_eq!(m.licence, "OpenMDW-1.1", "{id}");
+                assert_eq!(m.languages.len(), 15, "{id}");
+                assert_eq!(m.asr_model_path(Path::new("/m")), m.path(Path::new("/m")));
+            }
+            let fp = r
+                .get(&format!("nemotron-3.5-streaming-{chunk}ms"))
+                .ok_or("fp32")?;
+            assert_eq!(
+                fp.cpu_variant.as_deref(),
+                Some(format!("nemotron-3.5-streaming-{chunk}ms-int8").as_str())
+            );
+        }
+        for id in ["whisper-large-v3-turbo", "whisper-small"] {
+            let m = r.get(id).ok_or(id)?;
+            assert_eq!(m.engine, Some(AsrEngine::Whisper), "{id}");
+            assert_eq!(m.backend, Backend::WhisperCpp, "{id}");
+            assert_eq!(m.licence, "MIT", "{id}");
+            assert_eq!(m.revision.as_deref().map(str::len), Some(40), "{id}");
+            assert_eq!(m.languages.len(), 98, "{id}");
+            for l in ["en", "de", "zh", "pl", "jv", "cy"] {
+                assert!(m.languages.iter().any(|x| x == l), "{id}: {l}");
+            }
+            let file = m.whisper_file().ok_or(id)?;
+            assert_eq!(
+                m.asr_model_path(Path::new("/m")),
+                PathBuf::from("/m/whisper").join(&file.path)
+            );
+        }
+        for m in &asr {
+            assert!(m.lag_ms.is_some() && m.note.is_some(), "{}", m.id);
+            assert!(m.vram_mb > 0 || m.id.ends_with("-int8"), "{}", m.id);
+            assert!(m.languages.iter().all(|c| c.len() == 2), "{}", m.id);
+        }
+        assert_eq!(ids.len(), 8, "{ids:?}");
+        assert_eq!(AsrEngine::Whisper.arg(), "whisper");
+        Ok(())
+    }
+
+    #[test]
+    fn rejects_bad_asr_entries() -> Result<(), String> {
+        let base = "[[model]]\nid = \"a\"\nkind = \"asr\"\nlicence = \"MIT\"\n\
+                    attribution = \"a\"\nvram_mb = 0\ndisk_mb = 0\ndir = \"d\"\n\
+                    languages = [\"en\"]\n";
+        let file = |p: &str| {
+            format!(
+                "files = [{{ path = \"{p}\", size = 1, sha256 = \"0000000000000000000000000000000000000000000000000000000000000000\", url = \"https://x/f\" }}]\n"
+            )
+        };
+        let sherpa = "backend = \"sherpa-onnx\"\nengine = \"sherpa-streaming\"\n";
+        let whisper = "backend = \"whisper-cpp\"\nengine = \"whisper\"\n";
+        let ok = format!("{base}{sherpa}chunk_ms = 160\n{}", file("tokens.txt"));
+        assert!(Registry::parse(&ok).is_ok());
+        let ok = format!("{base}{whisper}{}", file("ggml-x.bin"));
+        assert!(Registry::parse(&ok).is_ok());
+        // Before M2-5 entries had no engine: the backend implies it.
+        let old = format!("{base}backend = \"sherpa-onnx\"\n{}", file("f"));
+        let r = Registry::parse(&old)?;
+        assert_eq!(r.models[0].asr_engine(), Some(AsrEngine::SherpaStreaming));
+        for bad in [
+            format!("{base}backend = \"ctranslate2\"\n{}", file("f")),
+            format!("{base}{sherpa}chunk_ms = 500\n{}", file("f")),
+            format!("{base}{whisper}{}", file("model.onnx")),
+            format!("{base}{whisper}chunk_ms = 50\n{}", file("ggml-x.bin")),
+            format!(
+                "{base}engine = \"vosk\"\nbackend = \"sherpa-onnx\"\n{}",
+                file("f")
+            ),
+        ] {
+            assert!(Registry::parse(&bad).is_err(), "{bad}");
         }
         Ok(())
     }

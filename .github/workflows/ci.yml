@@ -57,8 +57,13 @@ jobs:
     env:
       # sherpa-onnx: no SHERPA_ONNX_LIB_DIR, so its build script downloads the
       # CPU prebuilt. multi-mt without `--features cuda` builds CTranslate2
-      # for CPU (ruy backend).
+      # for CPU (ruy backend). multi-asr's default `whisper` feature builds
+      # whisper.cpp for CPU (whisper-rs-sys, CMake + bindgen/libclang);
+      # GGML_NATIVE=OFF so cached objects don't depend on the runner's CPU.
+      # The target dir is cached, so the native builds rerun only when
+      # Cargo.lock changes.
       CMAKE_BUILD_PARALLEL_LEVEL: 4
+      GGML_NATIVE: "OFF"
     steps:
       - name: Install toolchain
         run: pacman -Syu --noconfirm --needed base-devel git rust clang cmake pkgconf

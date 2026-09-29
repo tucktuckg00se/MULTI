@@ -2,7 +2,8 @@
 # are needed for the default members or for CI's CPU-only build; `force = false`
 # lets the environment override them.
 #
-# CUDA build of multi-mt (`--features cuda`): toolkit location and GPU arch.
+# CUDA builds of multi-mt and multi-asr (`--features cuda`; for multi-asr
+# that is whisper.cpp, and CMake reads CUDAARCHS): toolkit location and GPU arch.
 # The defaults target the dev machine (Arch's /opt/cuda, RTX 3090 = sm_86).
 #
 # GPU inference in multi-asr also needs SHERPA_ONNX_LIB_DIR pointing at the
