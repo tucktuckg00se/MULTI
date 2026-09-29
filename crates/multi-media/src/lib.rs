@@ -2,6 +2,7 @@
 //!
 //! ```text
 //! input (SRT/UDP/RTP, MPEG-TS) -> tsdemux -> bridge -> h26xparse -> [caption lanes] -> h26xccinserter -> mpegtsmux -> outputs (SRT/UDP/RTMP)
+//!   (streams entering mpegtsmux also feed RTMP (flvmux) and HLS (hlssink2 + WebVTT, hls.rs))
 //!                                    `-> audio tap: avdec_aac -> 16 kHz mono i16 -> AudioCallback
 //! ```
 //!
@@ -18,6 +19,7 @@ mod bridge;
 mod captions;
 mod fallback;
 mod gstcc;
+pub mod hls;
 mod input;
 mod output;
 mod stats;
@@ -149,6 +151,7 @@ pub fn check_elements(cfg: &MediaConfig) -> Result<()> {
             "out-Srt" => need.push("srtsink"),
             "out-Udp" => need.push("udpsink"),
             "out-Rtmp" => need.extend(["flvmux", "rtmp2sink"]),
+            "out-Hls" => need.push("hlssink2"),
             _ => {}
         }
     }
@@ -175,6 +178,7 @@ fn check_output_elements(u: &str) -> Result<()> {
         url::OutputKind::Srt => &["srtsink"],
         url::OutputKind::Udp => &["udpsink"],
         url::OutputKind::Rtmp => &["flvmux", "rtmp2sink", "h264parse", "aacparse"],
+        url::OutputKind::Hls => &["hlssink2"],
     };
     let missing: Vec<&str> = need
         .iter()
@@ -267,7 +271,8 @@ impl Media {
     pub fn start(cfg: MediaConfig, audio: AudioCallback) -> Result<Self> {
         check_elements(&cfg)?;
         let specs = lane_specs(&cfg.languages, &cfg.captions)?;
-        let (captioner, captions) = Captioner::new(specs, &cfg.captions);
+        let hls = Arc::new(hls::HlsCtx::new(&cfg.languages, &cfg.captions));
+        let (captioner, captions) = Captioner::new(specs, &cfg.captions, &hls);
         let lane_counters = captioner.counters();
         let counters = Arc::new(Counters::default());
         let bridge = Arc::new(Bridge::new(counters.clone()));
@@ -277,6 +282,7 @@ impl Media {
             counters.clone(),
             &cfg.outputs,
             cfg.srt_latency_ms,
+            hls,
         )?;
         let fallback = fallback::Fallback::new(&cfg, counters.clone());
         let core = Arc::new(Core {

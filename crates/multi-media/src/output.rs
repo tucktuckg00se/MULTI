@@ -26,8 +26,9 @@ use tracing::{error, info, warn};
 
 use crate::bridge::{AUDIO, Bridge, Targets, VIDEO};
 use crate::captions::{Captioner, FALLBACK_FPS};
+use crate::hls::{HlsCtx, HlsWriter, mono_ns};
 use crate::stats::{Counters, OutputStats, inc};
-use crate::url::{OutputKind, output_kind, redact, srt_uri, udp_uri};
+use crate::url::{OutputKind, hls_params, output_kind, redact, srt_uri, udp_uri};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Codec {
@@ -77,14 +78,21 @@ pub(crate) struct OutputSet {
     list: RwLock<SinkList>,
     next_id: AtomicU64,
     srt_latency_ms: u32,
+    hls: Arc<HlsCtx>,
 }
 
 impl OutputSet {
+    #[cfg(test)]
     pub fn new(srt_latency_ms: u32) -> Self {
+        Self::with_hls(srt_latency_ms, Arc::new(HlsCtx::empty()))
+    }
+
+    pub fn with_hls(srt_latency_ms: u32, hls: Arc<HlsCtx>) -> Self {
         Self {
             list: RwLock::new(Arc::new(Vec::new())),
             next_id: AtomicU64::new(0),
             srt_latency_ms,
+            hls,
         }
     }
 
@@ -110,7 +118,12 @@ impl OutputSet {
     pub fn add(&self, spec: &OutputSpec) -> Result<u64> {
         output_kind(&spec.url)?;
         let id = self.next_id.fetch_add(1, Ordering::Relaxed);
-        let sink = Arc::new(OutSink::new(id, spec, self.srt_latency_ms));
+        let sink = Arc::new(OutSink::new(
+            id,
+            spec,
+            self.srt_latency_ms,
+            self.hls.clone(),
+        ));
         self.edit(|v| v.push(sink));
         info!(id, url = %redact(&spec.url), enabled = spec.enabled, "output added");
         Ok(id)
@@ -183,8 +196,9 @@ impl OutputManager {
         counters: Arc<Counters>,
         outputs: &[OutputSpec],
         srt_latency_ms: u32,
+        hls: Arc<HlsCtx>,
     ) -> Result<Self> {
-        let sinks = OutputSet::new(srt_latency_ms);
+        let sinks = OutputSet::with_hls(srt_latency_ms, hls);
         for o in outputs {
             sinks.add(o)?;
         }
@@ -451,13 +465,15 @@ const HEALTHY_RESET: Duration = Duration::from_secs(30);
 enum Feed {
     /// MPEG-TS bytes.
     Ts(gst_app::AppSrc),
-    /// Elementary streams for FLV: [video, audio].
+    /// Elementary streams for FLV or HLS: [video, audio].
     Es([gst_app::AppSrc; 2]),
 }
 
 struct Running {
     pipeline: gst::Pipeline,
     feed: Feed,
+    /// HLS outputs: the WebVTT and playlist writer.
+    hls: Option<Arc<Mutex<HlsWriter>>>,
 }
 
 struct SinkState {
@@ -483,6 +499,11 @@ pub(crate) struct OutSink {
     starts: AtomicU64,
     /// Logged once: this output cannot carry the current video codec.
     codec_warned: AtomicBool,
+    hls_ctx: Arc<HlsCtx>,
+    /// HLS: PTS (ns) of the last video buffer and when it was pushed
+    /// ([`mono_ns`]; 0 = none yet).
+    anchor_pts: AtomicU64,
+    anchor_mono: AtomicU64,
 }
 
 fn leaky_src(format: gst::Format, live: bool, max_bytes: u64) -> gst_app::AppSrc {
@@ -498,7 +519,7 @@ fn leaky_src(format: gst::Format, live: bool, max_bytes: u64) -> gst_app::AppSrc
 }
 
 impl OutSink {
-    fn new(id: u64, spec: &OutputSpec, srt_latency_ms: u32) -> Self {
+    fn new(id: u64, spec: &OutputSpec, srt_latency_ms: u32, hls_ctx: Arc<HlsCtx>) -> Self {
         Self {
             id,
             name: Mutex::new(spec.name.clone()),
@@ -515,7 +536,15 @@ impl OutSink {
             errors: AtomicU64::new(0),
             starts: AtomicU64::new(0),
             codec_warned: AtomicBool::new(false),
+            hls_ctx,
+            anchor_pts: AtomicU64::new(0),
+            anchor_mono: AtomicU64::new(0),
         }
+    }
+
+    fn anchor(&self) -> Option<(u64, u64)> {
+        let mono = self.anchor_mono.load(Ordering::Acquire);
+        (mono > 0).then(|| (self.anchor_pts.load(Ordering::Acquire), mono))
     }
 
     pub fn stats(&self) -> OutputStats {
@@ -533,6 +562,7 @@ impl OutSink {
     fn try_build(&self) -> Result<Running> {
         let p = gst::Pipeline::new();
         let kind = output_kind(&self.url)?;
+        let mut hls = None;
         let feed = match kind {
             OutputKind::Srt | OutputKind::Udp => {
                 let src = leaky_src(gst::Format::Bytes, true, 4 << 20);
@@ -563,9 +593,20 @@ impl OutSink {
                 Feed::Ts(src)
             }
             OutputKind::Rtmp => Feed::Es(rtmp_chain(&p, &self.url)?),
+            OutputKind::Hls => {
+                let params = hls_params(&self.url)?;
+                let w = HlsWriter::new(&params, self.hls_ctx.clone())?;
+                let srcs = hls_chain(&p, w.dir(), params.segment_s, params.window)?;
+                hls = Some(Arc::new(Mutex::new(w)));
+                Feed::Es(srcs)
+            }
         };
         p.set_state(gst::State::Playing)?;
-        Ok(Running { pipeline: p, feed })
+        Ok(Running {
+            pipeline: p,
+            feed,
+            hls,
+        })
     }
 
     /// Muxed MPEG-TS for SRT/UDP outputs.
@@ -580,10 +621,19 @@ impl OutSink {
     }
 
     /// One elementary-stream buffer (as it enters `mpegtsmux` on `pad`) for
-    /// RTMP outputs.
+    /// RTMP and HLS outputs.
     pub fn push_es(&self, stream: usize, pad: &gst::Pad, buf: &gst::Buffer) {
-        if self.kind != Some(OutputKind::Rtmp) {
-            return;
+        let hls = match self.kind {
+            Some(OutputKind::Rtmp) => false,
+            Some(OutputKind::Hls) => true,
+            _ => return,
+        };
+        if hls
+            && stream == VIDEO
+            && let Some(pts) = buf.pts()
+        {
+            self.anchor_pts.store(pts.nseconds(), Ordering::Release);
+            self.anchor_mono.store(mono_ns().max(1), Ordering::Release);
         }
         let st = lock(&self.st);
         let Some(Running {
@@ -602,9 +652,14 @@ impl OutSink {
                 .structure(0)
                 .map(|s| s.name().to_string())
                 .unwrap_or_default();
-            if !matches!(name.as_str(), "video/x-h264" | "audio/mpeg") {
+            let ok = match name.as_str() {
+                "video/x-h264" | "audio/mpeg" => true,
+                "video/x-h265" => hls,
+                _ => false,
+            };
+            if !ok {
                 if !self.codec_warned.swap(true, Ordering::Relaxed) {
-                    warn!(url = %redact(&self.url), stream = %name, "RTMP carries H.264 and AAC only; stream left out");
+                    warn!(url = %redact(&self.url), stream = %name, "this output carries H.264 (HLS also H.265) and AAC/MPEG audio only; stream left out");
                 }
                 return;
             }
@@ -620,7 +675,7 @@ impl OutSink {
     /// the fan-out never waits on them.
     pub fn poll(&self) {
         let shown = redact(&self.url);
-        let (dead, build) = {
+        let (dead, build, hls) = {
             let mut st = lock(&self.st);
             let mut failed = false;
             if let Some(r) = st.running.as_ref()
@@ -656,10 +711,16 @@ impl OutSink {
             let build = st.running.is_none()
                 && self.enabled.load(Ordering::Acquire)
                 && st.retry_at.is_some_and(|t| Instant::now() >= t);
-            (dead, build)
+            let hls = st.running.as_ref().and_then(|r| r.hls.clone());
+            (dead, build, hls)
         };
         if let Some(r) = dead {
             let _ = r.pipeline.set_state(gst::State::Null);
+        }
+        // WebVTT and playlists, outside the state lock: the fan-out never
+        // waits on file writes.
+        if let Some(w) = hls {
+            lock(&w).tick(self.anchor());
         }
         if !build {
             return;
@@ -717,6 +778,44 @@ impl OutSink {
             let _ = r.pipeline.set_state(gst::State::Null);
         }
     }
+}
+
+/// `appsrc ! queue ! hlssink2.video` and `appsrc ! queue ! hlssink2.audio`:
+/// stream-copied MPEG-TS segments cut on keyframes (no keyframe requests:
+/// there is no encoder), so a segment is at least `segment_s` long and ends
+/// on the next keyframe; longer GOPs mean longer segments. Needs both video
+/// and audio, like RTMP.
+fn hls_chain(
+    p: &gst::Pipeline,
+    dir: &std::path::Path,
+    segment_s: u32,
+    window: u32,
+) -> Result<[gst_app::AppSrc; 2]> {
+    let sink = make("hlssink2", "hls")?;
+    sink.set_property("location", dir.join("v%05d.ts").to_string_lossy().as_ref());
+    sink.set_property(
+        "playlist-location",
+        dir.join("video.m3u8").to_string_lossy().as_ref(),
+    );
+    sink.set_property("target-duration", segment_s);
+    sink.set_property("playlist-length", window);
+    sink.set_property("max-files", window + 3);
+    sink.set_property("send-keyframe-requests", false);
+    p.add(&sink)?;
+    let mut srcs = Vec::new();
+    for (pad, max_bytes) in [("video", 32u64 << 20), ("audio", 4 << 20)] {
+        let src = leaky_src(gst::Format::Time, false, max_bytes);
+        let q = make("queue", &format!("q_{pad}"))?;
+        p.add_many([src.upcast_ref(), &q])?;
+        src.link(&q)?;
+        let sp = sink
+            .request_pad_simple(pad)
+            .with_context(|| format!("hlssink2 {pad} pad"))?;
+        q.static_pad("src").context("queue src")?.link(&sp)?;
+        srcs.push(src);
+    }
+    srcs.try_into()
+        .map_err(|_| anyhow::anyhow!("HLS chain needs two sources"))
 }
 
 /// `appsrc ! queue ! h264parse ! flvmux ! rtmp2sink` and

@@ -91,15 +91,13 @@ pub fn lane_specs(langs: &[Language], c: &Captions) -> Result<Vec<LaneSpec>> {
                     CaptionMode::PaintOn => "paint-on".into(),
                 },
             },
-            None => bail!("language {} has no 608 channel or 708 service", l.code),
+            // WebVTT only (HLS outputs): no lane.
+            None => continue,
         };
         out.push(LaneSpec {
             lang: l.code.clone(),
             track,
         });
-    }
-    if out.is_empty() {
-        bail!("no caption languages");
     }
     Ok(out)
 }
@@ -121,6 +119,9 @@ pub struct CaptionHandle {
     langs: Arc<Vec<String>>,
     counters: Arc<Vec<LaneCounters>>,
     offset: Duration,
+    /// HLS outputs' text log, and the languages it takes.
+    hub: Arc<crate::hls::TextHub>,
+    vtt: Arc<Vec<String>>,
 }
 
 impl CaptionHandle {
@@ -135,20 +136,27 @@ impl CaptionHandle {
     /// translation: time since its clause closed). Text older than
     /// [`MAX_AGE`] is dropped and counted as stale.
     pub fn push_aged(&self, lang: &str, text: &str, new_row: bool, age: Duration) -> bool {
-        let Some(lane) = self.langs.iter().position(|l| l == lang) else {
+        let lane = self.langs.iter().position(|l| l == lang);
+        let vtt = self.vtt.iter().any(|l| l == lang);
+        if lane.is_none() && !vtt {
             return false;
-        };
+        }
         let text = text.trim();
         if text.is_empty() {
             return true;
         }
         if age > MAX_AGE {
-            if let Some(c) = self.counters.get(lane) {
+            if let Some(c) = lane.and_then(|l| self.counters.get(l)) {
                 c.dropped.fetch_add(1, Ordering::Relaxed);
                 c.stale.fetch_add(1, Ordering::Relaxed);
             }
             return false;
         }
+        if vtt {
+            let due = crate::hls::mono_ns() + self.offset.as_nanos() as u64;
+            self.hub.push(lang, text, new_row, due);
+        }
+        let Some(lane) = lane else { return true };
         let now = Instant::now();
         let line = Line {
             lane,
@@ -211,7 +219,11 @@ pub(crate) struct Captioner {
 }
 
 impl Captioner {
-    pub fn new(specs: Vec<LaneSpec>, c: &Captions) -> (Self, CaptionHandle) {
+    pub fn new(
+        specs: Vec<LaneSpec>,
+        c: &Captions,
+        hls: &crate::hls::HlsCtx,
+    ) -> (Self, CaptionHandle) {
         let (tx, rx) = std::sync::mpsc::sync_channel(CHANNEL_CAP);
         let counters: Arc<Vec<LaneCounters>> =
             Arc::new(specs.iter().map(|_| LaneCounters::default()).collect());
@@ -226,6 +238,8 @@ impl Captioner {
             langs: Arc::new(specs.iter().map(|s| s.lang.clone()).collect()),
             counters: counters.clone(),
             offset: Duration::from_millis(u64::try_from(c.offset_ms).unwrap_or(0)),
+            hub: hls.hub.clone(),
+            vtt: Arc::new(hls.langs.iter().map(|l| l.code.clone()).collect()),
         };
         let n = specs.len();
         let cap = Self {
@@ -392,6 +406,10 @@ impl Captioner {
     /// `cc_data` for the frame at `pts` (ns). Never panics; `None` when there
     /// is nothing to attach.
     pub fn meta_for(&mut self, pts: i64, fps: (i32, i32)) -> Option<Vec<u8>> {
+        if self.specs.is_empty() {
+            // Every language is WebVTT-only: nothing to embed.
+            return None;
+        }
         if !self.ensure_encoder(fps) {
             // Keep the channel drained so callers see drops, not a stall.
             self.feed_without_encoder();
@@ -490,9 +508,24 @@ mod tests {
     }
 
     #[test]
+    fn webvtt_only_language_has_no_lane_but_reaches_hls() {
+        let mut langs = default_languages();
+        langs[3].cea708_service = None;
+        langs[3].code = "ja".into();
+        let c = Captions::default();
+        let specs = lane_specs(&langs, &c).unwrap();
+        assert_eq!(specs.len(), 3);
+        let hls = crate::hls::HlsCtx::new(&langs, &c);
+        let (_cap, h) = Captioner::new(specs, &c, &hls);
+        assert!(h.push("ja", "こんにちは", true));
+        assert!(h.push("en", "hi", true));
+        assert_eq!(h.languages().len(), 3);
+    }
+
+    #[test]
     fn handle_routes_by_language_and_never_blocks() {
         let specs = lane_specs(&default_languages(), &Captions::default()).unwrap();
-        let (cap, h) = Captioner::new(specs, &Captions::default());
+        let (cap, h) = Captioner::new(specs, &Captions::default(), &crate::hls::HlsCtx::empty());
         assert!(h.push("es", "hola", true));
         assert!(!h.push("xx", "nope", false));
         for _ in 0..CHANNEL_CAP + 10 {
@@ -513,7 +546,7 @@ mod tests {
             return;
         }
         let specs = lane_specs(&default_languages(), &Captions::default()).unwrap();
-        let (mut cap, h) = Captioner::new(specs, &Captions::default());
+        let (mut cap, h) = Captioner::new(specs, &Captions::default(), &crate::hls::HlsCtx::empty());
         assert!(!h.push_aged("es", "late", true, MAX_AGE + Duration::from_millis(1)));
         assert!(h.push_aged("es", "old", true, MAX_AGE - Duration::from_millis(5)));
         assert!(h.push_aged("es", "fresh", false, Duration::ZERO));
@@ -531,7 +564,7 @@ mod tests {
             return;
         }
         let specs = lane_specs(&default_languages(), &Captions::default()).unwrap();
-        let (mut cap, h) = Captioner::new(specs, &Captions::default());
+        let (mut cap, h) = Captioner::new(specs, &Captions::default(), &crate::hls::HlsCtx::empty());
         h.push("en", "HELLO", true);
         h.push("es", "HOLA", true);
         let mut with_data = 0;

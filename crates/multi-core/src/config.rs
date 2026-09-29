@@ -876,10 +876,40 @@ mod tests {
         c.languages[1].source = true;
         c.languages[2].cea708_service = Some(1);
         c.languages[3].cea708_service = None;
+        c.languages[3].webvtt = false;
         let paths = issue_paths(&c);
         assert!(paths.contains(&"languages".to_string()));
         assert!(paths.contains(&"languages[2].cea708_service".to_string()));
         assert!(paths.contains(&"languages[3].cc608".to_string()));
+    }
+
+    #[test]
+    fn webvtt_only_language_and_hls_outputs() {
+        let mut c = Config::default();
+        c.languages[3].cea708_service = None;
+        c.languages[3].code = "ja".into();
+        assert!(c.validate().is_empty(), "{:?}", c.validate());
+        // Without an HLS output a WebVTT-only language is shown nowhere.
+        assert!(c.warnings().iter().any(|i| i.path == "languages[3].webvtt"));
+        c.outputs.push(Output {
+            public: true,
+            ..Output::new("hls://web?segment_s=2&window=6")
+        });
+        assert!(c.validate().is_empty(), "{:?}", c.validate());
+        assert!(c.warnings().is_empty());
+        c.outputs.push(Output::new("hls://web"));
+        c.outputs.push(Output::new("hls://../x"));
+        c.outputs.push(Output::new("hls://ok?window=99"));
+        c.outputs.push(Output {
+            public: true,
+            ..Output::new("udp://127.0.0.1:5000")
+        });
+        let paths = issue_paths(&c);
+        for i in 2..=4 {
+            assert!(paths.contains(&format!("outputs[{i}].url")), "{paths:?}");
+        }
+        assert!(paths.contains(&"outputs[5].public".to_string()));
+        assert!(hls_name_ok("web-1_a") && !hls_name_ok("Web") && !hls_name_ok(""));
     }
 
     #[test]

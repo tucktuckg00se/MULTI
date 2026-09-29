@@ -19,6 +19,45 @@ pub enum OutputKind {
     Udp,
     /// `rtmp://` or `rtmps://`: FLV (H.264 + AAC) to an RTMP server.
     Rtmp,
+    /// `hls://<name>?segment_s=2&window=6`: HLS with WebVTT subtitles,
+    /// written to a MULTI-owned directory and served by the web server.
+    Hls,
+}
+
+/// Settings of an `hls://` output.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct HlsParams {
+    pub name: String,
+    /// Target segment length, seconds (segments are cut on keyframes).
+    pub segment_s: u32,
+    /// Segments listed in the live playlists.
+    pub window: u32,
+}
+
+/// Parses `hls://<name>[?segment_s=N&window=N]`.
+pub fn hls_params(url: &str) -> Result<HlsParams> {
+    let Some(rest) = url.strip_prefix("hls://") else {
+        bail!("not an hls:// URL");
+    };
+    let (name, query) = rest.split_once('?').unwrap_or((rest, ""));
+    if !multi_core::config::hls_name_ok(name) {
+        bail!("bad HLS output name {name:?}: use 1–32 of a-z, 0-9, _ and -");
+    }
+    let mut p = HlsParams {
+        name: name.to_string(),
+        segment_s: 2,
+        window: 6,
+    };
+    for kv in query.split('&').filter(|kv| !kv.is_empty()) {
+        let (k, v) = kv.split_once('=').unwrap_or((kv, ""));
+        let n: u32 = v.parse().unwrap_or(0);
+        match k {
+            "segment_s" if (1..=10).contains(&n) => p.segment_s = n,
+            "window" if (3..=30).contains(&n) => p.window = n,
+            _ => bail!("bad HLS option {kv}"),
+        }
+    }
+    Ok(p)
 }
 
 fn scheme(url: &str) -> &str {
@@ -39,6 +78,10 @@ pub fn output_kind(url: &str) -> Result<OutputKind> {
         "srt" => OutputKind::Srt,
         "udp" => OutputKind::Udp,
         "rtmp" | "rtmps" => OutputKind::Rtmp,
+        "hls" => {
+            hls_params(url)?;
+            OutputKind::Hls
+        }
         _ => bail!("unsupported output URL {}", redact(url)),
     })
 }
@@ -120,6 +163,19 @@ mod tests {
         assert!(input_kind("http://x").is_err());
         assert_eq!(output_kind("rtmps://a/b/c").ok(), Some(OutputKind::Rtmp));
         assert!(output_kind("rtp://a:1").is_err());
+        assert_eq!(output_kind("hls://web").ok(), Some(OutputKind::Hls));
+        assert!(output_kind("hls://../etc").is_err());
+    }
+
+    #[test]
+    fn hls_options() -> Result<()> {
+        let p = hls_params("hls://web?segment_s=4&window=10")?;
+        assert_eq!((p.name.as_str(), p.segment_s, p.window), ("web", 4, 10));
+        let p = hls_params("hls://web")?;
+        assert_eq!((p.segment_s, p.window), (2, 6));
+        assert!(hls_params("hls://web?window=1").is_err());
+        assert!(hls_params("hls://web?x=1").is_err());
+        Ok(())
     }
 
     #[test]
