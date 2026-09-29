@@ -358,3 +358,152 @@ fn plain_http_is_refused() -> Result<()> {
     assert!(err.is_err());
     Ok(())
 }
+
+// ---------------------------------------------------------------- web API
+
+mod api {
+    use super::*;
+    use axum::body::Body;
+    use axum::http::{Request, StatusCode};
+    use http_body_util::BodyExt;
+    use multi::service::{Service, Workers};
+    use multi::web::{AppState, router};
+    use multi_core::Config;
+    use tower::ServiceExt;
+
+    async fn call(
+        app: &axum::Router,
+        method: &str,
+        uri: &str,
+        write_header: bool,
+    ) -> Result<(StatusCode, serde_json::Value)> {
+        let peer: std::net::SocketAddr = "127.0.0.1:50000".parse()?;
+        let mut req = Request::builder()
+            .method(method)
+            .uri(uri)
+            .extension(axum::extract::ConnectInfo(peer))
+            .header("host", "localhost");
+        if write_header {
+            req = req.header("x-multi", "1");
+        }
+        let resp = app.clone().oneshot(req.body(Body::empty())?).await?;
+        let code = resp.status();
+        let bytes = resp.into_body().collect().await?.to_bytes();
+        Ok((code, serde_json::from_slice(&bytes).unwrap_or_default()))
+    }
+
+    fn entry<'a>(list: &'a serde_json::Value, id: &str) -> Option<&'a serde_json::Value> {
+        list["models"].as_array()?.iter().find(|m| m["id"] == id)
+    }
+
+    #[test]
+    fn list_pull_verify_remove() -> Result<()> {
+        let a = blob(200_000, 3);
+        let srv = Server::start(HashMap::from([("/m/a.bin".into(), a.clone())]), &[])?;
+        let root = temp_dir()?;
+        let user = root.join("user-models.toml");
+        let model = files_model(
+            "fake",
+            "fake/dir",
+            &format!("{}/m", srv.url()),
+            &[("a.bin", &a, None)],
+        );
+        // One good entry and one that escapes the models directory.
+        let bad = model
+            .replace("\"fake\"", "\"bad\"")
+            .replace("fake/dir", "../x");
+        std::fs::write(&user, format!("{model}\n{bad}"))?;
+        let workers = Workers {
+            asr: None,
+            mt: None,
+            models_dir: Some(root.clone()),
+        };
+        let cfg = Config::default();
+        let service = Service::new(cfg.clone(), workers);
+        let (_tx, rx) = tokio::sync::watch::channel(false);
+        let app = router(
+            AppState::new(service, cfg, root.join("multi.toml"), None, rx).with_catalogue(user),
+        );
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()?;
+        rt.block_on(async {
+            let (code, list) = call(&app, "GET", "/api/models", false).await?;
+            assert_eq!(code, StatusCode::OK);
+            let fake = entry(&list, "fake").context("fake not listed")?;
+            assert_eq!(
+                (fake["origin"].as_str(), fake["status"].as_str()),
+                (Some("user"), Some("missing"))
+            );
+            assert!(entry(&list, "bad").is_none());
+            assert_eq!(
+                list["warnings"].as_array().map(Vec::len),
+                Some(1),
+                "{}",
+                list["warnings"]
+            );
+            let es = entry(&list, "opus-mt-en-es").context("en-es")?;
+            assert_eq!(es["formats"], serde_json::json!(["608", "708", "webvtt"]));
+            assert_eq!(es["origin"], "builtin");
+            let zh = entry(&list, "opus-mt-en-zh").context("en-zh")?;
+            assert_eq!(zh["formats"], serde_json::json!(["webvtt"]));
+
+            // Writes need X-Multi; DELETE too.
+            let (code, _) = call(&app, "DELETE", "/api/models/fake", false).await?;
+            assert_eq!(code, StatusCode::FORBIDDEN);
+            let (code, _) = call(&app, "POST", "/api/models/nope/pull", true).await?;
+            assert_eq!(code, StatusCode::NOT_FOUND);
+
+            let (code, _) = call(&app, "POST", "/api/models/fake/pull", true).await?;
+            assert_eq!(code, StatusCode::ACCEPTED);
+            let deadline = std::time::Instant::now() + std::time::Duration::from_secs(20);
+            loop {
+                let (_, list) = call(&app, "GET", "/api/models", false).await?;
+                let fake = entry(&list, "fake").context("fake")?;
+                if fake["status"] == "installed" && list["active"].is_null() {
+                    assert_eq!(fake["size"], a.len());
+                    break;
+                }
+                assert!(fake["error"].is_null(), "{}", fake["error"]);
+                assert!(std::time::Instant::now() < deadline, "pull did not finish");
+                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+            }
+            let (code, _) = call(&app, "POST", "/api/models/fake/pull", true).await?;
+            assert_eq!(code, StatusCode::CONFLICT, "already installed");
+
+            let (code, v) = call(&app, "POST", "/api/models/fake/verify", true).await?;
+            assert_eq!((code, v["result"].as_str()), (StatusCode::OK, Some("ok")));
+            std::fs::write(root.join("fake/dir/a.bin"), b"changed")?;
+            let (_, v) = call(&app, "POST", "/api/models/fake/verify", true).await?;
+            assert_eq!(v["result"], "failed");
+
+            let (code, _) = call(&app, "DELETE", "/api/models/fake", true).await?;
+            assert_eq!(code, StatusCode::OK);
+            assert!(!root.join("fake/dir/a.bin").exists());
+            let (code, _) = call(&app, "DELETE", "/api/models/fake", true).await?;
+            assert_eq!(code, StatusCode::CONFLICT, "not installed");
+            anyhow::Ok(())
+        })
+    }
+
+    /// The models the running pipeline uses (what `DELETE` refuses): an
+    /// installed translation model wins over the catalogue default.
+    #[test]
+    fn in_use_names_the_installed_models() -> Result<()> {
+        let reg = Registry::builtin().map_err(anyhow::Error::msg)?;
+        let root = temp_dir()?;
+        let big = root.join("ct2/opus-mt-tc-big-en-es");
+        std::fs::create_dir_all(&big)?;
+        std::fs::write(big.join("model.bin"), b"x")?;
+        std::fs::write(big.join("config.json"), b"{}")?;
+        let used = models::in_use(&reg, &Config::default(), &root);
+        assert!(
+            used.contains(&"opus-mt-tc-big-en-es".to_string()),
+            "{used:?}"
+        );
+        assert!(!used.contains(&"opus-mt-en-es".to_string()));
+        assert!(used.contains(&"silero-vad".to_string()));
+        assert!(used.contains(&"opus-mt-en-fr".to_string()));
+        Ok(())
+    }
+}

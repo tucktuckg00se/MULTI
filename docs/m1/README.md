@@ -138,6 +138,8 @@ WP4. Text path: ASR words → `clean` → segmenter → filter → source lane; 
 
 Models are never bundled; `multi models` fetches them into the models directory and checks them against a registry compiled into the binary ([`crates/multi-core/data/models.toml`](../../crates/multi-core/data/models.toml), parsed by `multi_core::models`). Design: [PRD §7](../prd/07-proposed-architecture-and-technology.md) "Model storage and download".
 
+M2-1 adds the user catalogue (`~/.config/multi/models.toml`), the expanded opus-mt catalogue and the GUI Models group: see [M2 Models](../m2/README.md#models-m2-1).
+
 **Directory:** `--models-dir` > `$MULTI_MODELS` > `$XDG_DATA_HOME/multi/models` > `~/.local/share/multi/models`. Inside: each model's `dir` from the registry (`sherpa/…`, `ct2/opus-mt-en-es`), `.tmp/` for downloads and conversions in progress, `.venv/` for the conversion tools. The layout matches the M0 cache, so `--models-dir ~/.cache/multi-models` keeps working. Offline sites copy the folder and run `verify`.
 
 ```sh

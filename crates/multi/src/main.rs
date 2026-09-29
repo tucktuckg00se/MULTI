@@ -5,7 +5,6 @@ use clap::{Parser, Subcommand};
 use multi::models::{self, Check};
 use multi::service::{Service, Workers};
 use multi_core::Config;
-use multi_core::models::Registry;
 use std::io::IsTerminal;
 use std::path::PathBuf;
 use std::process::ExitCode;
@@ -16,6 +15,10 @@ use std::time::Duration;
 #[derive(Parser)]
 #[command(version, about = "Live multilingual captions for video streams")]
 struct Cli {
+    /// User model catalogue, merged with the built-in one ($MULTI_CATALOGUE,
+    /// else $XDG_CONFIG_HOME/multi/models.toml, else ~/.config/multi/models.toml).
+    #[arg(long, global = true, value_name = "PATH")]
+    catalogue: Option<PathBuf>,
     #[command(subcommand)]
     cmd: Cmd,
 }
@@ -124,6 +127,9 @@ fn main() -> ExitCode {
 }
 
 fn run(cli: Cli) -> Result<()> {
+    if let Some(p) = cli.catalogue {
+        models::set_catalogue(p);
+    }
     match cli.cmd {
         Cmd::Config(ConfigCmd::Default) => {
             print!("{}", Config::default().to_toml()?);
@@ -195,7 +201,10 @@ fn run(cli: Cli) -> Result<()> {
 }
 
 fn models_cmd(args: ModelsArgs) -> Result<()> {
-    let reg = Registry::builtin().map_err(anyhow::Error::msg)?;
+    let (reg, warnings) = models::load_catalogue(None)?;
+    for w in &warnings {
+        eprintln!("warning: {w}");
+    }
     let root = models::resolve_dir(args.models_dir.as_deref());
     match args.cmd {
         ModelsCmd::List => {

@@ -329,13 +329,17 @@ impl Registry {
         let (languages, models) = (items("language"), items("model"));
         for (i, v) in languages.into_iter().enumerate() {
             match v.try_into::<LanguageInfo>() {
-                Ok(l) if l.code.is_empty() || l.script.is_empty() => warnings
-                    .push(format!("user catalogue: language #{}: code and script are required; skipped", i + 1)),
+                Ok(l) if l.code.is_empty() || l.script.is_empty() => warnings.push(format!(
+                    "user catalogue: language #{}: code and script are required; skipped",
+                    i + 1
+                )),
                 Ok(l) => {
                     self.languages.retain(|o| o.code != l.code);
                     self.languages.push(l);
                 }
-                Err(e) => warnings.push(format!("user catalogue: language #{}: {e}; skipped", i + 1)),
+                Err(e) => {
+                    warnings.push(format!("user catalogue: language #{}: {e}; skipped", i + 1))
+                }
             }
         }
         let mut seen = HashSet::new();
@@ -366,7 +370,9 @@ impl Registry {
         loop {
             let bad = self.models.iter().position(|m| {
                 m.origin == Origin::User
-                    && m.cpu_variant.as_ref().is_some_and(|v| self.get(v).is_none())
+                    && m.cpu_variant
+                        .as_ref()
+                        .is_some_and(|v| self.get(v).is_none())
             });
             let Some(i) = bad else { break };
             let m = self.models.remove(i);
@@ -520,7 +526,11 @@ mod tests {
             let l = r.language(c).ok_or(format!("language {c} has no script"))?;
             assert!(!l.script.is_empty() && !l.name.is_empty(), "{c}");
             let latin = l.script == "Latin";
-            assert_eq!(!latin, crate::config::NON_LATIN.contains(&c.as_str()), "{c}");
+            assert_eq!(
+                !latin,
+                crate::config::NON_LATIN.contains(&c.as_str()),
+                "{c}"
+            );
             assert_eq!(
                 latin && l.latin_extended,
                 crate::config::LATIN_EXTENDED.contains(&c.as_str()),
@@ -535,7 +545,8 @@ mod tests {
         );
         assert!(r.language("pl").and_then(|l| l.note()).is_some());
         assert_eq!(
-            r.get("opus-mt-en-zh").and_then(|m| m.target_token.as_deref()),
+            r.get("opus-mt-en-zh")
+                .and_then(|m| m.target_token.as_deref()),
             Some(">>cmn_Hans<<")
         );
         Ok(())
@@ -621,7 +632,10 @@ sorce = "en"
     #[test]
     fn mt_prefers_installed() -> Result<(), String> {
         let r = Registry::builtin()?;
-        let pick = |inst: &str| r.mt_with("en", "es", |m| m.id == inst).map(|m| m.id.clone());
+        let pick = |inst: &str| {
+            r.mt_with("en", "es", |m| m.id == inst)
+                .map(|m| m.id.clone())
+        };
         assert_eq!(pick("none").as_deref(), Some("opus-mt-en-es"));
         assert_eq!(
             pick("opus-mt-tc-big-en-es").as_deref(),
