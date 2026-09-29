@@ -546,7 +546,8 @@ mod tests {
             return;
         }
         let specs = lane_specs(&default_languages(), &Captions::default()).unwrap();
-        let (mut cap, h) = Captioner::new(specs, &Captions::default(), &crate::hls::HlsCtx::empty());
+        let (mut cap, h) =
+            Captioner::new(specs, &Captions::default(), &crate::hls::HlsCtx::empty());
         assert!(!h.push_aged("es", "late", true, MAX_AGE + Duration::from_millis(1)));
         assert!(h.push_aged("es", "old", true, MAX_AGE - Duration::from_millis(5)));
         assert!(h.push_aged("es", "fresh", false, Duration::ZERO));
@@ -564,7 +565,8 @@ mod tests {
             return;
         }
         let specs = lane_specs(&default_languages(), &Captions::default()).unwrap();
-        let (mut cap, h) = Captioner::new(specs, &Captions::default(), &crate::hls::HlsCtx::empty());
+        let (mut cap, h) =
+            Captioner::new(specs, &Captions::default(), &crate::hls::HlsCtx::empty());
         h.push("en", "HELLO", true);
         h.push("es", "HOLA", true);
         let mut with_data = 0;

@@ -70,3 +70,7 @@ harness = false
 [[test]]
 name = "fallback"
 harness = false
+
+[[test]]
+name = "hls"
+harness = false

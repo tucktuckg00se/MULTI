@@ -237,7 +237,7 @@ function endpointEditor(path, kinds, isOutput) {
       kinds.map((k) => h("option", { value: k, selected: k === scheme }, k.toUpperCase())));
     typeSel.addEventListener("change", () => {
       const s = typeSel.value;
-      const def = { srt: "srt://0.0.0.0:9001?mode=listener", udp: "udp://239.0.0.1:5000", rtp: "rtp://0.0.0.0:5004", rtmp: "rtmp://a.rtmp.youtube.com/live2/", rtmps: "rtmps://" };
+      const def = { srt: "srt://0.0.0.0:9001?mode=listener", udp: "udp://239.0.0.1:5000", rtp: "rtp://0.0.0.0:5004", rtmp: "rtmp://a.rtmp.youtube.com/live2/", rtmps: "rtmps://", hls: "hls://web" };
       commit(def[s] || s + "://");
       draw();
     });
@@ -250,7 +250,23 @@ function endpointEditor(path, kinds, isOutput) {
       g.append(h("div", { class: "field" }, h("label", { for: id }, label), i, help && h("p", { class: "help" }, help)));
       return i;
     };
-    if (scheme === "rtmp" || scheme === "rtmps") {
+    if (scheme === "hls") {
+      // hls://<name>?segment_s=2&window=6: served at /watch/<name> (M2-3).
+      const name = p.rest.split("?")[0];
+      const params = p.params.slice();
+      const get = (k) => (params.find(([n]) => n === k) || [])[1] || "";
+      const put = (k, v) => {
+        const i = params.findIndex(([n]) => n === k);
+        if (v === "") { if (i >= 0) params.splice(i, 1); } else if (i >= 0) params[i][1] = v; else params.push([k, v]);
+      };
+      let nm = name;
+      const build = () => "hls://" + nm + joinQuery(params);
+      mk("Stream name", name, { class: "mono" }, (i) => { nm = i.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""); return build(); },
+        "Viewers open /watch/" + (name || "<name>") + ". a–z, 0–9, _ and -.");
+      mk("Segment (s)", get("segment_s"), { inputmode: "numeric", placeholder: "2" }, (i) => { put("segment_s", i.value.replace(/\D/g, "")); return build(); },
+        "Cut on keyframes: a segment is at least this long, longer with long GOPs.");
+      mk("Window (segments)", get("window"), { inputmode: "numeric", placeholder: "6" }, (i) => { put("window", i.value.replace(/\D/g, "")); return build(); });
+    } else if (scheme === "rtmp" || scheme === "rtmps") {
       const segs = p.rest.split("/");
       const hasKey = segs.length > 2;
       const server = scheme + "://" + (hasKey ? segs.slice(0, -1) : segs).join("/");
@@ -310,8 +326,10 @@ function renderOutputs(card) {
         h("button", { type: "button", class: "icon", "aria-label": "Remove output " + (i + 1), onclick: () => { S.draft.outputs.splice(i, 1); onChange(); renderSettings(); } }, "Remove")),
       h("div", { class: "grid" },
         renderField({ path: `outputs[${i}].name`, label: "Name", type: "text", optional: true, help: "Optional label shown in Status and logs." }),
-        renderField({ path: `outputs[${i}].enabled`, label: "Enabled", type: "checkbox", help: "A stopped output keeps its settings but sends nothing." })),
-      endpointEditor(`outputs[${i}].url`, ["srt", "udp", "rtmp", "rtmps"], true)));
+        renderField({ path: `outputs[${i}].enabled`, label: "Enabled", type: "checkbox", help: "A stopped output keeps its settings but sends nothing." }),
+        String(o.url).startsWith("hls://") ? renderField({ path: `outputs[${i}].public`, label: "Public viewer", type: "checkbox",
+          help: "Anyone who can reach this server may watch (/watch and /hls for this output only) without signing in. Off: viewers must sign in." }) : null),
+      endpointEditor(`outputs[${i}].url`, ["srt", "udp", "rtmp", "rtmps", "hls"], true)));
   });
   card.append(list, errSlot("outputs"),
     h("button", { type: "button", onclick: () => { S.draft.outputs.push({ url: "udp://127.0.0.1:5000", enabled: true }); onChange(); renderSettings(); } }, "+ Add output"));
@@ -540,7 +558,8 @@ function renderStatus(st) {
       const o = live && live[i];
       const state = !c.enabled ? pill("Stopped", "") : !o ? pill(m ? "–" : "Idle", "") : pill(o.running ? "Up" : "Down", o.running ? "ok" : "err");
       return h("tr", {},
-        h("td", {}, c.name ? h("div", {}, c.name) : null, h("div", { class: "mono" }, o ? o.url : c.url)),
+        h("td", {}, c.name ? h("div", {}, c.name) : null, h("div", { class: "mono" }, o ? o.url : c.url),
+          String(c.url).startsWith("hls://") ? h("a", { href: "/watch/" + c.url.slice(6).split("?")[0], target: "_blank", rel: "noopener" }, "Watch" + (c.public ? " (public)" : "")) : null),
         h("td", {}, state),
         h("td", { class: "num" }, o ? fmt(o.errors) : "–"), h("td", { class: "num" }, o ? fmt(o.starts) : "–"),
         h("td", {}, h("button", { type: "button", "aria-label": (c.enabled ? "Stop " : "Start ") + (c.name || "output " + (i + 1)),

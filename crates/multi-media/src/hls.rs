@@ -307,7 +307,8 @@ impl CueTrack {
                 end: c.end.min(e),
                 text: c.text,
             })
-            .filter(|c| c.end > c.start)
+            // Shorter than 1 ms: replaced at once, not worth a cue.
+            .filter(|c| c.end >= c.start + 90)
             .collect()
     }
 
@@ -423,7 +424,7 @@ fn sub_playlist(code: &str, target: u64, segs: &[Seg]) -> String {
 
 /// PTS of the first video PES in MPEG-TS `data`.
 pub(crate) fn first_video_pts(data: &[u8]) -> Option<u64> {
-    for p in data.chunks_exact(188) {
+    for p in data.as_chunks::<188>().0 {
         if p.first() != Some(&0x47) || p.get(1).is_none_or(|b| b & 0x40 == 0) {
             continue;
         }
@@ -686,7 +687,10 @@ mod tests {
         // Segment [base, base+2 s): first cue whole, second clipped.
         let seg1 = t.cues_in(base, base + 2 * S, hold);
         assert_eq!(seg1.len(), 2);
-        assert_eq!((seg1[0].start, seg1[0].end), (base + S / 2, base + 3 * S / 2));
+        assert_eq!(
+            (seg1[0].start, seg1[0].end),
+            (base + S / 2, base + 3 * S / 2)
+        );
         assert_eq!(seg1[1].text, "hello world");
         assert_eq!(seg1[1].end, base + 2 * S);
         t.prune(base + 2 * S);
