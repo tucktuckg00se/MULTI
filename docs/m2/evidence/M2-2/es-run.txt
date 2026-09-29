@@ -1,0 +1,8 @@
+# ES speaker end to end: multi run (release, CUDA, RTX 3090), 20 MLS es test clips from R1 (326 s), EN+FR direct, DE via English.
+# Clause log (debug) vs MLS refs, Whisper-style basic normalisation, corpus WER. Script: wer.py (same folder).
+live multi run: ref_words=735 hyp_words=721 errors=73 WER=9.9%
+R1 batch output, same normaliser: ref_words=735 hyp_words=739 errors=48 WER=6.5%
+quality=clauses=135 punct=2 pause=38 timer=94 timer_at_pause=55 max_words=1 masked=4 stale_tr=0 paused=[]
+lang=de model=/home/tucker/.cache/multi-models/ct2/opus-mt-en-de
+lang=en model=/home/tucker/.cache/multi-models/ct2/opus-mt-es-en
+lang=fr model=/home/tucker/.cache/multi-models/ct2/opus-mt-es-fr

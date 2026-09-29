@@ -378,7 +378,32 @@ fn model_dir(root: &Path, src: &str, lang: &str) -> PathBuf {
     root.join(format!("opus-mt-{src}-{lang}"))
 }
 
-fn load_on(dir: &Path, device: ct2rs::Device, threads: usize) -> Result<Translator<SpTokenizer>> {
+/// SentencePiece plus the multi-target `>>id<<` token. The token must reach
+/// the model as one vocabulary entry: put into the text, SentencePiece
+/// splits it into pieces (`>>por<<` came out as "Por ⁇ …", M2-2).
+struct Tok {
+    sp: SpTokenizer,
+    prefix: Option<String>,
+}
+
+impl ct2rs::Tokenizer for Tok {
+    fn encode(&self, input: &str) -> Result<Vec<String>> {
+        let mut out: Vec<String> = self.prefix.iter().cloned().collect();
+        out.extend(self.sp.encode(input)?);
+        Ok(out)
+    }
+
+    fn decode(&self, tokens: Vec<String>) -> Result<String> {
+        self.sp.decode(tokens)
+    }
+}
+
+fn load_on(
+    dir: &Path,
+    prefix: Option<&str>,
+    device: ct2rs::Device,
+    threads: usize,
+) -> Result<Translator<Tok>> {
     let cfg = Config {
         device,
         compute_type: match device {
@@ -388,38 +413,43 @@ fn load_on(dir: &Path, device: ct2rs::Device, threads: usize) -> Result<Translat
         num_threads_per_replica: threads,
         ..Default::default()
     };
-    let tok = SpTokenizer::new(dir).with_context(|| format!("tokenizer in {}", dir.display()))?;
+    let sp = SpTokenizer::new(dir).with_context(|| format!("tokenizer in {}", dir.display()))?;
+    let tok = Tok {
+        sp,
+        prefix: prefix.map(str::to_string),
+    };
     Translator::with_tokenizer(dir, tok, &cfg)
         .with_context(|| format!("model in {}", dir.display()))
 }
 
-fn load(lang: &str, dir: &Path, device: Device, threads: usize) -> Result<Translator<SpTokenizer>> {
+fn load(
+    lang: &str,
+    dir: &Path,
+    prefix: Option<&str>,
+    device: Device,
+    threads: usize,
+) -> Result<Translator<Tok>> {
     if !dir.is_dir() {
         bail!("no model directory {}", dir.display());
     }
     let tr = match device {
-        Device::Cuda => load_on(dir, ct2rs::Device::CUDA, threads)?,
-        Device::Cpu => load_on(dir, ct2rs::Device::CPU, threads)?,
-        Device::Auto => match load_on(dir, ct2rs::Device::CUDA, threads) {
+        Device::Cuda => load_on(dir, prefix, ct2rs::Device::CUDA, threads)?,
+        Device::Cpu => load_on(dir, prefix, ct2rs::Device::CPU, threads)?,
+        Device::Auto => match load_on(dir, prefix, ct2rs::Device::CUDA, threads) {
             Ok(t) => t,
             Err(e) => {
                 tracing::warn!(%lang, "CUDA init failed ({e:#}); falling back to CPU");
-                load_on(dir, ct2rs::Device::CPU, threads)?
+                load_on(dir, prefix, ct2rs::Device::CPU, threads)?
             }
         },
     };
     Ok(tr)
 }
 
-fn translate(
-    tr: &Translator<SpTokenizer>,
-    text: &str,
-    prefix: Option<&str>,
-    until: Instant,
-) -> Result<String> {
+fn translate(tr: &Translator<Tok>, text: &str, until: Instant) -> Result<String> {
     let parts: Vec<String> = text::sentences(text)
         .into_iter()
-        .map(|s| prefix.map_or_else(|| s.to_string(), |p| format!("{p} {s}")))
+        .map(str::to_string)
         .collect();
     if parts.is_empty() {
         return Ok(String::new());
@@ -457,8 +487,8 @@ fn lane(
 ) {
     let t = Instant::now();
     let tr = {
-        let loaded = load(lang, &dir, device, threads).and_then(|tr| {
-            translate(&tr, "Hello, world.", prefix, Instant::now() + STALL_LIMIT)?; // warm-up
+        let loaded = load(lang, &dir, prefix, device, threads).and_then(|tr| {
+            translate(&tr, "Hello, world.", Instant::now() + STALL_LIMIT)?; // warm-up
             Ok(tr)
         });
         match loaded {
@@ -481,7 +511,7 @@ fn lane(
         }
         let res = {
             let _busy = hb.busy();
-            translate(&tr, &job.clause.text, prefix, until)
+            translate(&tr, &job.clause.text, until)
         };
         let elapsed = job.arrived.elapsed();
         let text = match res {

@@ -8,7 +8,7 @@
 |---|---|---|
 | R1 Research | Done. Findings: [YouTube captions](findings/R1-youtube-captions.md), [HLS + WebVTT](findings/R1-hls-webvtt.md), [non-English ASR](findings/R1-non-english-asr.md) | done |
 | M2-1 Models + languages | Installed models vs catalogue (built-in registry + user-editable `~/.config/multi/models.toml`); GUI Models section (list, pull with progress and licence, verify, remove); GUI model/language choices limited to installed models; catalogue grown to every permissively licensed opus-mt English pair, each marked with the caption formats that can carry it. See [Models](#models-m2-1) | in review |
-| M2-2 Non-English speakers | Selectable source language; ASR per language per R1: Nemotron with the language set explicitly (WER ES 6.5, FR 9.9, DE 10.4, PT 6.5 on MLS), Whisper turbo as the accuracy option (recommended for DE); translation direct or pivoting through English; segmenter and filter per source language | not started |
+| M2-2 Non-English speakers | Any source language the ASR model transcribes (Nemotron: 15 codes, passed explicitly); translation direct or through English; segmenter punctuation for ES/FR/CJK; Whisper deferred (no backend). See [Non-English speakers](#non-english-speakers-m2-2) | in review |
 | M2-3 Web output: HLS + WebVTT | `hls` output served by MULTI: video pass-through plus one WebVTT subtitle rendition per language (any script); viewer page with a language picker. Per R1: GStreamer has no HLS element for WebVTT; MULTI writes the WebVTT segments and playlists itself (with `X-TIMESTAMP-MAP`) next to an A/V-only HLS | in review |
 | M2-4 YouTube per-language | R1: YouTube allows **one** live caption track per broadcast (embedded 608/708 and HTTP POST alike). So: a caption language per YouTube output (one broadcast per language, video stream-copied), and optionally uploading every language's captions to the recording after the stream (`captions.insert`, needs OAuth) | not started |
 
@@ -25,6 +25,28 @@ Order: R1 → M2-1 and M2-3 in parallel → M2-2 → M2-4.
 **GUI.** Models group: installed (size, licence, in-use, verify/remove), catalogue with filter, licence and attribution before pulling, pull button and progress bar. Languages group: a dropdown of the installed ASR languages (spoken) or installed translation targets; a configured language without a model shows "Install model", linking to its catalogue row; each row shows the formats that can carry it. `#sec-a,b` in the URL opens those groups.
 
 **Tests:** catalogue merge and bad entries, expanded registry (licence, script, pinned revision per entry), installed-first model choice (multi-core); API list/pull/verify/remove against the local HTTP server and in-use resolution (`crates/multi/tests/models.rs`).
+
+## Non-English speakers (M2-2)
+
+**Source language.** The language with `source = true` may be any language the ASR model lists in the catalogue (`languages`). Nemotron 3.5 Streaming: the model card's 19 transcription-ready locales, 15 codes (en es fr it pt nl de tr ru ar hi ja ko vi uk); the broad-coverage and adaptation-ready ones are no longer offered. `multi run` always passes it as `multi-asr --lang xx` (R1: explicit beats `auto` by 0.4–0.7 WER points). `Config::validate` rejects any other source at `languages[i].code` (checked against the built-in catalogue; a user-catalogue ASR model is checked when `multi run` resolves it). The GUI offers as spoken languages only those of installed ASR models. **Whisper** (R1: better for DE) is not added: `multi-asr` has no Whisper backend (needs a non-streaming decoder plus LocalAgreement); the catalogue has a note with its languages.
+
+**Routing** (`Registry::route`): per target, a direct `src→tgt` model if installed; else through English (`src→en`, then `en→tgt`) if both are installed; if neither is complete, the direct pair when the catalogue has one, else the pivot pair, and each missing model gets the usual warning with its `multi models pull` command (marked "translating through English"). The source gets no MT. Catalogue additions (Apache-2.0, pinned): `opus-mt-{es-fr,es-de,fr-es,fr-de,de-es,de-fr}` and `opus-mt-ROMANCE-en` as pt→en (`mul-en` noted as a user-catalogue fallback). The GUI's target list includes pivot targets and links the missing half.
+
+**Where the pivot runs: in `multi-mt`.** `multi run` passes `--source xx --pivot fr,de`; the worker adds an `en` lane (`src→en`) if English isn't a target, and that lane hands its English text to the pivot targets' `en→X` lanes. Chosen over looping through `run.rs` because the second hop stays inside the worker's existing lane/queue/deadline machinery (deadline still counted from arrival) and `run.rs`, the quality tracker and the IPC protocol don't change; one English translation serves every pivot target and a requested `en` output.
+
+**Text.** The segmenter ends sentences on `. ! ? 。 ！ ？ …` before closing quotes (`fin.»`, `好。」`), cuts long clauses at `, ， 、`, attaches opening marks `¿ ¡ « „ 「` to the next word, and joins CJK words without spaces. The word filter was already per lane (own list + the source's), so a Spanish source lane uses the Spanish list and each translation its own. ASR word timing is unchanged.
+
+**Measured** (RTX 3090, release + CUDA, `multi run` end to end; [evidence/M2-2](evidence/M2-2/)). The 20 MLS Spanish clips from R1 (326 s, 1 s gaps) through `source.sh` → UDP → `multi run`, ES source, EN + FR direct, DE through English:
+
+- **ASR WER 9.9 %** (735 reference words, same normaliser; R1's batch Nemotron output on the same clips scores 6.5 % with it). The difference is mostly dropped short words (`que`, `y`, `el`) and a few merged words: a live-path loss, see Open.
+- 135 clauses, each translated to all three; MT time median/max: EN 5/20 ms, FR (direct) 7/29 ms, DE (two hops) 11/45 ms.
+- Sample: *nada. Quien tenga corazón* → EN *Nothing. Whoever has a heart* · FR *Rien. Qui a le cœur* · DE *Nichts. Wer ein Herz hat*.
+
+**Target tokens (M2-1) were broken; fixed.** `multi-mt` prepended `>>por<<` / `>>cmn_Hans<<` to the text, so SentencePiece split it and the model never saw the token: EN→PT (`opus-mt-tc-big-en-pt`, in the default set) gave *"Por ⁇ Procurando por alguns"*, *">>por ⁇ Ser de dor"*; EN→ZH gave runs of `⁇`. The worker now adds the token as one vocabulary entry before the SentencePiece pieces. Checked with real translations (ES speech → EN → PT/ZH): PT *"Procurando por alguns"*, *"Nada. Quem tem coração"*; ZH in Simplified script *"释放, 焦虑, 让世界变得如此"*, no `⁇` in 76 clauses. The token values themselves were right. ZH quality on short clauses is weak (repetitions such as *来,来,来*).
+
+**Tests:** source-language validation (config), routing direct/pivot/PT (multi-core), lane resolution with fake installed models and missing-model messages (multi), worker arguments (`--lang`, `--source`, `--pivot`), `split`/`lane_langs` (multi-mt), Spanish/French/Chinese punctuation (segmenter), and `tests/source_lang.rs`: ES source with the fake workers on ports 9780–9781 (source words on CC1 untranslated, `[en]` on CC3, no `[es]` request).
+
+Open: live ASR WER is ~3 points worse than batch on the same clips (dropped short words; check the worker's VAD/finalisation, likely English too); clauses on read speech are short (70 % close on the timer), which hurts translation; the `en` pivot lane loads even when English isn't shown (≈200 MB VRAM); Whisper backend.
 
 ## HLS web output (M2-3)
 
@@ -51,6 +73,7 @@ M1's YouTube test showed captions working but only one track (English): embedded
 
 Newest first.
 
+- 2026-09-29 — M2-2 in review: source language any Nemotron language (validated, passed explicitly), translation direct or through English in `multi-mt`, CJK/Spanish punctuation; ES live WER 9.9.
 - 2026-09-29 — M2-3 in review: `hls://` output (hlssink2 + MULTI-written WebVTT and playlists), `/watch/<name>` viewer with hls.js, WebVTT-only languages, public viewing per output.
 - 2026-09-29 — M2-1 in review: user catalogue, 120-entry opus-mt catalogue with scripts and formats, models API and GUI.
 - 2026-09-28 — R1 done: YouTube allows one live caption track per broadcast; HLS + WebVTT needs our own VTT segments/playlists; Nemotron is usable for ES/FR/DE/PT, Whisper better for DE.

@@ -319,6 +319,7 @@ impl TextPath<'_> {
                     new_row,
                     reason,
                 } => {
+                    debug!(id = clause.id, text = %clause.text, "clause");
                     let Some(mt) = mt else { continue };
                     let now = self.seg.ms(Instant::now());
                     let langs = self.q.clause(&clause, new_row, reason, now);
@@ -380,6 +381,7 @@ fn text_loop(
             while let Ok(msg) = rx.try_recv() {
                 match msg {
                     Message::Translated { translation: tr } => {
+                        debug!(id = tr.clause_id, lang = %tr.lang, text = %tr.text, elapsed_ms = tr.elapsed_ms, "translated");
                         let now = t.seg.ms(Instant::now());
                         if let Some(r) = t.q.translation(&tr, now) {
                             let age = Duration::from_millis(r.age_ms);
