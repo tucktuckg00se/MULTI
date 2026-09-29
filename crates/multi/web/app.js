@@ -93,9 +93,9 @@ const SECTIONS = [
   {
     id: "timing", title: "Speech recognition and translation", lede: "Latency against accuracy.",
     fields: [
-      { path: "asr.model", label: "ASR model", type: "text", help: "Accuracy vs speed and VRAM." },
-      { path: "asr.chunk_ms", label: "ASR chunk", unit: "ms", type: "number", min: 160, max: 3000, help: "Nemotron exports: 160, 560 or 1,120. Lower lag vs accuracy." },
-      { path: "asr.stability_passes", label: "Stability passes", type: "number", min: 1, max: 3, help: "1–3. Lower lag vs fewer on-screen corrections." },
+      { path: "asr.model", label: "ASR model", type: "asrmodel", wide: true },
+      { path: "asr.chunk_ms", label: "ASR chunk", unit: "ms", type: "number", min: 160, max: 3000, help: "Set by the Nemotron model you pick (160, 560 or 1,120). Whisper: how often the audio is re-read (lower lag vs GPU work)." },
+      { path: "asr.stability_passes", label: "Stability passes", type: "number", min: 1, max: 3, help: "Whisper only, 1–3. Lower lag vs fewer wrong words." },
       { path: "vad.threshold", label: "Voice detection threshold", type: "number", min: 0.1, max: 0.9, step: 0.05, float: true, help: "0.1–0.9. Catching quiet speech vs ignoring noise and music." },
       { path: "translate.segment", label: "Translate by", type: "select", options: [["word", "Word"], ["clause", "Clause"], ["sentence", "Sentence"]], help: "Translation lag vs quality." },
       { path: "translate.max_wait_ms", label: "Max wait for a clause", unit: "ms", type: "number", min: 200, max: 3000, step: 50, help: "200–3,000. Upper limit on waiting for a clause to finish." },
@@ -176,6 +176,7 @@ function renderField(f) {
       h("label", { class: "check", for: id }, input, f.label),
       f.help && h("p", { class: "help" }, f.help), errSlot(f.path));
   }
+  if (f.type === "asrmodel") return renderAsrModel(f, id);
   if (f.type === "select") {
     input = h("select", { id }, f.options.map(([val, text]) => h("option", { value: val, selected: val === v }, text)));
     bindInput(input, f.path, "text");
@@ -357,11 +358,74 @@ function formatBadges(code) {
 const installedModels = () => (M.list ? M.list.models.filter((m) => m.status === "installed") : []);
 const sourceCode = () => ((S.draft && S.draft.languages.find((l) => l.source)) || {}).code || "en";
 
-// Languages the installed ASR models can transcribe.
+// The catalogue entry for asr.model: an id, or `<model>-<chunk_ms>ms` as
+// `multi run` resolves it (Registry::asr).
+function chosenAsr() {
+  if (!M.list || !S.draft) return null;
+  const { model, chunk_ms } = S.draft.asr;
+  const asr = M.list.models.filter((m) => m.kind === "asr");
+  return asr.find((m) => m.id === model) || asr.find((m) => m.id === `${model}-${chunk_ms}ms`) || null;
+}
+// Installed, or its CPU variant is (what `multi run` falls back to).
+function asrUsable(m) {
+  if (m.status === "installed") return true;
+  const v = m.cpu_variant && M.list.models.find((x) => x.id === m.cpu_variant);
+  return !!(v && v.status === "installed");
+}
+// Languages the chosen ASR model transcribes (the spoken-language choices
+// follow the model); if it is not installed, those of every installed one.
 function asrLanguages() {
+  const m = chosenAsr();
+  if (m && asrUsable(m)) return [...m.languages];
   const set = new Set();
   installedModels().filter((m) => m.kind === "asr").forEach((m) => m.languages.forEach((l) => set.add(l)));
   return [...set];
+}
+const asrLangLabel = (m) => (m.languages.length > 8 ? `${m.languages.length} languages` : m.languages.join(", "));
+const asrLag = (m) => (m.lag_ms ? `~${(m.lag_ms / 1000).toFixed(1)} s lag` : "");
+const asrVram = (m) => (m.vram_mb ? `${(m.vram_mb / 1000).toFixed(1)} GB VRAM` : "CPU");
+// Speech recognition model: a dropdown of installed ASR models.
+function renderAsrModel(f, id) {
+  const cur = getPath(S.draft, f.path);
+  if (!M.list) {
+    const input = h("input", { type: "text", id, class: "mono", autocomplete: "off", spellcheck: "false" });
+    input.value = cur || "";
+    bindInput(input, f.path, "text");
+    return h("div", { class: "field wide" }, h("label", { for: id }, f.label), input, errSlot(f.path));
+  }
+  const chosen = chosenAsr();
+  const usable = M.list.models.filter((m) => m.kind === "asr" && m.status === "installed");
+  const opts = usable.slice();
+  if (chosen && !opts.includes(chosen)) opts.unshift(chosen);
+  const label = (m) => [m.id, asrLangLabel(m), asrLag(m), asrVram(m)].filter(Boolean).join(" · ") + (asrUsable(m) ? "" : " — not installed");
+  const sel = h("select", { id },
+    (chosen ? [] : [h("option", { value: "", selected: true }, cur ? `${cur} — not in the catalogue` : "Choose…")])
+      .concat(opts.map((m) => h("option", { value: m.id, selected: m === chosen }, label(m)))));
+  sel.dataset.path = f.path;
+  sel.setAttribute("aria-describedby", "err-" + f.path);
+  sel.addEventListener("change", () => {
+    const m = M.list.models.find((x) => x.id === sel.value);
+    if (!m) return;
+    S.draft.asr.model = m.id;
+    if (m.chunk_ms) S.draft.asr.chunk_ms = m.chunk_ms;
+    onChange();
+    redrawGroups(["languages"]);
+    const chunk = document.getElementById("f-asr.chunk_ms");
+    if (chunk) chunk.value = S.draft.asr.chunk_ms;
+    const info = document.getElementById("asr-model-info");
+    if (info) info.replaceWith(asrInfo(m));
+  });
+  const install = h("a", { href: "#sec-models", onclick: (e) => { e.preventDefault(); showModel(""); } }, "Install more");
+  return h("div", { class: "field wide" },
+    h("label", { for: id }, f.label), sel, " ", install,
+    chosen ? asrInfo(chosen) : h("p", { class: "help", id: "asr-model-info" }, usable.length ? "" : "No speech model installed."),
+    errSlot(f.path));
+}
+function asrInfo(m) {
+  const eng = m.engine === "whisper" ? "Whisper (re-reads the audio, commits when two passes agree)" : "Nemotron streaming";
+  return h("p", { class: "help", id: "asr-model-info" },
+    [m.note, `${eng}; ${asrLag(m) || "lag unknown"}; ${asrVram(m)}; spoken languages: ${m.languages.length > 20 ? m.languages.length + " (" + m.languages.slice(0, 12).join(", ") + "…)" : m.languages.join(", ")}.`]
+      .filter(Boolean).join(". "));
 }
 // Targets reachable with installed translation models from the spoken
 // language: direct pairs, or through English (src→en plus en→X), as
@@ -399,7 +463,7 @@ async function loadModels() {
     const r = await api("GET", "/api/models");
     if (r.ok) { M.list = r.data; M.error = ""; } else M.error = (r.data && r.data.error) || "cannot list models";
   } catch (e) { M.error = String(e); }
-  redrawGroups(["models", "languages"]);
+  redrawGroups(["models", "languages", "timing"]);
 }
 
 // Re-renders some settings groups in place (keeps focus on the filter box).
@@ -413,7 +477,8 @@ function redrawGroups(ids) {
     const sec = SECTIONS.find((s) => s.id === id);
     if (!card || !sec) continue;
     [...card.children].forEach((c) => { if (c.tagName !== "SUMMARY") c.remove(); });
-    sec.custom(card);
+    if (sec.custom) sec.custom(card);
+    else card.append(h("div", { class: "grid" }, sec.fields.map(renderField)));
   }
   const el = focusId && document.getElementById(focusId);
   if (el) { el.focus(); if (caret != null && el.setSelectionRange) el.setSelectionRange(caret, caret); }

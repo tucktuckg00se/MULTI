@@ -457,15 +457,15 @@ impl Default for Degrade {
 /// Languages written in non-Latin scripts, which CEA-608 can't carry and
 /// MULTI's 708 path doesn't support.
 pub(crate) const NON_LATIN: &[&str] = &[
-    "am", "ar", "be", "bg", "bn", "el", "fa", "gu", "he", "hi", "hy", "ja", "ka", "kk", "km", "kn",
-    "ko", "lo", "mk", "ml", "mr", "my", "ne", "pa", "ru", "si", "sr", "ta", "te", "th", "ti", "uk",
-    "ur", "yi", "zh",
+    "am", "ar", "as", "ba", "be", "bg", "bn", "bo", "el", "fa", "gu", "he", "hi", "hy", "ja", "ka",
+    "kk", "km", "kn", "ko", "lo", "mk", "ml", "mn", "mr", "my", "ne", "pa", "ps", "ru", "sa", "sd",
+    "si", "sr", "ta", "te", "tg", "th", "ti", "tt", "uk", "ur", "yi", "zh",
 ];
 
 /// Latin-script languages with letters outside CEA-608's character sets.
 pub(crate) const LATIN_EXTENDED: &[&str] = &[
-    "az", "cs", "cy", "ee", "eo", "et", "ha", "hr", "hu", "ig", "is", "lt", "ln", "lv", "mh", "mt",
-    "pl", "ro", "sg", "sk", "sl", "tr", "tw", "vi",
+    "az", "bs", "cs", "cy", "ee", "eo", "et", "fo", "ha", "hr", "hu", "ig", "is", "ln", "lt", "lv",
+    "mh", "mi", "mt", "pl", "ro", "sg", "sk", "sl", "tk", "tr", "tw", "uz", "vi", "yo",
 ];
 
 /// A single validation problem, keyed by the setting's dotted path.
@@ -922,6 +922,22 @@ mod tests {
         c.languages[0].code = "pt".into();
         c.languages[2].code = "cy".into();
         assert!(c.validate().is_empty(), "{:?}", c.validate());
+        // The spoken languages follow the chosen model (M2-5): Whisper has
+        // Welsh and Polish, Nemotron 160 ms (by id) does not.
+        c.languages[0].code = "cy".into();
+        c.languages[2].code = "fr".into();
+        c.asr.model = "whisper-large-v3-turbo".into();
+        assert!(c.validate().is_empty(), "{:?}", c.validate());
+        c.languages[0].code = "pl".into();
+        assert!(c.validate().is_empty(), "{:?}", c.validate());
+        c.asr.model = "nemotron-3.5-streaming-160ms".into();
+        assert!(
+            c.validate()
+                .iter()
+                .any(|i| i.path == "languages[0].code" && i.message.contains("`pl`")),
+            "{:?}",
+            c.validate()
+        );
         // An ASR model outside the built-in catalogue is not checked here.
         c.languages[0].code = "cy".into();
         c.languages[2].code = "fr".into();

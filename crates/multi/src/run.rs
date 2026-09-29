@@ -13,6 +13,7 @@
 //! the control layer (`service`) uses it for status and live events.
 
 use crate::models::{self, AsrPaths};
+use multi_core::models::AsrEngine;
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::mpsc::{Receiver, RecvTimeoutError};
@@ -91,15 +92,23 @@ fn target_langs(config: &Config) -> Vec<String> {
 /// The real workers, next to the `multi` executable, with model folders
 /// resolved from the registry (`crate::models`).
 pub fn default_asr(config: &Config, bin_dir: &Path, paths: &AsrPaths) -> WorkerSpec {
-    WorkerSpec::new("asr", bin_dir.join("multi-asr"))
-        .arg("--model-dir")
-        .arg(&paths.model_dir)
+    let spec = WorkerSpec::new("asr", bin_dir.join("multi-asr"))
+        .args(["--engine", paths.engine.arg(), "--model"])
+        .arg(&paths.model)
+        .arg("--chunk-ms")
+        .arg(paths.chunk_ms.to_string())
         .arg("--vad-model")
         .arg(&paths.vad)
         .args(["--device", "auto", "--lang"])
         .arg(source_lang(config))
         .arg("--vad-threshold")
-        .arg(config.vad.threshold.to_string())
+        .arg(config.vad.threshold.to_string());
+    match paths.engine {
+        AsrEngine::Whisper => spec
+            .arg("--passes")
+            .arg(config.asr.stability_passes.to_string()),
+        AsrEngine::SherpaStreaming => spec,
+    }
 }
 
 /// `models`: one lane per target language (plus the `en` pivot lane when
@@ -517,12 +526,37 @@ mod tests {
         let c = Config::default();
         let paths = AsrPaths {
             id: "x".into(),
-            model_dir: "/m/asr".into(),
+            engine: AsrEngine::SherpaStreaming,
+            model: "/m/asr".into(),
+            chunk_ms: 160,
             vad: "/m/vad.onnx".into(),
         };
         let a = default_asr(&c, Path::new("/opt/multi"), &paths);
         assert_eq!(a.program, PathBuf::from("/opt/multi/multi-asr"));
         assert!(a.args.contains(&OsString::from("/m/vad.onnx")));
+        let after = |flag: &str| {
+            let i = a.args.iter().position(|x| x == flag)?;
+            a.args.get(i + 1).cloned()
+        };
+        assert_eq!(after("--engine"), Some("sherpa-streaming".into()));
+        assert_eq!(after("--model"), Some("/m/asr".into()));
+        assert_eq!(after("--chunk-ms"), Some("160".into()));
+        assert_eq!(after("--passes"), None, "LocalAgreement only");
+        let whisper = AsrPaths {
+            engine: AsrEngine::Whisper,
+            model: "/m/whisper/ggml-small.bin".into(),
+            chunk_ms: 1000,
+            ..paths.clone()
+        };
+        let w = default_asr(&c, Path::new("/opt/multi"), &whisper);
+        let after = |flag: &str| {
+            let i = w.args.iter().position(|x| x == flag)?;
+            w.args.get(i + 1).cloned()
+        };
+        assert_eq!(after("--engine"), Some("whisper".into()));
+        assert_eq!(after("--model"), Some("/m/whisper/ggml-small.bin".into()));
+        assert_eq!(after("--chunk-ms"), Some("1000".into()));
+        assert_eq!(after("--passes"), Some("2".into()));
         let mt = [models::MtModel {
             lang: "es".into(),
             dir: PathBuf::from("/m/ct2/opus-mt-en-es"),
@@ -544,7 +578,9 @@ mod tests {
         c.languages[1].source = false;
         let paths = AsrPaths {
             id: "x".into(),
-            model_dir: "/m/asr".into(),
+            engine: AsrEngine::SherpaStreaming,
+            model: "/m/asr".into(),
+            chunk_ms: 560,
             vad: "/m/vad.onnx".into(),
         };
         let a = default_asr(&c, Path::new("/opt/multi"), &paths);

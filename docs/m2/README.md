@@ -10,6 +10,7 @@
 | M2-1 Models + languages | Installed models vs catalogue (built-in registry + user-editable `~/.config/multi/models.toml`); GUI Models section (list, pull with progress and licence, verify, remove); GUI model/language choices limited to installed models; catalogue grown to every permissively licensed opus-mt English pair, each marked with the caption formats that can carry it. See [Models](#models-m2-1) | in review |
 | M2-2 Non-English speakers | Any source language the ASR model transcribes (Nemotron: 15 codes, passed explicitly); translation direct or through English; segmenter punctuation for ES/FR/CJK; Whisper deferred (no backend). See [Non-English speakers](#non-english-speakers-m2-2) | in review |
 | M2-3 Web output: HLS + WebVTT | `hls` output served by MULTI: video pass-through plus one WebVTT subtitle rendition per language (any script); viewer page with a language picker. Per R1: GStreamer has no HLS element for WebVTT; MULTI writes the WebVTT segments and playlists itself (with `X-TIMESTAMP-MAP`) next to an A/V-only HLS | in review |
+| M2-5 Speech models | Dropped short words fixed (streams outlive short pauses); `Engine` trait with Nemotron (sherpa-onnx) and Whisper (whisper.cpp + LocalAgreement-2 + hallucination guard); catalogue of Nemotron 160/560/1120 ms fp32/int8 and Whisper turbo/small; GUI model dropdown. See [Speech models](#speech-models-m2-5) | in review |
 | M2-4 YouTube per-language | R1: YouTube allows **one** live caption track per broadcast (embedded 608/708 and HTTP POST alike). So: a caption language per YouTube output (one broadcast per language, video stream-copied), and optionally uploading every language's captions to the recording after the stream (`captions.insert`, needs OAuth) | not started |
 
 Order: R1 → M2-1 and M2-3 in parallel → M2-2 → M2-4.
@@ -46,7 +47,7 @@ Order: R1 → M2-1 and M2-3 in parallel → M2-2 → M2-4.
 
 **Tests:** source-language validation (config), routing direct/pivot/PT (multi-core), lane resolution with fake installed models and missing-model messages (multi), worker arguments (`--lang`, `--source`, `--pivot`), `split`/`lane_langs` (multi-mt), Spanish/French/Chinese punctuation (segmenter), and `tests/source_lang.rs`: ES source with the fake workers on ports 9780–9781 (source words on CC1 untranslated, `[en]` on CC3, no `[es]` request).
 
-Open: live ASR WER is ~3 points worse than batch on the same clips (dropped short words; check the worker's VAD/finalisation, likely English too); clauses on read speech are short (70 % close on the timer), which hurts translation; the `en` pivot lane loads even when English isn't shown (≈200 MB VRAM); Whisper backend.
+Open: ~~live ASR WER is ~3 points worse than batch~~ (fixed in M2-5: live now within 0.3 of batch); clauses on read speech are short (70 % close on the timer), which hurts translation; the `en` pivot lane loads even when English isn't shown (≈200 MB VRAM); Whisper backend.
 
 ## HLS web output (M2-3)
 

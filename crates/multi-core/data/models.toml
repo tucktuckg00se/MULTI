@@ -28,10 +28,18 @@
 
 language = [
 { code = "af", name = "Afrikaans", script = "Latin" },
+{ code = "am", name = "Amharic", script = "Ethiopic" },
 { code = "ar", name = "Arabic", script = "Arabic" },
+{ code = "as", name = "Assamese", script = "Bengali" },
 { code = "az", name = "Azerbaijani", script = "Latin", latin_extended = true },
+{ code = "ba", name = "Bashkir", script = "Cyrillic" },
+{ code = "be", name = "Belarusian", script = "Cyrillic" },
 { code = "bg", name = "Bulgarian", script = "Cyrillic" },
 { code = "bi", name = "Bislama", script = "Latin" },
+{ code = "bn", name = "Bengali", script = "Bengali" },
+{ code = "bo", name = "Tibetan", script = "Tibetan" },
+{ code = "br", name = "Breton", script = "Latin" },
+{ code = "bs", name = "Bosnian", script = "Latin", latin_extended = true },
 { code = "ca", name = "Catalan", script = "Latin" },
 { code = "cs", name = "Czech", script = "Latin", latin_extended = true },
 { code = "cy", name = "Welsh", script = "Latin", latin_extended = true },
@@ -44,11 +52,14 @@ language = [
 { code = "es", name = "Spanish", script = "Latin" },
 { code = "et", name = "Estonian", script = "Latin", latin_extended = true },
 { code = "eu", name = "Basque", script = "Latin" },
+{ code = "fa", name = "Persian", script = "Arabic" },
 { code = "fi", name = "Finnish", script = "Latin" },
 { code = "fj", name = "Fijian", script = "Latin" },
+{ code = "fo", name = "Faroese", script = "Latin", latin_extended = true },
 { code = "fr", name = "French", script = "Latin" },
 { code = "ga", name = "Irish", script = "Latin" },
 { code = "gl", name = "Galician", script = "Latin" },
+{ code = "gu", name = "Gujarati", script = "Gujarati" },
 { code = "gv", name = "Manx", script = "Latin" },
 { code = "ha", name = "Hausa", script = "Latin", latin_extended = true },
 { code = "he", name = "Hebrew", script = "Hebrew" },
@@ -63,52 +74,86 @@ language = [
 { code = "is", name = "Icelandic", script = "Latin", latin_extended = true },
 { code = "it", name = "Italian", script = "Latin" },
 { code = "ja", name = "Japanese", script = "CJK" },
+{ code = "jv", name = "Javanese", script = "Latin" },
+{ code = "ka", name = "Georgian", script = "Georgian" },
 { code = "kg", name = "Kongo", script = "Latin" },
 { code = "kj", name = "Kuanyama", script = "Latin" },
+{ code = "kk", name = "Kazakh", script = "Cyrillic" },
+{ code = "km", name = "Khmer", script = "Khmer" },
+{ code = "kn", name = "Kannada", script = "Kannada" },
 { code = "ko", name = "Korean", script = "Hangul" },
+{ code = "la", name = "Latin", script = "Latin" },
+{ code = "lb", name = "Luxembourgish", script = "Latin" },
 { code = "lg", name = "Ganda", script = "Latin" },
 { code = "ln", name = "Lingala", script = "Latin", latin_extended = true },
+{ code = "lo", name = "Lao", script = "Lao" },
 { code = "lt", name = "Lithuanian", script = "Latin", latin_extended = true },
 { code = "lu", name = "Luba-Katanga", script = "Latin" },
 { code = "lv", name = "Latvian", script = "Latin", latin_extended = true },
 { code = "mg", name = "Malagasy", script = "Latin" },
 { code = "mh", name = "Marshallese", script = "Latin", latin_extended = true },
+{ code = "mi", name = "Maori", script = "Latin", latin_extended = true },
 { code = "mk", name = "Macedonian", script = "Cyrillic" },
 { code = "ml", name = "Malayalam", script = "Malayalam" },
+{ code = "mn", name = "Mongolian", script = "Cyrillic" },
 { code = "mr", name = "Marathi", script = "Devanagari" },
+{ code = "ms", name = "Malay", script = "Latin" },
 { code = "mt", name = "Maltese", script = "Latin", latin_extended = true },
+{ code = "my", name = "Burmese", script = "Myanmar" },
 { code = "nb", name = "Norwegian Bokmål", script = "Latin" },
+{ code = "ne", name = "Nepali", script = "Devanagari" },
 { code = "ng", name = "Ndonga", script = "Latin" },
 { code = "nl", name = "Dutch", script = "Latin" },
+{ code = "nn", name = "Norwegian Nynorsk", script = "Latin" },
+{ code = "no", name = "Norwegian", script = "Latin" },
 { code = "ny", name = "Chichewa", script = "Latin" },
+{ code = "oc", name = "Occitan", script = "Latin" },
 { code = "om", name = "Oromo", script = "Latin" },
+{ code = "pa", name = "Punjabi", script = "Gurmukhi" },
 { code = "pl", name = "Polish", script = "Latin", latin_extended = true },
+{ code = "ps", name = "Pashto", script = "Arabic" },
 { code = "pt", name = "Portuguese", script = "Latin" },
 { code = "rn", name = "Kirundi", script = "Latin" },
 { code = "ro", name = "Romanian", script = "Latin", latin_extended = true },
 { code = "ru", name = "Russian", script = "Cyrillic" },
 { code = "rw", name = "Kinyarwanda", script = "Latin" },
+{ code = "sa", name = "Sanskrit", script = "Devanagari" },
+{ code = "sd", name = "Sindhi", script = "Arabic" },
 { code = "sg", name = "Sango", script = "Latin", latin_extended = true },
+{ code = "si", name = "Sinhala", script = "Sinhala" },
 { code = "sk", name = "Slovak", script = "Latin", latin_extended = true },
+{ code = "sl", name = "Slovenian", script = "Latin", latin_extended = true },
 { code = "sm", name = "Samoan", script = "Latin" },
 { code = "sn", name = "Shona", script = "Latin" },
+{ code = "so", name = "Somali", script = "Latin" },
 { code = "sq", name = "Albanian", script = "Latin" },
+{ code = "sr", name = "Serbian", script = "Cyrillic" },
 { code = "ss", name = "Swati", script = "Latin" },
 { code = "st", name = "Sesotho", script = "Latin" },
+{ code = "su", name = "Sundanese", script = "Latin" },
 { code = "sv", name = "Swedish", script = "Latin" },
 { code = "sw", name = "Swahili", script = "Latin" },
+{ code = "ta", name = "Tamil", script = "Tamil" },
+{ code = "te", name = "Telugu", script = "Telugu" },
+{ code = "tg", name = "Tajik", script = "Cyrillic" },
+{ code = "th", name = "Thai", script = "Thai" },
 { code = "ti", name = "Tigrinya", script = "Ethiopic" },
+{ code = "tk", name = "Turkmen", script = "Latin", latin_extended = true },
 { code = "tl", name = "Tagalog", script = "Latin" },
 { code = "tn", name = "Tswana", script = "Latin" },
 { code = "to", name = "Tongan", script = "Latin" },
 { code = "tr", name = "Turkish", script = "Latin", latin_extended = true },
 { code = "ts", name = "Tsonga", script = "Latin" },
+{ code = "tt", name = "Tatar", script = "Cyrillic" },
 { code = "tw", name = "Twi", script = "Latin", latin_extended = true },
 { code = "ty", name = "Tahitian", script = "Latin" },
 { code = "uk", name = "Ukrainian", script = "Cyrillic" },
 { code = "ur", name = "Urdu", script = "Arabic" },
+{ code = "uz", name = "Uzbek", script = "Latin", latin_extended = true },
 { code = "vi", name = "Vietnamese", script = "Latin", latin_extended = true },
 { code = "xh", name = "Xhosa", script = "Latin" },
+{ code = "yi", name = "Yiddish", script = "Hebrew" },
+{ code = "yo", name = "Yoruba", script = "Latin", latin_extended = true },
 { code = "zh", name = "Chinese (Simplified)", script = "CJK" },
 ]
 
@@ -124,19 +169,27 @@ language = [
 # "adaptation-ready" el lt lv mt sl he th nn (lower accuracy; fine-tuning).
 # MLS WER with the language set (R1): es 6.5, fr 9.9, de 10.4, pt 6.5.
 #
-# Whisper large-v3-turbo (MIT; R1: WER es 5.2, fr 8.1, de 6.2, pt 8.8, about
-# 3 s more lag) is not an entry yet: multi-asr has no Whisper backend (it
-# needs a non-streaming decoder plus LocalAgreement). Its languages would be
-# Whisper's 99 (af am ar as az ba be bg bn bo br bs ca cs cy da de el en es
-# et eu fa fi fo fr gl gu ha haw he hi hr ht hu hy id is it ja jw ka kk km
-# kn ko la lb ln lo lt lv mg mi mk ml mn mr ms mt my ne nl nn no oc pa pl
-# ps pt ro ru sa sd si sk sl sn so sq sr su sv sw ta te tg th tk tl tr tt
-# uk ur uz vi yi yo yue zh). Recommended for German once added (R1).
+#
+# ASR entries (M2-5) carry `engine` (how multi-asr runs them), `chunk_ms`
+# (Nemotron: the chunk the export was made for, which sets asr.chunk_ms;
+# Whisper: the interval between LocalAgreement passes), `lag_ms` (typical
+# caption lag after a word, p50, S4/M2-5 runs at 1x on an RTX 3090) and a
+# one-line `note` for the GUI's model picker. One Nemotron export per chunk
+# size; the fp32 files other than encoder.onnx are identical across chunks.
+#
+# Whisper (ggml files from the whisper.cpp model repo, MIT): the 98 of its
+# 100 languages that have an ISO 639-1 code (not Hawaiian or Cantonese;
+# Javanese is `jv` here, `jw` in Whisper). R1: WER es 5.2, fr 8.1, de 6.2,
+# pt 8.8 for turbo; recommended for German.
 
 [[model]]
 id = "nemotron-3.5-streaming-560ms"
 kind = "asr"
 backend = "sherpa-onnx"
+engine = "sherpa-streaming"
+chunk_ms = 560
+lag_ms = 840
+note = "Default: low lag, the best balance"
 default = true
 languages = ["en", "es", "fr", "it", "pt", "nl", "de", "tr", "ru", "ar", "hi", "ja", "ko", "vi", "uk"]
 licence = "OpenMDW-1.1"
@@ -159,6 +212,10 @@ files = [
 id = "nemotron-3.5-streaming-560ms-int8"
 kind = "asr"
 backend = "sherpa-onnx"
+engine = "sherpa-streaming"
+chunk_ms = 560
+lag_ms = 840
+note = "int8: real time on CPU, slightly less accurate"
 default = true
 languages = ["en", "es", "fr", "it", "pt", "nl", "de", "tr", "ru", "ar", "hi", "ja", "ko", "vi", "uk"]
 licence = "OpenMDW-1.1"
@@ -170,10 +227,148 @@ dir = "sherpa/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-560ms-int8-2026-06-11"
 revision = "asr-models"
 archive = { url = "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-560ms-int8-2026-06-11.tar.bz2", size = 475271763, sha256 = "c6bf5e0df765f9d5b43bc9e0536d4b4b3e7d40bdf5ecf13e45f134c51c05ae3a" }
 files = [
-  { path = "tokens.txt",        size = 131440,    sha256 = "729cc103155bafa785f9cd45746cd41cabe97eab7182fc04d594129587958f8a" },
+  { path = "tokens.txt",   size = 131440,     sha256 = "729cc103155bafa785f9cd45746cd41cabe97eab7182fc04d594129587958f8a" },
   { path = "decoder.int8.onnx", size = 14978075,  sha256 = "19f9c98fc6d0a2c33a65a43b36fdb2e914c26c0aa9764be3aebc502a1e982fb0" },
   { path = "joiner.int8.onnx",  size = 9504438,   sha256 = "4101c7c679a0bc30483794b27a059e34e79232aa2068d78d51231a22c8b0d7ce" },
   { path = "encoder.int8.onnx", size = 657601403, sha256 = "012e9321373af99021415e0b0eb3ec827b4be3153be6f30d9b448fe65e896e68" },
+]
+
+[[model]]
+id = "nemotron-3.5-streaming-160ms"
+kind = "asr"
+backend = "sherpa-onnx"
+engine = "sherpa-streaming"
+chunk_ms = 160
+lag_ms = 700
+note = "Lowest lag; three times the GPU work of 560 ms"
+languages = ["en", "es", "fr", "it", "pt", "nl", "de", "tr", "ru", "ar", "hi", "ja", "ko", "vi", "uk"]
+licence = "OpenMDW-1.1"
+attribution = "NVIDIA Nemotron 3.5 ASR Streaming 0.6B (nvidia/nemotron-3.5-asr-streaming-0.6b @ ea30d66d), NVIDIA, OpenMDW-1.1; sherpa-onnx export by the k2-fsa project (csukuangfj2)"
+vram_mb = 3000
+disk_mb = 2594
+cpu_variant = "nemotron-3.5-streaming-160ms-int8"
+dir = "sherpa/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-160ms-2026-06-11-fp32"
+revision = "44d1e59cb0f8d6f91dc32cb2af4a76b6130393f6"
+base_url = "https://huggingface.co/csukuangfj2/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-160ms-2026-06-11/resolve/44d1e59cb0f8d6f91dc32cb2af4a76b6130393f6"
+files = [
+  { path = "tokens.txt",   size = 131440,     sha256 = "729cc103155bafa785f9cd45746cd41cabe97eab7182fc04d594129587958f8a" },
+  { path = "decoder.onnx", size = 59764944,   sha256 = "f9c59ee6fa130bc2ba349dbcbba7c74a4a960a98d4196295ba4e8e5d6bde6b68" },
+  { path = "joiner.onnx",  size = 37824291,   sha256 = "a6bd74c0a31cbde0da0368c1e29d171752108c7ad1231630e079a7d97ceee6f0" },
+  { path = "encoder.onnx", size = 42247580,   sha256 = "e714a7cdd4a804dba85aea4cb0cffa5c0daef46752050d2738d1b502d4b4ab58" },
+  { path = "encoder.data", size = 2454405120, sha256 = "7584f85df76bc9ae6fbdfa53aa8d97b07a842525d1c501d536d77fd9e4f57ac7" },
+]
+
+[[model]]
+id = "nemotron-3.5-streaming-160ms-int8"
+kind = "asr"
+backend = "sherpa-onnx"
+engine = "sherpa-streaming"
+chunk_ms = 160
+lag_ms = 700
+note = "int8, lowest lag; heavy on CPU"
+languages = ["en", "es", "fr", "it", "pt", "nl", "de", "tr", "ru", "ar", "hi", "ja", "ko", "vi", "uk"]
+licence = "OpenMDW-1.1"
+attribution = "NVIDIA Nemotron 3.5 ASR Streaming 0.6B (nvidia/nemotron-3.5-asr-streaming-0.6b @ ea30d66d), NVIDIA, OpenMDW-1.1; int8 sherpa-onnx export by the k2-fsa project"
+vram_mb = 800
+disk_mb = 682
+dir = "sherpa/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-160ms-int8-2026-06-11"
+# GitHub release tag `asr-models` is not immutable; the SHA-256 pins the content.
+revision = "asr-models"
+archive = { url = "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-160ms-int8-2026-06-11.tar.bz2", size = 475273363, sha256 = "a81909a1780d84cff16d73c15e13e67d9d81d8839faf14870d507d8499f7a61a" }
+files = [
+  { path = "tokens.txt",   size = 131440,     sha256 = "729cc103155bafa785f9cd45746cd41cabe97eab7182fc04d594129587958f8a" },
+  { path = "decoder.int8.onnx", size = 14978075,  sha256 = "19f9c98fc6d0a2c33a65a43b36fdb2e914c26c0aa9764be3aebc502a1e982fb0" },
+  { path = "joiner.int8.onnx",  size = 9504438,   sha256 = "4101c7c679a0bc30483794b27a059e34e79232aa2068d78d51231a22c8b0d7ce" },
+  { path = "encoder.int8.onnx", size = 657601518, sha256 = "e1b39e5e16bef578a54ed2fba5f031438e000cc36c3ea2ca49d55699d5baebd4" },
+]
+
+[[model]]
+id = "nemotron-3.5-streaming-1120ms"
+kind = "asr"
+backend = "sherpa-onnx"
+engine = "sherpa-streaming"
+chunk_ms = 1120
+lag_ms = 1110
+note = "Most lag, least GPU work; same accuracy"
+languages = ["en", "es", "fr", "it", "pt", "nl", "de", "tr", "ru", "ar", "hi", "ja", "ko", "vi", "uk"]
+licence = "OpenMDW-1.1"
+attribution = "NVIDIA Nemotron 3.5 ASR Streaming 0.6B (nvidia/nemotron-3.5-asr-streaming-0.6b @ ea30d66d), NVIDIA, OpenMDW-1.1; sherpa-onnx export by the k2-fsa project (csukuangfj2)"
+vram_mb = 3000
+disk_mb = 2594
+cpu_variant = "nemotron-3.5-streaming-1120ms-int8"
+dir = "sherpa/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-1120ms-2026-06-11-fp32"
+revision = "1ecc0a04c7658b6be62b97051fd21f67421392e8"
+base_url = "https://huggingface.co/csukuangfj2/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-1120ms-2026-06-11/resolve/1ecc0a04c7658b6be62b97051fd21f67421392e8"
+files = [
+  { path = "tokens.txt",   size = 131440,     sha256 = "729cc103155bafa785f9cd45746cd41cabe97eab7182fc04d594129587958f8a" },
+  { path = "decoder.onnx", size = 59764944,   sha256 = "f9c59ee6fa130bc2ba349dbcbba7c74a4a960a98d4196295ba4e8e5d6bde6b68" },
+  { path = "joiner.onnx",  size = 37824291,   sha256 = "a6bd74c0a31cbde0da0368c1e29d171752108c7ad1231630e079a7d97ceee6f0" },
+  { path = "encoder.onnx", size = 42247583,   sha256 = "7f6b9d121818aff3746153719afdaaa0c1063dc2bf8e49b1039efdeb76df3b1b" },
+  { path = "encoder.data", size = 2454405120, sha256 = "7584f85df76bc9ae6fbdfa53aa8d97b07a842525d1c501d536d77fd9e4f57ac7" },
+]
+
+[[model]]
+id = "nemotron-3.5-streaming-1120ms-int8"
+kind = "asr"
+backend = "sherpa-onnx"
+engine = "sherpa-streaming"
+chunk_ms = 1120
+lag_ms = 1110
+note = "int8, cheapest on CPU; most lag"
+languages = ["en", "es", "fr", "it", "pt", "nl", "de", "tr", "ru", "ar", "hi", "ja", "ko", "vi", "uk"]
+licence = "OpenMDW-1.1"
+attribution = "NVIDIA Nemotron 3.5 ASR Streaming 0.6B (nvidia/nemotron-3.5-asr-streaming-0.6b @ ea30d66d), NVIDIA, OpenMDW-1.1; int8 sherpa-onnx export by the k2-fsa project"
+vram_mb = 800
+disk_mb = 682
+dir = "sherpa/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-1120ms-int8-2026-06-11"
+# GitHub release tag `asr-models` is not immutable; the SHA-256 pins the content.
+revision = "asr-models"
+archive = { url = "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-1120ms-int8-2026-06-11.tar.bz2", size = 475276334, sha256 = "adbdd5e9fef87300c37cebfcfc4f1ebe56845c860c8a760af0a1dd65ce9beed3" }
+files = [
+  { path = "tokens.txt",   size = 131440,     sha256 = "729cc103155bafa785f9cd45746cd41cabe97eab7182fc04d594129587958f8a" },
+  { path = "decoder.int8.onnx", size = 14978075,  sha256 = "19f9c98fc6d0a2c33a65a43b36fdb2e914c26c0aa9764be3aebc502a1e982fb0" },
+  { path = "joiner.int8.onnx",  size = 9504438,   sha256 = "4101c7c679a0bc30483794b27a059e34e79232aa2068d78d51231a22c8b0d7ce" },
+  { path = "encoder.int8.onnx", size = 657601521, sha256 = "2fff2166acaa535bd969fb223c1f0783d71029f143cb298bc54c2afe85abf772" },
+]
+
+[[model]]
+id = "whisper-large-v3-turbo"
+kind = "asr"
+backend = "whisper-cpp"
+engine = "whisper"
+chunk_ms = 1000
+lag_ms = 1130
+note = "Most accurate, 98 languages; more lag (p95 about 3 s); GPU only"
+languages = ["af", "am", "ar", "as", "az", "ba", "be", "bg", "bn", "bo", "br", "bs", "ca", "cs", "cy", "da", "de", "el", "en", "es", "et", "eu", "fa", "fi", "fo", "fr", "gl", "gu", "ha", "he", "hi", "hr", "ht", "hu", "hy", "id", "is", "it", "ja", "jv", "ka", "kk", "km", "kn", "ko", "la", "lb", "ln", "lo", "lt", "lv", "mg", "mi", "mk", "ml", "mn", "mr", "ms", "mt", "my", "ne", "nl", "nn", "no", "oc", "pa", "pl", "ps", "pt", "ro", "ru", "sa", "sd", "si", "sk", "sl", "sn", "so", "sq", "sr", "su", "sv", "sw", "ta", "te", "tg", "th", "tk", "tl", "tr", "tt", "uk", "ur", "uz", "vi", "yi", "yo", "zh"]
+licence = "MIT"
+attribution = "OpenAI Whisper large-v3-turbo (MIT); ggml conversion from the whisper.cpp project (ggerganov/whisper.cpp @ 5359861c)"
+vram_mb = 2100
+disk_mb = 1550
+dir = "whisper"
+revision = "5359861c739e955e79d9a303bcbc70fb988958b1"
+base_url = "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1"
+files = [
+  { path = "ggml-large-v3-turbo.bin", size = 1624555275, sha256 = "1fc70f774d38eb169993ac391eea357ef47c88757ef72ee5943879b7e8e2bc69" },
+]
+
+[[model]]
+id = "whisper-small"
+kind = "asr"
+backend = "whisper-cpp"
+engine = "whisper"
+chunk_ms = 1000
+lag_ms = 1150
+note = "98 languages, smaller and less accurate than turbo; GPU recommended"
+languages = ["af", "am", "ar", "as", "az", "ba", "be", "bg", "bn", "bo", "br", "bs", "ca", "cs", "cy", "da", "de", "el", "en", "es", "et", "eu", "fa", "fi", "fo", "fr", "gl", "gu", "ha", "he", "hi", "hr", "ht", "hu", "hy", "id", "is", "it", "ja", "jv", "ka", "kk", "km", "kn", "ko", "la", "lb", "ln", "lo", "lt", "lv", "mg", "mi", "mk", "ml", "mn", "mr", "ms", "mt", "my", "ne", "nl", "nn", "no", "oc", "pa", "pl", "ps", "pt", "ro", "ru", "sa", "sd", "si", "sk", "sl", "sn", "so", "sq", "sr", "su", "sv", "sw", "ta", "te", "tg", "th", "tk", "tl", "tr", "tt", "uk", "ur", "uz", "vi", "yi", "yo", "zh"]
+licence = "MIT"
+attribution = "OpenAI Whisper small (MIT); ggml conversion from the whisper.cpp project (ggerganov/whisper.cpp @ 5359861c)"
+vram_mb = 1000
+disk_mb = 466
+dir = "whisper"
+revision = "5359861c739e955e79d9a303bcbc70fb988958b1"
+base_url = "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1"
+files = [
+  { path = "ggml-small.bin", size = 487601967, sha256 = "1be3a9b2063867b937e64e2ec7483364a79917e157fa98c5d94b5c1fffea987b" },
 ]
 
 # ---------------------------------------------------------------- VAD

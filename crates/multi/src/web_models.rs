@@ -14,7 +14,7 @@ use axum::http::StatusCode;
 use axum::response::sse::{Event as SseEvent, KeepAlive, Sse};
 use axum::response::{IntoResponse, Response};
 use futures_util::StreamExt;
-use multi_core::models::{Format, Kind, Model, Origin, Registry};
+use multi_core::models::{AsrEngine, Format, Kind, Model, Origin, Registry};
 use serde::Serialize;
 use tokio::sync::broadcast;
 
@@ -172,6 +172,14 @@ struct ModelOut {
     attribution: String,
     /// Spoken languages (ASR).
     languages: Vec<String>,
+    /// ASR (M2-5): engine, chunk (Nemotron) or pass interval (Whisper),
+    /// typical lag, one-line note, the CPU variant used when this one is
+    /// not installed.
+    engine: Option<AsrEngine>,
+    chunk_ms: Option<u32>,
+    lag_ms: Option<u32>,
+    note: Option<String>,
+    cpu_variant: Option<String>,
     source: Option<String>,
     targets: Vec<String>,
     /// Caption formats that can carry the target language(s) (MT).
@@ -255,6 +263,11 @@ pub async fn list(State(state): State<AppState>) -> Response {
                     licence: m.licence.clone(),
                     attribution: m.attribution.clone(),
                     languages: m.languages.clone(),
+                    engine: m.asr_engine(),
+                    chunk_ms: m.chunk_ms,
+                    lag_ms: m.lag_ms,
+                    note: m.note.clone(),
+                    cpu_variant: m.cpu_variant.clone(),
                     source: m.source.clone(),
                     targets: m.targets.clone(),
                     formats,

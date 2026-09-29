@@ -1,6 +1,6 @@
 [package]
 name = "multi-asr"
-description = "MULTI speech-recognition worker: Nemotron 3.5 Streaming via sherpa-onnx"
+description = "MULTI speech-recognition worker: Nemotron 3.5 Streaming (sherpa-onnx) or Whisper (whisper.cpp)"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -17,6 +17,14 @@ clap.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
 sherpa-onnx = { version = "1.13.8", default-features = false, features = ["shared"] }
+# whisper.cpp (MIT), built from source by whisper-rs-sys with CMake: CPU by
+# default, `--features cuda` for the CUDA build (needs the CUDA toolkit).
+whisper-rs = { version = "0.16", optional = true, features = ["tracing_backend"] }
+
+[features]
+default = ["whisper"]
+whisper = ["dep:whisper-rs"]
+cuda = ["whisper", "whisper-rs/cuda"]
 
 [lints]
 workspace = true

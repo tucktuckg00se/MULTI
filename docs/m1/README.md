@@ -51,7 +51,7 @@ All met except FR/DE on CC2/CC4 (dropped); see [M1 results](findings/M1-results.
 | `crates/multi-media` | GStreamer pipeline: input, restamping bridge, caption lanes (`CaptionHandle`), outputs, audio tap, `Stats` |
 | `crates/multi-core` | Config (`Config::validate` reports issues by setting path), `Word`/`Clause`/`Translation`, worker IPC framing; caption quality: `segment`, `filter` (lists in `data/`), `clean`, `degrade`, `quality` (run-loop glue) |
 | `crates/multi` | The `multi` binary: `multi run`, `multi serve`, `multi config default`, `multi config check`; `supervisor` (worker processes), `run` (wiring), `service` (pipeline lifecycle, status, events), `web` (GUI + API, page in `crates/multi/web/`), `segment` (wall-clock adapter over `multi_core::segment`) |
-| `crates/multi-asr` | ASR worker: Nemotron 3.5 Streaming 560 ms (sherpa-onnx) + Silero VAD |
+| `crates/multi-asr` | ASR worker: Nemotron 3.5 Streaming (sherpa-onnx) or Whisper (whisper.cpp, M2-5) + Silero VAD |
 | `crates/multi-mt` | Translation worker: opus-mt via CTranslate2 (ct2rs) |
 | `crates/multi-fake-worker` | Scripted worker for tests (no models) |
 | `spikes/` | M0 reference code; not built by the root workspace |
@@ -71,8 +71,8 @@ ASR and translation run in child processes so a crash, hang or CUDA fault never 
 ```sh
 # GPU: sherpa-onnx CUDA prebuilt + CTranslate2 with CUDA (CUDA_PATH/arch in .cargo/config.toml)
 export SHERPA_ONNX_LIB_DIR=~/.cache/multi-tools/sherpa/sherpa-onnx-v1.13.8-cuda-13.x-cudnn-9.x-onnxruntime1.28.2-linux-x64-gpu/lib
-cargo build --release -p multi-asr -p multi-mt --features multi-mt/cuda
-target/release/multi-asr --model-dir ~/.cache/multi-models/sherpa/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-560ms-2026-06-11-fp32 --device auto
+cargo build --release -p multi-asr -p multi-mt --features multi-mt/cuda,multi-asr/cuda
+target/release/multi-asr --model ~/.cache/multi-models/sherpa/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-560ms-2026-06-11-fp32 --device auto
 target/release/multi-mt --models ~/.cache/multi-models/ct2 --langs es,fr,de --device auto
 # Real-model check (evidence/WP3): 1x ASR on long.wav, MT latency, kill -9 recovery
 cargo run --release -p multi --example wp3_check -- --asr-model-dir … --mt-models ~/.cache/multi-models/ct2 \

@@ -108,11 +108,17 @@ fn pull_hint(id: &str) -> String {
 
 // ---------------------------------------------------------------- workers
 
-/// Model folders for the default ASR worker.
+/// What the default ASR worker runs (M2-5: the engine comes from the
+/// catalogue entry).
 #[derive(Debug, Clone)]
 pub struct AsrPaths {
     pub id: String,
-    pub model_dir: PathBuf,
+    pub engine: models::AsrEngine,
+    /// `multi-asr --model`: the export folder, or a Whisper model's file.
+    pub model: PathBuf,
+    /// `multi-asr --chunk-ms`: a Nemotron export's chunk, or the Whisper
+    /// pass interval (`asr.chunk_ms`).
+    pub chunk_ms: u32,
     pub vad: PathBuf,
 }
 
@@ -129,6 +135,9 @@ pub fn asr_paths_in(reg: &Registry, config: &Config, root: &Path) -> Result<AsrP
         bail!(
             "ASR model `{model}` ({chunk} ms) is not in the model registry; see `multi models list`"
         );
+    };
+    let Some(engine) = m.asr_engine() else {
+        bail!("ASR model {} has no engine in the registry", m.id);
     };
     let src = source_lang(config);
     if !m.languages.contains(&src) {
@@ -167,9 +176,15 @@ pub fn asr_paths_in(reg: &Registry, config: &Config, root: &Path) -> Result<AsrP
         .first()
         .map(|f| f.path.as_str())
         .unwrap_or_default();
+    let chunk_ms = match engine {
+        models::AsrEngine::SherpaStreaming => chosen.chunk_ms.unwrap_or(chunk),
+        models::AsrEngine::Whisper => chunk.clamp(200, 3000),
+    };
     Ok(AsrPaths {
         id: chosen.id.clone(),
-        model_dir: chosen.path(root),
+        engine: chosen.asr_engine().unwrap_or(engine),
+        model: chosen.asr_model_path(root),
+        chunk_ms,
         vad: vad.path(root).join(vad_file),
     })
 }
@@ -1083,6 +1098,83 @@ mod tests {
             fs::write(dir.join("model.bin"), b"x")?;
             fs::write(dir.join("config.json"), b"{}")?;
         }
+        Ok(())
+    }
+
+    /// Registry files at their full size (sparse, no content).
+    fn fake_files(reg: &Registry, root: &Path, ids: &[&str]) -> Result<()> {
+        for id in ids {
+            let m = reg.get(id).context("unknown id")?;
+            let dir = m.path(root);
+            for f in &m.files {
+                let p = dir.join(&f.path);
+                if let Some(parent) = p.parent() {
+                    fs::create_dir_all(parent)?;
+                }
+                fs::File::create(&p)?.set_len(f.size)?;
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn asr_model_resolves_engine_path_and_chunk() -> Result<()> {
+        let reg = Registry::builtin().map_err(anyhow::Error::msg)?;
+        let root = std::env::temp_dir().join(format!("multi-asr-pick-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        fake_files(
+            &reg,
+            &root,
+            &[
+                "silero-vad",
+                "whisper-small",
+                "nemotron-3.5-streaming-160ms-int8",
+            ],
+        )?;
+        let mut c = Config::default();
+        // Nemotron 160 ms by id: the chunk follows the model, and only the
+        // int8 variant is installed.
+        c.asr.model = "nemotron-3.5-streaming-160ms".into();
+        let p = asr_paths_in(&reg, &c, &root)?;
+        assert_eq!(p.id, "nemotron-3.5-streaming-160ms-int8");
+        assert_eq!(p.engine, models::AsrEngine::SherpaStreaming);
+        assert_eq!(p.chunk_ms, 160);
+        assert!(
+            p.model
+                .ends_with("sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-160ms-int8-2026-06-11")
+        );
+        assert_eq!(p.vad, root.join("sherpa/silero_vad.onnx"));
+        // Whisper small: the file, the pass interval from asr.chunk_ms, and a
+        // language Nemotron doesn't have.
+        c.asr.model = "whisper-small".into();
+        c.asr.chunk_ms = 1000;
+        lang_of(&mut c, 0, "pl", true);
+        let p = asr_paths_in(&reg, &c, &root)?;
+        assert_eq!(p.engine, models::AsrEngine::Whisper);
+        assert_eq!(p.model, root.join("whisper/ggml-small.bin"));
+        assert_eq!(p.chunk_ms, 1000);
+        assert!(
+            missing_models_in(&reg, &c, &root)
+                .iter()
+                .all(|i| i.path != "asr.model")
+        );
+        // Not installed, or the wrong spoken language: refused.
+        c.asr.model = "whisper-large-v3-turbo".into();
+        let err = asr_paths_in(&reg, &c, &root)
+            .map(|_| ())
+            .map_err(|e| e.to_string());
+        assert!(err.is_err_and(|e| e.contains("multi models pull whisper-large-v3-turbo")));
+        assert!(
+            missing_models_in(&reg, &c, &root)
+                .iter()
+                .any(|i| i.path == "asr.model" && i.message.contains("not installed"))
+        );
+        c.asr.model = "nemotron-3.5-streaming-160ms".into();
+        let err = asr_paths_in(&reg, &c, &root)
+            .map(|_| ())
+            .map_err(|e| e.to_string());
+        assert!(err.is_err_and(|e| e.contains("cannot transcribe `pl`")));
+        let _ = fs::remove_dir_all(&root);
         Ok(())
     }
 
