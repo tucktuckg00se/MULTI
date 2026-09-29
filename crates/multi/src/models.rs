@@ -130,6 +130,14 @@ pub fn asr_paths_in(reg: &Registry, config: &Config, root: &Path) -> Result<AsrP
             "ASR model `{model}` ({chunk} ms) is not in the model registry; see `multi models list`"
         );
     };
+    let src = source_lang(config);
+    if !m.languages.contains(&src) {
+        bail!(
+            "ASR model {} cannot transcribe `{src}` (it supports {})",
+            m.id,
+            m.languages.join(", ")
+        );
+    }
     let chosen = if m.installed(root) {
         m
     } else {
@@ -174,56 +182,84 @@ fn source_lang(config: &Config) -> String {
         .map_or_else(|| "en".into(), |l| l.code.clone())
 }
 
-/// The translation model for one target language.
+/// One lane of the translation worker: a target language and its model.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MtModel {
     pub lang: String,
     pub dir: PathBuf,
     /// `>>id<<` token to put before each sentence.
     pub prefix: Option<String>,
+    /// Translates from English: the source is first translated by the
+    /// `en` lane (pivot, M2-2).
+    pub pivot: bool,
 }
 
-/// The translation model for every target language.
+/// The translation lanes for every target language (plus an `en` pivot
+/// lane when a target goes through English and English is not a target).
 pub fn mt_paths(config: &Config, root: &Path) -> Result<Vec<MtModel>> {
     let reg = registry()?;
     mt_paths_in(&reg, config, root)
 }
 
-/// Translation model for `src -> target`, preferring an installed one.
-fn mt_model<'a>(reg: &'a Registry, src: &str, target: &str, root: &Path) -> Option<&'a Model> {
-    reg.mt_with(src, target, |m| m.installed(root))
+/// How the source reaches `target`, preferring installed models.
+fn mt_route<'a>(
+    reg: &'a Registry,
+    src: &str,
+    target: &str,
+    root: &Path,
+) -> Option<models::Route<'a>> {
+    reg.route(src, target, |m| m.installed(root))
+}
+
+fn lane(lang: &str, m: &Model, root: &Path, pivot: bool) -> MtModel {
+    MtModel {
+        lang: lang.into(),
+        dir: m.path(root),
+        prefix: m.target_token.clone(),
+        pivot,
+    }
 }
 
 pub fn mt_paths_in(reg: &Registry, config: &Config, root: &Path) -> Result<Vec<MtModel>> {
     let src = source_lang(config);
     let mut out = Vec::new();
+    let mut to_en = None;
     for l in config.languages.iter().filter(|l| !l.source) {
-        let Some(m) = mt_model(reg, &src, &l.code, root) else {
+        let Some(route) = mt_route(reg, &src, &l.code, root) else {
             bail!(
-                "no translation model for {src}->{} in the model registry; remove the language or see `multi models list`",
+                "no translation model for {src}->{} (direct or through English) in the model registry; remove the language or see `multi models list`",
                 l.code
             );
         };
-        if !m.installed(root) {
+        if let Some(m) = route.models().into_iter().find(|m| !m.installed(root)) {
             bail!(
-                "translation model {} ({src}->{}) is not installed in {}; {}",
+                "translation model {} ({}->{}) is not installed in {}; {}",
                 m.id,
-                l.code,
+                m.source.as_deref().unwrap_or("?"),
+                m.targets.join(","),
                 root.display(),
                 pull_hint(&m.id)
             );
         }
-        out.push(MtModel {
-            lang: l.code.clone(),
-            dir: m.path(root),
-            prefix: m.target_token.clone(),
-        });
+        match route {
+            models::Route::Direct(m) => out.push(lane(&l.code, m, root, false)),
+            models::Route::Pivot(a, b) => {
+                to_en = Some(a);
+                out.push(lane(&l.code, b, root, true));
+            }
+        }
+    }
+    if let Some(a) = to_en
+        && !out.iter().any(|m| m.lang == models::PIVOT)
+    {
+        out.push(lane(models::PIVOT, a, root, false));
     }
     Ok(out)
 }
 
 /// Ids of the installed models the default workers would use for `config`
-/// (ASR or its CPU variant, VAD, one translation model per target).
+/// (ASR or its CPU variant, VAD, the translation models of every target,
+/// both halves of a pivot).
 pub fn in_use(reg: &Registry, config: &Config, root: &Path) -> Vec<String> {
     let mut ids = Vec::new();
     if let Some(m) = reg.asr(&config.asr.model, config.asr.chunk_ms) {
@@ -239,8 +275,12 @@ pub fn in_use(reg: &Registry, config: &Config, root: &Path) -> Vec<String> {
     }
     let src = source_lang(config);
     for l in config.languages.iter().filter(|l| !l.source) {
-        if let Some(m) = mt_model(reg, &src, &l.code, root) {
-            ids.push(m.id.clone());
+        if let Some(r) = mt_route(reg, &src, &l.code, root) {
+            for m in r.models() {
+                if !ids.contains(&m.id) {
+                    ids.push(m.id.clone());
+                }
+            }
         }
     }
     ids
@@ -279,8 +319,10 @@ pub fn missing_models_in(reg: &Registry, config: &Config, root: &Path) -> Vec<Is
                     format!("{} is not installed; {}", m.id, pull_hint(&m.id)),
                 );
             }
+            // Built-in ASR models: `Config::validate` reports this as an error.
             if let Some(i) = config.languages.iter().position(|l| l.source)
                 && !m.languages.contains(&src)
+                && m.origin == Origin::User
             {
                 push(
                     format!("languages[{i}].code"),
@@ -306,16 +348,25 @@ pub fn missing_models_in(reg: &Registry, config: &Config, root: &Path) -> Vec<Is
             continue;
         }
         let path = format!("languages[{i}].code");
-        match mt_model(reg, &src, &l.code, root) {
-            None => push(
+        let Some(route) = mt_route(reg, &src, &l.code, root) else {
+            push(
                 path,
-                format!("no translation model for {src}->{} in the registry", l.code),
-            ),
-            Some(m) if !m.installed(root) => push(
-                path,
-                format!("{} is not installed; {}", m.id, pull_hint(&m.id)),
-            ),
-            Some(_) => {}
+                format!(
+                    "no translation model for {src}->{} (direct or through English) in the registry",
+                    l.code
+                ),
+            );
+            continue;
+        };
+        let via = match route {
+            models::Route::Direct(_) => String::new(),
+            models::Route::Pivot(..) => " (translating through English)".into(),
+        };
+        for m in route.models().into_iter().filter(|m| !m.installed(root)) {
+            push(
+                path.clone(),
+                format!("{} is not installed{via}; {}", m.id, pull_hint(&m.id)),
+            );
         }
     }
     v
@@ -1001,10 +1052,114 @@ mod tests {
                 .any(|i| i.message.contains("multi models pull opus-mt-en-es"))
         );
         assert!(asr_paths_in(&reg, &c, &dir).is_err());
+        // A Portuguese speaker: French goes through English (ROMANCE-en,
+        // then en-fr), both halves named with their pull command.
+        let mut pt = Config::default();
+        pt.languages[0].code = "pt".into();
+        let issues = missing_models_in(&reg, &pt, &dir);
+        let fr = |i: &&Issue| i.path == "languages[2].code";
+        let msgs: Vec<_> = issues.iter().filter(fr).map(|i| &i.message).collect();
+        assert!(
+            msgs.iter()
+                .any(|m| m.contains("multi models pull opus-mt-ROMANCE-en")
+                    && m.contains("through English")),
+            "{issues:?}"
+        );
+        assert!(
+            msgs.iter()
+                .any(|m| m.contains("multi models pull opus-mt-en-fr"))
+        );
         let err = mt_paths_in(&reg, &c, &dir)
             .map(|_| ())
             .map_err(|e| e.to_string());
         assert!(err.is_err_and(|e| e.contains("multi models pull")));
+        Ok(())
+    }
+
+    fn fake_install(reg: &Registry, root: &Path, ids: &[&str]) -> Result<()> {
+        for id in ids {
+            let dir = reg.get(id).context("unknown id")?.path(root);
+            fs::create_dir_all(&dir)?;
+            fs::write(dir.join("model.bin"), b"x")?;
+            fs::write(dir.join("config.json"), b"{}")?;
+        }
+        Ok(())
+    }
+
+    fn lang_of(c: &mut Config, i: usize, code: &str, source: bool) {
+        c.languages[i].code = code.into();
+        c.languages[i].source = source;
+    }
+
+    #[test]
+    fn translation_lanes_direct_and_pivot() -> Result<()> {
+        let reg = Registry::builtin().map_err(anyhow::Error::msg)?;
+        let root = std::env::temp_dir().join(format!("multi-route-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        fake_install(
+            &reg,
+            &root,
+            &[
+                "opus-mt-es-en",
+                "opus-mt-es-de",
+                "opus-mt-en-fr",
+                "opus-mt-ROMANCE-en",
+                "opus-mt-tc-big-en-pt",
+            ],
+        )?;
+        // Spanish speaker; EN and DE direct, FR through English.
+        let mut c = Config::default();
+        lang_of(&mut c, 0, "es", true);
+        lang_of(&mut c, 1, "en", false);
+        let lanes = mt_paths_in(&reg, &c, &root)?;
+        let got: Vec<_> = lanes
+            .iter()
+            .map(|m| {
+                (
+                    m.lang.as_str(),
+                    m.dir.file_name().and_then(|f| f.to_str()).unwrap_or(""),
+                    m.pivot,
+                )
+            })
+            .collect();
+        assert_eq!(
+            got,
+            [
+                ("en", "opus-mt-es-en", false),
+                ("fr", "opus-mt-en-fr", true),
+                ("de", "opus-mt-es-de", false)
+            ]
+        );
+        let used = in_use(&reg, &c, &root);
+        for id in ["opus-mt-es-en", "opus-mt-en-fr", "opus-mt-es-de"] {
+            assert!(used.iter().any(|u| u == id), "{id} not in {used:?}");
+        }
+        // Portuguese speaker, English not a target: EN-ES missing is named;
+        // then FR and DE both go through an extra `en` lane (ROMANCE-en).
+        let mut c = Config::default();
+        c.languages.truncate(3);
+        lang_of(&mut c, 0, "pt", true);
+        lang_of(&mut c, 1, "fr", false);
+        lang_of(&mut c, 2, "es", false);
+        let err = mt_paths_in(&reg, &c, &root).map_err(|e| e.to_string());
+        assert!(
+            err.as_ref()
+                .is_err_and(|e| e.contains("multi models pull opus-mt-en-es")),
+            "{err:?}"
+        );
+        lang_of(&mut c, 2, "de", false);
+        fake_install(&reg, &root, &["opus-mt-en-de"])?;
+        let lanes = mt_paths_in(&reg, &c, &root)?;
+        let got: Vec<_> = lanes.iter().map(|m| (m.lang.as_str(), m.pivot)).collect();
+        assert_eq!(got, [("fr", true), ("de", true), ("en", false)]);
+        assert!(lanes[2].dir.ends_with("opus-mt-ROMANCE-en"));
+        // The EN->PT model keeps its target token on a pivot lane.
+        lang_of(&mut c, 0, "es", true);
+        lang_of(&mut c, 1, "pt", false);
+        let lanes = mt_paths_in(&reg, &c, &root)?;
+        assert_eq!(lanes[0].prefix.as_deref(), Some(">>por<<"));
+        assert!(lanes[0].pivot);
+        let _ = fs::remove_dir_all(&root);
         Ok(())
     }
 }

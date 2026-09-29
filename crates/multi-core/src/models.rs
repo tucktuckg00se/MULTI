@@ -279,6 +279,13 @@ impl Registry {
         Self::parse(BUILTIN)
     }
 
+    /// The embedded registry, parsed once (`None` if it does not parse,
+    /// which the registry tests rule out).
+    pub fn builtin_shared() -> Option<&'static Self> {
+        static REG: std::sync::OnceLock<Option<Registry>> = std::sync::OnceLock::new();
+        REG.get_or_init(|| Self::builtin().ok()).as_ref()
+    }
+
     /// Parses and checks a registry.
     pub fn parse(text: &str) -> Result<Self, String> {
         let reg: Registry = toml::from_str(text).map_err(|e| format!("model registry: {e}"))?;
@@ -440,6 +447,61 @@ impl Registry {
             .or(found.iter().find(|m| m.default))
             .or(found.first())
             .copied()
+    }
+
+    /// How `source` speech reaches `target` (M2-2): a direct pair if one is
+    /// installed, else through English (`source->en`, then `en->target`)
+    /// if both halves are installed. When neither is complete: the direct
+    /// pair if the catalogue has one (one pull), else the pivot pair (each
+    /// half may be missing). `None` when the catalogue has no way at all,
+    /// or `source == target` (the source language gets no translation).
+    pub fn route(
+        &self,
+        source: &str,
+        target: &str,
+        installed: impl Fn(&Model) -> bool,
+    ) -> Option<Route<'_>> {
+        if source == target {
+            return None;
+        }
+        let direct = self.mt_with(source, target, &installed);
+        if let Some(d) = direct.filter(|m| installed(m)) {
+            return Some(Route::Direct(d));
+        }
+        let pivot = if source == PIVOT || target == PIVOT {
+            None
+        } else {
+            self.mt_with(source, PIVOT, &installed)
+                .zip(self.mt_with(PIVOT, target, &installed))
+        };
+        match (direct, pivot) {
+            (_, Some((a, b))) if installed(a) && installed(b) => Some(Route::Pivot(a, b)),
+            (Some(d), _) => Some(Route::Direct(d)),
+            (None, Some((a, b))) => Some(Route::Pivot(a, b)),
+            (None, None) => None,
+        }
+    }
+}
+
+/// The language translations pivot through when there is no direct pair.
+pub const PIVOT: &str = "en";
+
+/// Which translation models serve one target language.
+#[derive(Clone, Copy, Debug)]
+pub enum Route<'a> {
+    /// `source -> target` in one step.
+    Direct(&'a Model),
+    /// `source -> en`, then `en -> target`.
+    Pivot(&'a Model, &'a Model),
+}
+
+impl<'a> Route<'a> {
+    /// The models this route uses, in order.
+    pub fn models(&self) -> Vec<&'a Model> {
+        match *self {
+            Route::Direct(m) => vec![m],
+            Route::Pivot(a, b) => vec![a, b],
+        }
     }
 }
 
@@ -641,6 +703,56 @@ sorce = "en"
             pick("opus-mt-tc-big-en-es").as_deref(),
             Some("opus-mt-tc-big-en-es")
         );
+        Ok(())
+    }
+
+    fn ids(r: Option<Route<'_>>) -> Vec<String> {
+        r.map(|r| r.models().iter().map(|m| m.id.clone()).collect())
+            .unwrap_or_default()
+    }
+
+    #[test]
+    fn routes_direct_or_through_english() -> Result<(), String> {
+        let r = Registry::builtin()?;
+        let have = |list: &'static [&'static str]| move |m: &Model| list.contains(&m.id.as_str());
+        // Direct pair installed: used.
+        let got = r.route("es", "fr", have(&["opus-mt-es-fr", "opus-mt-es-en"]));
+        assert_eq!(ids(got), ["opus-mt-es-fr"]);
+        // Direct missing, both halves installed: pivot.
+        let got = r.route("es", "fr", have(&["opus-mt-es-en", "opus-mt-en-fr"]));
+        assert!(matches!(got, Some(Route::Pivot(..))));
+        assert_eq!(ids(got), ["opus-mt-es-en", "opus-mt-en-fr"]);
+        // Nothing installed but a direct pair exists: suggest the direct one.
+        assert_eq!(ids(r.route("es", "fr", have(&[]))), ["opus-mt-es-fr"]);
+        // Portuguese: no pt->X pairs, ROMANCE-en is the way into English.
+        let got = r.route("pt", "fr", have(&[]));
+        assert_eq!(ids(got), ["opus-mt-ROMANCE-en", "opus-mt-en-fr"]);
+        assert_eq!(ids(r.route("pt", "en", have(&[]))), ["opus-mt-ROMANCE-en"]);
+        // A multi-target second half keeps its token (en -> pt).
+        let got = r.route("es", "pt", have(&["opus-mt-es-en", "opus-mt-tc-big-en-pt"]));
+        assert_eq!(ids(got), ["opus-mt-es-en", "opus-mt-tc-big-en-pt"]);
+        // English source never pivots; same language and unknown pairs: none.
+        assert_eq!(ids(r.route("en", "fr", have(&[]))), ["opus-mt-en-fr"]);
+        assert!(r.route("es", "es", have(&[])).is_none());
+        assert!(r.route("en", "xx", have(&[])).is_none());
+        assert!(r.route("xx", "fr", have(&[])).is_none());
+        Ok(())
+    }
+
+    #[test]
+    fn nemotron_offers_the_transcription_ready_languages() -> Result<(), String> {
+        let r = Registry::builtin()?;
+        for id in [
+            "nemotron-3.5-streaming-560ms",
+            "nemotron-3.5-streaming-560ms-int8",
+        ] {
+            let m = r.get(id).ok_or(id)?;
+            assert_eq!(m.languages.len(), 15, "{id}");
+            for l in ["en", "es", "fr", "de", "pt", "ja", "ar"] {
+                assert!(m.languages.iter().any(|x| x == l), "{id}: {l}");
+            }
+            assert!(!m.languages.iter().any(|x| x == "zh" || x == "pl"), "{id}");
+        }
         Ok(())
     }
 

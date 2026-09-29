@@ -74,3 +74,9 @@ harness = false
 [[test]]
 name = "hls"
 harness = false
+
+# Spanish speaker (M2-2) with the fake workers; re-runs itself as the fake
+# worker, so it has its own main().
+[[test]]
+name = "source_lang"
+harness = false

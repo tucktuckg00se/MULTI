@@ -69,7 +69,7 @@ const LANG_NAMES = {
 const SECTIONS = [
   { id: "input", title: "Input", lede: "Where the program feed comes from. H.264 or HEVC in MPEG-TS; video is never re-encoded.", custom: renderInput },
   { id: "outputs", title: "Outputs", lede: "Where the captioned stream goes. Each output runs and restarts on its own; adding, removing, starting or stopping one never interrupts the others.", custom: renderOutputs },
-  { id: "languages", title: "Languages", lede: "One spoken (source) language; every other language is a translation. Each language needs a CEA-608 channel, a CEA-708 service, or both. Only languages with an installed model are offered.", custom: renderLanguages },
+  { id: "languages", title: "Languages", lede: "One spoken (source) language, which the ASR model must transcribe; every other language is a translation, direct or through English. Each language needs a CEA-608 channel, a CEA-708 service, or both. Only languages with an installed model are offered.", custom: renderLanguages },
   { id: "models", title: "Models", lede: "Installed models and the catalogue (built-in plus your models.toml). Pulls run one at a time in the background.", custom: renderModels },
   {
     id: "captions", title: "Captions", lede: "How captions look on screen.",
@@ -363,17 +363,28 @@ function asrLanguages() {
   installedModels().filter((m) => m.kind === "asr").forEach((m) => m.languages.forEach((l) => set.add(l)));
   return [...set];
 }
-// Targets of installed translation models from the spoken language.
+// Targets reachable with installed translation models from the spoken
+// language: direct pairs, or through English (src→en plus en→X), as
+// `multi run` routes them.
 function targetLanguages(src) {
-  const set = new Set();
-  installedModels().filter((m) => m.kind === "mt" && m.source === src).forEach((m) => m.targets.forEach((l) => set.add(l)));
+  const mt = installedModels().filter((m) => m.kind === "mt");
+  const from = (s) => mt.filter((m) => m.source === s).flatMap((m) => m.targets);
+  const set = new Set(from(src));
+  if (src !== "en" && set.has("en")) from("en").forEach((l) => set.add(l));
+  set.delete(src);
   return [...set].sort((a, b) => langName(a).localeCompare(langName(b)));
 }
-// Catalogue entry that would add `code` (prefers the default set).
+// Catalogue entry that would add `code` (prefers the default set): the
+// direct pair, else the missing half of the route through English.
 function catalogueFor(src, code) {
   if (!M.list) return null;
-  const c = M.list.models.filter((m) => m.kind === "mt" && m.source === src && m.targets.includes(code));
-  return c.find((m) => m.default) || c[0] || null;
+  const pick = (s, t) => {
+    const c = M.list.models.filter((m) => m.kind === "mt" && m.source === s && m.targets.includes(t));
+    return c.find((m) => m.status === "installed") || c.find((m) => m.default) || c[0] || null;
+  };
+  const direct = pick(src, code);
+  if (direct || src === "en" || code === "en") return direct;
+  return [pick(src, "en"), pick("en", code)].find((m) => m && m.status !== "installed") || null;
 }
 function showModel(id) {
   M.filter = id;
