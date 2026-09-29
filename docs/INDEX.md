@@ -44,19 +44,20 @@ Types: `summary` overview page · `spec` requirements · `decision` ADR · `find
 
 | ID | Type | Title | Status | ~Tokens |
 |---|---|---|---|---|
-| M2-00 | summary | [M2 overview: research spike and work packages](m2/README.md) | current | ~3531 |
+| M2-00 | summary | [M2 overview: research spike and work packages](m2/README.md) | current | ~5109 |
 | F-R1a | finding | [YouTube: one live caption track per broadcast, no multi-language live](m2/findings/R1-youtube-captions.md) | current | ~897 |
 | F-R1b | finding | [HLS with WebVTT renditions: FFmpeg can, GStreamer can't; plan](m2/findings/R1-hls-webvtt.md) | current | ~887 |
 | F-R1c | finding | [Non-English ASR: Nemotron vs Whisper WER for ES/FR/DE/PT; opus-mt pairs](m2/findings/R1-non-english-asr.md) | current | ~895 |
 | E-M2-1 | evidence | [M2-1 opus-mt catalogue source list (HF pairs, revisions, target tokens)](m2/evidence/M2-1) | current | ~2325 |
 | E-M2-2 | evidence | [M2-2 real runs: ES speaker WER, captions per language, target-token check](m2/evidence/M2-2) | current | ~2154 |
+| E-M2-5 | evidence | [M2-5 speech models: live vs offline WER, Nemotron vs Whisper lag, hallucination check](m2/evidence/M2-5) | current | ~40494 |
 | E-R1 | evidence | [R1 raw outputs: GStreamer HLS elements, FFmpeg proof, WER, opus-mt pairs](m2/evidence/R1) | current | ~1790 |
 
 ## M1 first real version
 
 | ID | Type | Title | Status | ~Tokens |
 |---|---|---|---|---|
-| M1-00 | summary | [M1 overview: work packages, exit criteria, code layout](m1/README.md) | current | ~7394 |
+| M1-00 | summary | [M1 overview: work packages, exit criteria, code layout](m1/README.md) | current | ~7402 |
 | F-M1 | finding | [M1 results: measurements, live and YouTube tests, exit criteria](m1/findings/M1-results.md) | current | ~691 |
 | M1-D1 | guide | [Built-in profanity lists: LDNOOBW source, licence, attribution](../crates/multi-core/data/README.md) | current | ~340 |
 | E-WP3 | evidence | [WP3 real-model check: ASR words/WER, MT latency, kill -9 recovery](m1/evidence/WP3) | current | ~784 |

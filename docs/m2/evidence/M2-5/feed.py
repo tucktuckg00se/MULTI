@@ -36,7 +36,7 @@ for cid, p in clips:
     pcm += b"\0\0" * int(16000 * a.gap)
 pcm += b"\0\0" * 16000 * 2
 
-proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, bufsize=0)
 out = open(a.out, "w")
 t_start = [None]
 ready = threading.Event()
