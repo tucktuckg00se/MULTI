@@ -709,6 +709,24 @@ impl Config {
                 "exactly one language must be marked as the source",
             );
         }
+        // The source language must be one the ASR model transcribes (M2-2);
+        // checked against the built-in catalogue (user-only models are
+        // checked when `multi run` resolves them).
+        if let Some(i) = self.languages.iter().position(|l| l.source)
+            && let Some(m) = crate::models::Registry::builtin_shared()
+                .and_then(|r| r.asr(&self.asr.model, self.asr.chunk_ms))
+            && !m.languages.contains(&self.languages[i].code)
+        {
+            v.push(
+                &format!("languages[{i}].code"),
+                &format!(
+                    "{} cannot transcribe `{}`; the spoken language must be one of: {}",
+                    self.asr.model,
+                    self.languages[i].code,
+                    m.languages.join(", ")
+                ),
+            );
+        }
         let mut codes = Vec::new();
         let mut channels = Vec::new();
         let mut services = Vec::new();
@@ -882,6 +900,33 @@ mod tests {
         assert!(paths.contains(&"languages".to_string()));
         assert!(paths.contains(&"languages[2].cea708_service".to_string()));
         assert!(paths.contains(&"languages[3].cc608".to_string()));
+    }
+
+    #[test]
+    fn source_language_must_be_transcribable() {
+        let mut c = Config::default();
+        // Spanish speaker, English and French captions: valid.
+        c.languages.swap(0, 1);
+        c.languages[0].source = true;
+        c.languages[1].source = false;
+        assert!(c.validate().is_empty(), "{:?}", c.validate());
+        // Nemotron has no Welsh.
+        c.languages[0].code = "cy".into();
+        let issues = c.validate();
+        let at = issues.iter().find(|i| i.path == "languages[0].code");
+        assert!(
+            at.is_some_and(|i| i.message.contains("cannot transcribe `cy`")),
+            "{issues:?}"
+        );
+        // Only the source is checked: Welsh as a target is fine here.
+        c.languages[0].code = "pt".into();
+        c.languages[2].code = "cy".into();
+        assert!(c.validate().is_empty(), "{:?}", c.validate());
+        // An ASR model outside the built-in catalogue is not checked here.
+        c.languages[0].code = "cy".into();
+        c.languages[2].code = "fr".into();
+        c.asr.model = "my-own-asr".into();
+        assert!(c.validate().is_empty(), "{:?}", c.validate());
     }
 
     #[test]

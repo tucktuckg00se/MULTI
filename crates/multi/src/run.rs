@@ -102,7 +102,10 @@ pub fn default_asr(config: &Config, bin_dir: &Path, paths: &AsrPaths) -> WorkerS
         .arg(config.vad.threshold.to_string())
 }
 
-/// `models`: `(language, folder)` per target language.
+/// `models`: one lane per target language (plus the `en` pivot lane when
+/// needed). Targets marked `pivot` are passed as `--pivot`: the worker
+/// translates the clause to English on its `en` lane first, then with the
+/// target's `en->X` model (M2-2).
 pub fn default_mt(
     config: &Config,
     bin_dir: &Path,
@@ -112,8 +115,18 @@ pub fn default_mt(
     let mut spec = WorkerSpec::new("mt", bin_dir.join("multi-mt"))
         .arg("--models")
         .arg(root.join("ct2"))
-        .args(["--device", "auto", "--langs"])
+        .args(["--device", "auto", "--source"])
+        .arg(source_lang(config))
+        .arg("--langs")
         .arg(target_langs(config).join(","));
+    let pivot: Vec<&str> = models
+        .iter()
+        .filter(|m| m.pivot)
+        .map(|m| m.lang.as_str())
+        .collect();
+    if !pivot.is_empty() {
+        spec = spec.arg("--pivot").arg(pivot.join(","));
+    }
     for m in models {
         let mut pair = std::ffi::OsString::from(format!("{}=", m.lang));
         pair.push(&m.dir);
@@ -306,6 +319,7 @@ impl TextPath<'_> {
                     new_row,
                     reason,
                 } => {
+                    debug!(id = clause.id, text = %clause.text, "clause");
                     let Some(mt) = mt else { continue };
                     let now = self.seg.ms(Instant::now());
                     let langs = self.q.clause(&clause, new_row, reason, now);
@@ -367,6 +381,7 @@ fn text_loop(
             while let Ok(msg) = rx.try_recv() {
                 match msg {
                     Message::Translated { translation: tr } => {
+                        debug!(id = tr.clause_id, lang = %tr.lang, text = %tr.text, elapsed_ms = tr.elapsed_ms, "translated");
                         let now = t.seg.ms(Instant::now());
                         if let Some(r) = t.q.translation(&tr, now) {
                             let age = Duration::from_millis(r.age_ms);
@@ -512,10 +527,50 @@ mod tests {
             lang: "es".into(),
             dir: PathBuf::from("/m/ct2/opus-mt-en-es"),
             prefix: Some(">>spa<<".into()),
+            pivot: false,
         }];
         let m = default_mt(&c, Path::new("/opt/multi"), Path::new("/m"), &mt);
         assert!(m.args.contains(&OsString::from("es,fr,de")));
         assert!(m.args.contains(&OsString::from("es=/m/ct2/opus-mt-en-es")));
         assert!(m.args.contains(&OsString::from("es=>>spa<<")));
+        assert!(!m.args.contains(&OsString::from("--pivot")));
+    }
+
+    #[test]
+    fn spanish_source_passes_language_and_pivot() {
+        let mut c = Config::default();
+        c.languages.swap(0, 1);
+        c.languages[0].source = true;
+        c.languages[1].source = false;
+        let paths = AsrPaths {
+            id: "x".into(),
+            model_dir: "/m/asr".into(),
+            vad: "/m/vad.onnx".into(),
+        };
+        let a = default_asr(&c, Path::new("/opt/multi"), &paths);
+        let lang = a.args.iter().position(|x| x == "--lang");
+        assert_eq!(
+            lang.and_then(|i| a.args.get(i + 1)),
+            Some(&OsString::from("es"))
+        );
+        let lane = |lang: &str, dir: &str, pivot| models::MtModel {
+            lang: lang.into(),
+            dir: PathBuf::from(dir),
+            prefix: None,
+            pivot,
+        };
+        let mt = [
+            lane("en", "/m/ct2/opus-mt-es-en", false),
+            lane("fr", "/m/ct2/opus-mt-en-fr", true),
+            lane("de", "/m/ct2/opus-mt-en-de", true),
+        ];
+        let m = default_mt(&c, Path::new("/opt/multi"), Path::new("/m"), &mt);
+        let after = |flag: &str| {
+            let i = m.args.iter().position(|x| x == flag)?;
+            m.args.get(i + 1).cloned()
+        };
+        assert_eq!(after("--source"), Some("es".into()));
+        assert_eq!(after("--langs"), Some("en,fr,de".into()));
+        assert_eq!(after("--pivot"), Some("fr,de".into()));
     }
 }

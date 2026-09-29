@@ -71,13 +71,57 @@ fn is_punct(w: &str) -> bool {
     !w.is_empty() && w.chars().all(|c| !c.is_alphanumeric())
 }
 
-fn sentence_end(w: &str) -> bool {
-    matches!(w.chars().last(), Some('.' | '!' | '?'))
+/// Marks that open a phrase and attach to the next word (`¿Qué`, `«Oui`).
+fn opening(c: char) -> bool {
+    matches!(
+        c,
+        '¿' | '¡' | '«' | '(' | '[' | '“' | '„' | '「' | '『' | '（' | '《'
+    )
 }
 
-/// Appends `w` with a space unless it is bare punctuation.
+/// Marks that may follow a sentence end (`fin.»`, `好。」`).
+fn closing(c: char) -> bool {
+    matches!(
+        c,
+        '»' | ')' | ']' | '"' | '\'' | '”' | '’' | '」' | '』' | '）' | '》'
+    )
+}
+
+/// Ends a sentence: `. ! ?`, the full-width `。！？`, or `…`, before any
+/// closing quotes or brackets.
+fn sentence_end(w: &str) -> bool {
+    matches!(
+        w.trim_end_matches(closing).chars().last(),
+        Some('.' | '!' | '?' | '。' | '！' | '？' | '…')
+    )
+}
+
+/// Ends a clause: a comma (Latin, full-width `，` or the ideographic `、`).
+fn clause_end(w: &str) -> bool {
+    matches!(
+        w.trim_end_matches(closing).chars().last(),
+        Some(',' | '，' | '、')
+    )
+}
+
+/// Chinese and Japanese characters, written without spaces between words.
+fn cjk(c: char) -> bool {
+    matches!(c,
+        '\u{3000}'..='\u{30FF}'
+        | '\u{3400}'..='\u{4DBF}'
+        | '\u{4E00}'..='\u{9FFF}'
+        | '\u{F900}'..='\u{FAFF}'
+        | '\u{FF00}'..='\u{FFEF}')
+}
+
+/// Appends `w` with a space, except: before bare closing punctuation, after
+/// an opening mark (`¿`, `«`), and between CJK characters.
 fn append(s: &mut String, w: &str) {
-    if !s.is_empty() && !is_punct(w) {
+    let glue = s.is_empty()
+        || (is_punct(w) && !w.chars().all(opening))
+        || s.ends_with(opening)
+        || (s.chars().last().is_some_and(cjk) && w.chars().next().is_some_and(cjk));
+    if !glue {
         s.push(' ');
     }
     s.push_str(w);
@@ -174,7 +218,7 @@ impl Segmenter {
             .enumerate()
             .rev()
             .skip(1)
-            .find(|(i, w)| *i + 1 >= MIN_WORDS && w.text.ends_with(','))
+            .find(|(i, w)| *i + 1 >= MIN_WORDS && clause_end(&w.text))
             .map_or(self.words.len(), |(i, _)| i + 1)
     }
 
@@ -465,6 +509,67 @@ mod tests {
             clauses(&ev),
             vec![("Café costs 5EUR...".into(), true, CloseReason::Punctuation)]
         );
+    }
+
+    #[test]
+    fn spanish_and_french_marks() {
+        let mut s = Segmenter::new(800);
+        let ev = s.words(&run(&["¿Dónde", "está", "la", "estación?", "¡Allí"], 0), 0);
+        assert_eq!(
+            clauses(&ev),
+            vec![(
+                "¿Dónde está la estación?".into(),
+                true,
+                CloseReason::Punctuation
+            )]
+        );
+        // Opening marks as separate words attach to the next word; a
+        // sentence end inside closing quotes still closes.
+        let mut s = Segmenter::new(800);
+        let ev = s.words(
+            &run(&["Il", "a", "dit", "«", "c'est", "fini.»", "Puis"], 0),
+            0,
+        );
+        assert_eq!(
+            clauses(&ev),
+            vec![(
+                "Il a dit «c'est fini.»".into(),
+                true,
+                CloseReason::Punctuation
+            )]
+        );
+        let mut s = Segmenter::new(800);
+        let ev = s.words(&run(&["Pues", "sí", "¡", "claro!"], 0), 0);
+        assert_eq!(
+            clauses(&ev),
+            vec![("Pues sí ¡claro!".into(), true, CloseReason::Punctuation)]
+        );
+    }
+
+    #[test]
+    fn chinese_full_stop_and_no_spaces() {
+        let mut s = Segmenter::new(800);
+        let ev = s.words(&run(&["我们", "今天", "开会。", "然后"], 0), 0);
+        assert_eq!(
+            clauses(&ev),
+            vec![("我们今天开会。".into(), true, CloseReason::Punctuation)]
+        );
+        assert!(sentence_end("好。」") && sentence_end("吗？") && !sentence_end("好，"));
+        assert!(clause_end("然后，") && clause_end("一、") && clause_end("sí,"));
+    }
+
+    #[test]
+    fn long_clause_cuts_at_a_full_width_comma() {
+        let mut s = Segmenter::new(800);
+        let han = |i: usize| char::from_u32(0x4E00 + i as u32).unwrap_or('字');
+        let mut words: Vec<String> = (0..MAX_WORDS + 2)
+            .map(|i| format!("{}字", han(i)))
+            .collect();
+        words[5] = "丙字，".into();
+        let texts: Vec<&str> = words.iter().map(String::as_str).collect();
+        let c = clauses(&s.words(&run(&texts, 0), 0));
+        assert!(c[0].0.ends_with("丙字，"), "{c:?}");
+        assert!(!c[0].0.contains(' '), "{c:?}");
     }
 
     /// Replays S4's real word timings (`long.words.tsv`, 8 min of read

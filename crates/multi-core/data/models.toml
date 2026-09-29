@@ -113,14 +113,32 @@ language = [
 ]
 
 # ---------------------------------------------------------------- ASR
+#
+# `languages`: what the source language (`languages[i].source`) may be; it
+# is passed to the worker explicitly (`multi-asr --lang`), which R1 measured
+# 0.4-0.7 WER points better than `auto`.
+#
+# Nemotron 3.5 Streaming: the model card's 19 "transcription-ready" locales
+# (15 codes; variants such as en-GB, es-419, pt-PT, fr-CA share a code).
+# Not offered: "broad-coverage" pl sv cs nb da bg fi hr sk zh hu ro et and
+# "adaptation-ready" el lt lv mt sl he th nn (lower accuracy; fine-tuning).
+# MLS WER with the language set (R1): es 6.5, fr 9.9, de 10.4, pt 6.5.
+#
+# Whisper large-v3-turbo (MIT; R1: WER es 5.2, fr 8.1, de 6.2, pt 8.8, about
+# 3 s more lag) is not an entry yet: multi-asr has no Whisper backend (it
+# needs a non-streaming decoder plus LocalAgreement). Its languages would be
+# Whisper's 99 (af am ar as az ba be bg bn bo br bs ca cs cy da de el en es
+# et eu fa fi fo fr gl gu ha haw he hi hr ht hu hy id is it ja jw ka kk km
+# kn ko la lb ln lo lt lv mg mi mk ml mn mr ms mt my ne nl nn no oc pa pl
+# ps pt ro ru sa sd si sk sl sn so sq sr su sv sw ta te tg th tk tl tr tt
+# uk ur uz vi yi yo yue zh). Recommended for German once added (R1).
 
 [[model]]
 id = "nemotron-3.5-streaming-560ms"
 kind = "asr"
 backend = "sherpa-onnx"
 default = true
-languages = ["en", "es", "fr", "it", "pt", "nl", "de", "tr", "ru", "ar", "hi", "ja", "ko", "vi", "uk",
-             "pl", "sv", "cs", "nb", "da", "bg", "fi", "hr", "sk", "zh", "hu", "ro", "et"]
+languages = ["en", "es", "fr", "it", "pt", "nl", "de", "tr", "ru", "ar", "hi", "ja", "ko", "vi", "uk"]
 licence = "OpenMDW-1.1"
 attribution = "NVIDIA Nemotron 3.5 ASR Streaming 0.6B (nvidia/nemotron-3.5-asr-streaming-0.6b @ ea30d66d), NVIDIA, OpenMDW-1.1; sherpa-onnx export by the k2-fsa project (csukuangfj2)"
 vram_mb = 3000
@@ -142,8 +160,7 @@ id = "nemotron-3.5-streaming-560ms-int8"
 kind = "asr"
 backend = "sherpa-onnx"
 default = true
-languages = ["en", "es", "fr", "it", "pt", "nl", "de", "tr", "ru", "ar", "hi", "ja", "ko", "vi", "uk",
-             "pl", "sv", "cs", "nb", "da", "bg", "fi", "hr", "sk", "zh", "hu", "ro", "et"]
+languages = ["en", "es", "fr", "it", "pt", "nl", "de", "tr", "ru", "ar", "hi", "ja", "ko", "vi", "uk"]
 licence = "OpenMDW-1.1"
 attribution = "NVIDIA Nemotron 3.5 ASR Streaming 0.6B (nvidia/nemotron-3.5-asr-streaming-0.6b @ ea30d66d), NVIDIA, OpenMDW-1.1; int8 sherpa-onnx export by the k2-fsa project"
 vram_mb = 800
@@ -1751,3 +1768,103 @@ vram_mb = 200
 disk_mb = 150
 dir = "ct2/opus-mt-zh-en"
 convert = { repo = "Helsinki-NLP/opus-mt-zh-en", revision = "cf109095479db38d6df799875e34039d4938aaa6" }
+
+# ---------------------------------------------------------------- non-English sources (M2-2)
+#
+# Direct pairs among es/fr/de (R1), and pt->en: Portuguese has no pt-en
+# pair, so ROMANCE-en (multi-source Romance->English, no token needed) is
+# the pivot into English. opus-mt-mul-en (Apache-2.0,
+# 848eae0c1676cfce9bb791c200e8228e5a6396ff) is the lower-quality fallback
+# for sources with no X->en at all; add it in the user catalogue if needed.
+# Revisions pinned 2026-09-28 from the Hugging Face API.
+
+[[model]]
+id = "opus-mt-es-fr"
+kind = "mt"
+backend = "ctranslate2"
+source = "es"
+targets = ["fr"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT es-fr, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-es-fr"
+convert = { repo = "Helsinki-NLP/opus-mt-es-fr", revision = "f8be65b3aff01c69f3b9092a4ff81b873612140d" }
+
+[[model]]
+id = "opus-mt-es-de"
+kind = "mt"
+backend = "ctranslate2"
+source = "es"
+targets = ["de"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT es-de, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-es-de"
+convert = { repo = "Helsinki-NLP/opus-mt-es-de", revision = "77bd27c5e41c7472be7dd49de96ccc2bec854b55" }
+
+[[model]]
+id = "opus-mt-fr-es"
+kind = "mt"
+backend = "ctranslate2"
+source = "fr"
+targets = ["es"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT fr-es, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-fr-es"
+convert = { repo = "Helsinki-NLP/opus-mt-fr-es", revision = "f4263aff464dbfb2650a4b1793baf6f82b91ae91" }
+
+[[model]]
+id = "opus-mt-fr-de"
+kind = "mt"
+backend = "ctranslate2"
+source = "fr"
+targets = ["de"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT fr-de, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-fr-de"
+convert = { repo = "Helsinki-NLP/opus-mt-fr-de", revision = "db80d261062d75a60e1d4897f13673313a33d50b" }
+
+[[model]]
+id = "opus-mt-de-es"
+kind = "mt"
+backend = "ctranslate2"
+source = "de"
+targets = ["es"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT de-es, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-de-es"
+convert = { repo = "Helsinki-NLP/opus-mt-de-es", revision = "0c0187af74abb222c9d53a672e41dec7dc867b3f" }
+
+[[model]]
+id = "opus-mt-de-fr"
+kind = "mt"
+backend = "ctranslate2"
+source = "de"
+targets = ["fr"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT de-fr, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-de-fr"
+convert = { repo = "Helsinki-NLP/opus-mt-de-fr", revision = "2b4fe242d21e50e89d2917fa4d0b3616d157e339" }
+
+[[model]]
+id = "opus-mt-ROMANCE-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "pt"
+targets = ["en"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT ROMANCE-en (used as pt->en), Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 160
+dir = "ct2/opus-mt-ROMANCE-en"
+convert = { repo = "Helsinki-NLP/opus-mt-ROMANCE-en", revision = "e9ca9975e3972afd80732f08ce01d3a1339f47f8" }

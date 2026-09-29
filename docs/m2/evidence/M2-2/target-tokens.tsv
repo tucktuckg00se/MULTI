@@ -1,0 +1,23 @@
+# ES source, PT (es-en + opus-mt-tc-big-en-pt, >>por<<) and ZH (es-en + opus-mt-en-zh, >>cmn_Hans<<) via English. 75 s of MLS es.
+# before = token prepended as text (M2-1 behaviour); after = token passed as one vocabulary token (M2-2 fix).
+id	es	pt before	pt after	zh before	zh after
+0	Y las almas	Por - E as almas	E as almas	和灵魂	和灵魂
+1	, buscando algún	Por ⁇  Procurando por alguns	Procurando por alguns	来找找看	找寻一些
+2	alivio, se revuelven ansiosas y hacen el mundo	>>por ⁇  alívio, ficar ansioso e fazer o mundo	alívio, ficar ansioso e fazer o mundo	⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇	释放, 焦虑, 让世界变得如此
+3	Ser del dolor	>>por ⁇  Ser de dor	Ser de dor	痛苦的心情	痛苦的
+4	obra	Por ⁇  Play	jogar	来来来来来去去去去玩	播放
+5	El dolor o la	>>por ⁇  Dor ou dor	Dor ou dor	痛苦或痛苦	痛苦或痛苦
+6	nada. Quien tenga corazón	Por – Nada. Por – Quem tem coração	Nada. Quem tem coração	哼哼哼哼哼哼哼哼哼哼哼哼哼哼哼哼哼哼哼哼哼哼哼哼哼哼哼哼哼哼哼哼哼哼哼 心爱的人	没什么 心爱的人
+7	venga y escoja	Por ⁇  Venha e escolha	Venha e escolha	来来来来来来来来来来来来来来来来来来来来来来来来来来来	来,来,来,来,来,来,来
+8	Cuando calla el dolor	Por – Quando a dor é silenciosa	Quando a dor é silenciosa	当疼痛寂静时	当痛苦是安静的
+9	oye a la	Poror ⁇  Ouça a	Ouça o	听好了,听好了	听听这
+10	muerte las alas	>>por ⁇  Morte às asas	Morte às asas	死亡到翅膀	翅膀被杀死
+11	tenebrosas batiren los	Por - Darky bate o	Darky bate o	黑暗的打动着	黑暗的打动
+12	profundos cual si	>> por ⁇  profundo como se	profundo como se	深如深爱	深得好像
+13	fuesen las olas del mar	Por ⁇  foram as ondas do mar	Foram as ondas do mar	⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇	曾经是海浪
+14	de la ilusión	>>por ⁇  da ilusão	da ilusão	幻想的 赞美的 赞美的	幻觉
+15	los seres sin rumbo bogan	Por ⁇  os seres sem rumo Bogan	os seres sem rumo Bogan	⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇	毫无目的的动物博根
+16	donde se mecen frágiles	Por – onde a rocha frágil	Onde a Rocha Fragil	⁇  ⁇  ⁇  ⁇  ⁇  ⁇  ⁇  ⁇  ⁇  ⁇  ⁇  ⁇  ⁇  ⁇  ⁇  ⁇  ⁇  ⁇  ⁇  ⁇  ⁇  ⁇  ⁇  ⁇  ⁇  ⁇  ⁇	脆弱岩石
+17	barquillas	>>por ⁇  Bark	Bark	⁇   ⁇   ⁇	头
+18	, las fugitivas	Por ⁇ , os fugitivos	Os fugitivos	⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇   ⁇	逃犯
+19	formas	>>por ⁇  formas	formas	立方厘米 汉斯 形状	形状

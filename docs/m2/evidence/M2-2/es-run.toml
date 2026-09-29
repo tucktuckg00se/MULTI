@@ -1,0 +1,27 @@
+[input]
+url = "udp://127.0.0.1:9783"
+
+[[outputs]]
+url = "udp://127.0.0.1:9784"
+
+[[languages]]
+code = "es"
+source = true
+cc608 = "cc1"
+cea708_service = 1
+
+[[languages]]
+code = "en"
+cc608 = "cc3"
+cea708_service = 3
+priority = 1
+
+[[languages]]
+code = "fr"
+cea708_service = 2
+priority = 2
+
+[[languages]]
+code = "de"
+cea708_service = 4
+priority = 3
