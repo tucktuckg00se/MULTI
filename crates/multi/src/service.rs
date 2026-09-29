@@ -426,6 +426,11 @@ impl Service {
         }
     }
 
+    /// The models directory the default workers use.
+    pub fn models_dir(&self) -> PathBuf {
+        crate::models::resolve_dir(self.inner.workers.models_dir.as_deref())
+    }
+
     pub fn events(&self) -> broadcast::Receiver<Event> {
         self.inner.events.subscribe()
     }

@@ -248,3 +248,16 @@ td input, td select { min-width: 60px; }
 .meter { height: 6px; margin: 6px 0 2px; background: color-mix(in srgb, var(--muted) 20%, transparent); border-radius: 3px; overflow: hidden; }
 .meter span { display: block; height: 100%; width: 0; background: var(--ok); transition: width 0.2s linear; }
 .meter span.warn { background: var(--warn); }
+
+/* Models (M2-1) */
+.fmts { display: inline-flex; gap: 4px; flex-wrap: wrap; }
+.fmt { font-size: 11px; padding: 1px 6px; border-radius: 4px; border: 1px solid color-mix(in srgb, var(--muted) 40%, transparent); color: var(--muted); white-space: nowrap; }
+.fmt.warn { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, transparent); }
+.pull-progress { display: inline-flex; align-items: center; gap: 6px; }
+.pull-progress progress { width: 120px; }
+details.licence summary { cursor: pointer; }
+details.licence p { max-width: 36ch; }
+#model-filter { width: 100%; max-width: 420px; margin: 4px 0 8px; }
+a.install { font-size: 12px; margin-left: 6px; }
+.add-lang { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.add-lang select { width: auto; min-width: 200px; }

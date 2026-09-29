@@ -13,7 +13,7 @@
 //! the control layer (`service`) uses it for status and live events.
 
 use crate::models::{self, AsrPaths};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::mpsc::{Receiver, RecvTimeoutError};
 use std::sync::{Arc, Mutex};
@@ -107,17 +107,20 @@ pub fn default_mt(
     config: &Config,
     bin_dir: &Path,
     root: &Path,
-    models: &[(String, PathBuf)],
+    models: &[models::MtModel],
 ) -> WorkerSpec {
     let mut spec = WorkerSpec::new("mt", bin_dir.join("multi-mt"))
         .arg("--models")
         .arg(root.join("ct2"))
         .args(["--device", "auto", "--langs"])
         .arg(target_langs(config).join(","));
-    for (lang, dir) in models {
-        let mut pair = std::ffi::OsString::from(format!("{lang}="));
-        pair.push(dir);
+    for m in models {
+        let mut pair = std::ffi::OsString::from(format!("{}=", m.lang));
+        pair.push(&m.dir);
         spec = spec.arg("--model").arg(pair);
+        if let Some(p) = &m.prefix {
+            spec = spec.arg("--prefix").arg(format!("{}={p}", m.lang));
+        }
     }
     spec
 }
@@ -449,6 +452,7 @@ fn log_stats(media: &Media, asr: &Supervisor, mt: Option<&Supervisor>) {
 mod tests {
     use super::*;
     use std::ffi::OsString;
+    use std::path::PathBuf;
 
     fn chunk(start_ms: u64, n: usize) -> AudioChunk {
         AudioChunk {
@@ -504,9 +508,14 @@ mod tests {
         let a = default_asr(&c, Path::new("/opt/multi"), &paths);
         assert_eq!(a.program, PathBuf::from("/opt/multi/multi-asr"));
         assert!(a.args.contains(&OsString::from("/m/vad.onnx")));
-        let mt = [("es".to_string(), PathBuf::from("/m/ct2/opus-mt-en-es"))];
+        let mt = [models::MtModel {
+            lang: "es".into(),
+            dir: PathBuf::from("/m/ct2/opus-mt-en-es"),
+            prefix: Some(">>spa<<".into()),
+        }];
         let m = default_mt(&c, Path::new("/opt/multi"), Path::new("/m"), &mt);
         assert!(m.args.contains(&OsString::from("es,fr,de")));
         assert!(m.args.contains(&OsString::from("es=/m/ct2/opus-mt-en-es")));
+        assert!(m.args.contains(&OsString::from("es=>>spa<<")));
     }
 }
