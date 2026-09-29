@@ -44,7 +44,7 @@ Types: `summary` overview page · `spec` requirements · `decision` ADR · `find
 
 | ID | Type | Title | Status | ~Tokens |
 |---|---|---|---|---|
-| M2-00 | summary | [M2 overview: research spike and work packages](m2/README.md) | current | ~1397 |
+| M2-00 | summary | [M2 overview: research spike and work packages](m2/README.md) | current | ~2307 |
 | F-R1a | finding | [YouTube: one live caption track per broadcast, no multi-language live](m2/findings/R1-youtube-captions.md) | current | ~897 |
 | F-R1b | finding | [HLS with WebVTT renditions: FFmpeg can, GStreamer can't; plan](m2/findings/R1-hls-webvtt.md) | current | ~887 |
 | F-R1c | finding | [Non-English ASR: Nemotron vs Whisper WER for ES/FR/DE/PT; opus-mt pairs](m2/findings/R1-non-english-asr.md) | current | ~895 |
