@@ -11,6 +11,106 @@
 #     writes `manifest.json` with the SHA-256 of each output file.
 # `dir` is relative to the models directory. `vram_mb` and `disk_mb` are
 # approximate. Sources and licences: docs/m0/evidence/S4 and S5 models.txt.
+#
+# `target_token` (MT): the `>>id<<` token some multi-target opus-mt models
+# need at the start of each sentence; `multi-mt --prefix` adds it.
+#
+# `language`: every language code used below, with its script. The caption
+# formats follow from the script: CEA-608 and (in MULTI today) 708 carry
+# Latin only; WebVTT carries any script. `latin_extended` marks Latin
+# languages with letters outside CEA-608's character sets.
+#
+# The opus-mt catalogue (M2-1): every Apache-2.0 / CC-BY-4.0 Helsinki-NLP
+# en->X single-language pair with an ISO 639-1 target, and X->en for the
+# languages Nemotron transcribes, revisions pinned 2026-09-28 from the
+# Hugging Face API. Users add or override entries in
+# ~/.config/multi/models.toml (same schema).
+
+language = [
+{ code = "af", name = "Afrikaans", script = "Latin" },
+{ code = "ar", name = "Arabic", script = "Arabic" },
+{ code = "az", name = "Azerbaijani", script = "Latin", latin_extended = true },
+{ code = "bg", name = "Bulgarian", script = "Cyrillic" },
+{ code = "bi", name = "Bislama", script = "Latin" },
+{ code = "ca", name = "Catalan", script = "Latin" },
+{ code = "cs", name = "Czech", script = "Latin", latin_extended = true },
+{ code = "cy", name = "Welsh", script = "Latin", latin_extended = true },
+{ code = "da", name = "Danish", script = "Latin" },
+{ code = "de", name = "German", script = "Latin" },
+{ code = "ee", name = "Ewe", script = "Latin", latin_extended = true },
+{ code = "el", name = "Greek", script = "Greek" },
+{ code = "en", name = "English", script = "Latin" },
+{ code = "eo", name = "Esperanto", script = "Latin", latin_extended = true },
+{ code = "es", name = "Spanish", script = "Latin" },
+{ code = "et", name = "Estonian", script = "Latin", latin_extended = true },
+{ code = "eu", name = "Basque", script = "Latin" },
+{ code = "fi", name = "Finnish", script = "Latin" },
+{ code = "fj", name = "Fijian", script = "Latin" },
+{ code = "fr", name = "French", script = "Latin" },
+{ code = "ga", name = "Irish", script = "Latin" },
+{ code = "gl", name = "Galician", script = "Latin" },
+{ code = "gv", name = "Manx", script = "Latin" },
+{ code = "ha", name = "Hausa", script = "Latin", latin_extended = true },
+{ code = "he", name = "Hebrew", script = "Hebrew" },
+{ code = "hi", name = "Hindi", script = "Devanagari" },
+{ code = "ho", name = "Hiri Motu", script = "Latin" },
+{ code = "hr", name = "Croatian", script = "Latin", latin_extended = true },
+{ code = "ht", name = "Haitian Creole", script = "Latin" },
+{ code = "hu", name = "Hungarian", script = "Latin", latin_extended = true },
+{ code = "hy", name = "Armenian", script = "Armenian" },
+{ code = "id", name = "Indonesian", script = "Latin" },
+{ code = "ig", name = "Igbo", script = "Latin", latin_extended = true },
+{ code = "is", name = "Icelandic", script = "Latin", latin_extended = true },
+{ code = "it", name = "Italian", script = "Latin" },
+{ code = "ja", name = "Japanese", script = "CJK" },
+{ code = "kg", name = "Kongo", script = "Latin" },
+{ code = "kj", name = "Kuanyama", script = "Latin" },
+{ code = "ko", name = "Korean", script = "Hangul" },
+{ code = "lg", name = "Ganda", script = "Latin" },
+{ code = "ln", name = "Lingala", script = "Latin", latin_extended = true },
+{ code = "lt", name = "Lithuanian", script = "Latin", latin_extended = true },
+{ code = "lu", name = "Luba-Katanga", script = "Latin" },
+{ code = "lv", name = "Latvian", script = "Latin", latin_extended = true },
+{ code = "mg", name = "Malagasy", script = "Latin" },
+{ code = "mh", name = "Marshallese", script = "Latin", latin_extended = true },
+{ code = "mk", name = "Macedonian", script = "Cyrillic" },
+{ code = "ml", name = "Malayalam", script = "Malayalam" },
+{ code = "mr", name = "Marathi", script = "Devanagari" },
+{ code = "mt", name = "Maltese", script = "Latin", latin_extended = true },
+{ code = "nb", name = "Norwegian Bokmål", script = "Latin" },
+{ code = "ng", name = "Ndonga", script = "Latin" },
+{ code = "nl", name = "Dutch", script = "Latin" },
+{ code = "ny", name = "Chichewa", script = "Latin" },
+{ code = "om", name = "Oromo", script = "Latin" },
+{ code = "pl", name = "Polish", script = "Latin", latin_extended = true },
+{ code = "pt", name = "Portuguese", script = "Latin" },
+{ code = "rn", name = "Kirundi", script = "Latin" },
+{ code = "ro", name = "Romanian", script = "Latin", latin_extended = true },
+{ code = "ru", name = "Russian", script = "Cyrillic" },
+{ code = "rw", name = "Kinyarwanda", script = "Latin" },
+{ code = "sg", name = "Sango", script = "Latin", latin_extended = true },
+{ code = "sk", name = "Slovak", script = "Latin", latin_extended = true },
+{ code = "sm", name = "Samoan", script = "Latin" },
+{ code = "sn", name = "Shona", script = "Latin" },
+{ code = "sq", name = "Albanian", script = "Latin" },
+{ code = "ss", name = "Swati", script = "Latin" },
+{ code = "st", name = "Sesotho", script = "Latin" },
+{ code = "sv", name = "Swedish", script = "Latin" },
+{ code = "sw", name = "Swahili", script = "Latin" },
+{ code = "ti", name = "Tigrinya", script = "Ethiopic" },
+{ code = "tl", name = "Tagalog", script = "Latin" },
+{ code = "tn", name = "Tswana", script = "Latin" },
+{ code = "to", name = "Tongan", script = "Latin" },
+{ code = "tr", name = "Turkish", script = "Latin", latin_extended = true },
+{ code = "ts", name = "Tsonga", script = "Latin" },
+{ code = "tw", name = "Twi", script = "Latin", latin_extended = true },
+{ code = "ty", name = "Tahitian", script = "Latin" },
+{ code = "uk", name = "Ukrainian", script = "Cyrillic" },
+{ code = "ur", name = "Urdu", script = "Arabic" },
+{ code = "vi", name = "Vietnamese", script = "Latin", latin_extended = true },
+{ code = "xh", name = "Xhosa", script = "Latin" },
+{ code = "zh", name = "Chinese (Simplified)", script = "CJK" },
+]
 
 # ---------------------------------------------------------------- ASR
 
@@ -127,9 +227,1527 @@ backend = "ctranslate2"
 default = true
 source = "en"
 targets = ["pt"]
+target_token = ">>por<<"
 licence = "CC-BY-4.0"
 attribution = "OPUS-MT tc-big en-pt, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
 vram_mb = 500
 disk_mb = 448
 dir = "ct2/opus-mt-tc-big-en-pt"
 convert = { repo = "Helsinki-NLP/opus-mt-tc-big-en-pt", revision = "9f2863d807ecf91a374bdbecb8d01e402e90622e" }
+
+[[model]]
+id = "opus-mt-en-af"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["af"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-af, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-af"
+convert = { repo = "Helsinki-NLP/opus-mt-en-af", revision = "6bb29b2752ad425fae1ecdaba201e2de636ecc24" }
+
+[[model]]
+id = "opus-mt-en-ar"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["ar"]
+target_token = ">>ara<<"
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-ar, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-ar"
+convert = { repo = "Helsinki-NLP/opus-mt-en-ar", revision = "03087980e8ce753d64b3248ed0a912444545b840" }
+
+[[model]]
+id = "opus-mt-tc-big-en-ar"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["ar"]
+target_token = ">>ara<<"
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT tc-big en-ar, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 500
+disk_mb = 450
+dir = "ct2/opus-mt-tc-big-en-ar"
+convert = { repo = "Helsinki-NLP/opus-mt-tc-big-en-ar", revision = "ae9f1b2fd512000ca9440eb3b8ec9aa9acb298ac" }
+
+[[model]]
+id = "opus-mt-en-az"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["az"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-az, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-az"
+convert = { repo = "Helsinki-NLP/opus-mt-en-az", revision = "44fe1635d4adb21b31c2ae6e1a2e287a97a16bc2" }
+
+[[model]]
+id = "opus-mt-en-bg"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["bg"]
+target_token = ">>bul<<"
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-bg, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-bg"
+convert = { repo = "Helsinki-NLP/opus-mt-en-bg", revision = "d7d00466d7bfc970cbb30d71b6c438fb8290faa4" }
+
+[[model]]
+id = "opus-mt-tc-big-en-bg"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["bg"]
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT tc-big en-bg, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 500
+disk_mb = 450
+dir = "ct2/opus-mt-tc-big-en-bg"
+convert = { repo = "Helsinki-NLP/opus-mt-tc-big-en-bg", revision = "558a7fa51deb7da5a214174be73423ffee1807c6" }
+
+[[model]]
+id = "opus-mt-en-bi"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["bi"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-bi, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-bi"
+convert = { repo = "Helsinki-NLP/opus-mt-en-bi", revision = "5d7c8d483ffeef52044238ff09481e4538bbcd06" }
+
+[[model]]
+id = "opus-mt-en-ca"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["ca"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-ca, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-ca"
+convert = { repo = "Helsinki-NLP/opus-mt-en-ca", revision = "b68b9d6a3652d8d0875d9e5054e50bf17e81e1cc" }
+
+[[model]]
+id = "opus-mt-en-cs"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["cs"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-cs, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-cs"
+convert = { repo = "Helsinki-NLP/opus-mt-en-cs", revision = "2820c6a540ddc2b7c4ea4c95c39b3150bd3ac27e" }
+
+[[model]]
+id = "opus-mt-en-cy"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["cy"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-cy, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-cy"
+convert = { repo = "Helsinki-NLP/opus-mt-en-cy", revision = "38e54ea77bca4ad924a04d6ca9a765cffa84d80f" }
+
+[[model]]
+id = "opus-mt-en-da"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["da"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-da, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-da"
+convert = { repo = "Helsinki-NLP/opus-mt-en-da", revision = "55d88cdf73ba0a7fe1e38f4bcf33ddbc26333ea5" }
+
+[[model]]
+id = "opus-mt-en-ee"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["ee"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-ee, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-ee"
+convert = { repo = "Helsinki-NLP/opus-mt-en-ee", revision = "fef1362558b7948e5257f06f192d700761b3b57d" }
+
+[[model]]
+id = "opus-mt-en-el"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["el"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-el, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-el"
+convert = { repo = "Helsinki-NLP/opus-mt-en-el", revision = "1653673990e6f1e3baf0a903f38e231730704444" }
+
+[[model]]
+id = "opus-mt-tc-big-en-el"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["el"]
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT tc-big en-el, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 500
+disk_mb = 450
+dir = "ct2/opus-mt-tc-big-en-el"
+convert = { repo = "Helsinki-NLP/opus-mt-tc-big-en-el", revision = "bb9aa4d8929451dd2396f399f7aa184c788d565b" }
+
+[[model]]
+id = "opus-mt-en-eo"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["eo"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-eo, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-eo"
+convert = { repo = "Helsinki-NLP/opus-mt-en-eo", revision = "f92317ebc52a2b0966c31fc04c90ba23a7e2671e" }
+
+[[model]]
+id = "opus-mt-tc-big-en-es"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["es"]
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT tc-big en-es, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 500
+disk_mb = 450
+dir = "ct2/opus-mt-tc-big-en-es"
+convert = { repo = "Helsinki-NLP/opus-mt-tc-big-en-es", revision = "8f4d4924189681076e9c642b2fd85278d793fd4d" }
+
+[[model]]
+id = "opus-mt-en-et"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["et"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-et, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-et"
+convert = { repo = "Helsinki-NLP/opus-mt-en-et", revision = "624b0dc8ad8f4a620ebb6331f06bc47937471f08" }
+
+[[model]]
+id = "opus-mt-tc-big-en-et"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["et"]
+target_token = ">>est<<"
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT tc-big en-et, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 500
+disk_mb = 450
+dir = "ct2/opus-mt-tc-big-en-et"
+convert = { repo = "Helsinki-NLP/opus-mt-tc-big-en-et", revision = "6db2922a7cb505df729e0b75e0980e591b5570bc" }
+
+[[model]]
+id = "opus-mt-en-eu"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["eu"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-eu, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-eu"
+convert = { repo = "Helsinki-NLP/opus-mt-en-eu", revision = "d0aea41286540e4bc3af139a58d1c7ab39725d1b" }
+
+[[model]]
+id = "opus-mt-en-fi"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["fi"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-fi, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-fi"
+convert = { repo = "Helsinki-NLP/opus-mt-en-fi", revision = "2f68f12519005b50f9e1afe6fd57b13add55e156" }
+
+[[model]]
+id = "opus-mt-tc-big-en-fi"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["fi"]
+target_token = ">>fin<<"
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT tc-big en-fi, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 500
+disk_mb = 450
+dir = "ct2/opus-mt-tc-big-en-fi"
+convert = { repo = "Helsinki-NLP/opus-mt-tc-big-en-fi", revision = "8e570bbad861fb72104883353cf307ce1fe7b5e0" }
+
+[[model]]
+id = "opus-mt-en-fj"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["fj"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-fj, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-fj"
+convert = { repo = "Helsinki-NLP/opus-mt-en-fj", revision = "1397dbbc18a2c4ce6d17dbcab61baff32002f162" }
+
+[[model]]
+id = "opus-mt-tc-big-en-fr"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["fr"]
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT tc-big en-fr, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 500
+disk_mb = 450
+dir = "ct2/opus-mt-tc-big-en-fr"
+convert = { repo = "Helsinki-NLP/opus-mt-tc-big-en-fr", revision = "6e062862ced6f5622a589ab2aadc2a1d4978db78" }
+
+[[model]]
+id = "opus-mt-en-ga"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["ga"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-ga, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-ga"
+convert = { repo = "Helsinki-NLP/opus-mt-en-ga", revision = "10337fc4a7a24e2ac0c7443b1dca3ed187207d0d" }
+
+[[model]]
+id = "opus-mt-en-gl"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["gl"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-gl, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-gl"
+convert = { repo = "Helsinki-NLP/opus-mt-en-gl", revision = "575ae96e7ba8684206f5ef093d87d6e1b36869c6" }
+
+[[model]]
+id = "opus-mt-en-gv"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["gv"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-gv, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-gv"
+convert = { repo = "Helsinki-NLP/opus-mt-en-gv", revision = "ea5470c49224a1d570419231900d36828e648e74" }
+
+[[model]]
+id = "opus-mt-en-ha"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["ha"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-ha, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-ha"
+convert = { repo = "Helsinki-NLP/opus-mt-en-ha", revision = "9736e603aa1c79372d62b3a9d96029d0b51f7466" }
+
+[[model]]
+id = "opus-mt-en-he"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["he"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-he, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-he"
+convert = { repo = "Helsinki-NLP/opus-mt-en-he", revision = "b3df900afbb13bc343b0d28a03ac6f7990091f54" }
+
+[[model]]
+id = "opus-mt-en-hi"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["hi"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-hi, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-hi"
+convert = { repo = "Helsinki-NLP/opus-mt-en-hi", revision = "75d7f7c9232b2891c7d65fe4ef635616c72be867" }
+
+[[model]]
+id = "opus-mt-en-ho"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["ho"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-ho, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-ho"
+convert = { repo = "Helsinki-NLP/opus-mt-en-ho", revision = "dc6fdc7b9df15653626e12848fc1f8b56e55da42" }
+
+[[model]]
+id = "opus-mt-en-ht"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["ht"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-ht, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-ht"
+convert = { repo = "Helsinki-NLP/opus-mt-en-ht", revision = "8496a98a61df57c1ce7fd9d0d1060c0395480248" }
+
+[[model]]
+id = "opus-mt-en-hu"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["hu"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-hu, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-hu"
+convert = { repo = "Helsinki-NLP/opus-mt-en-hu", revision = "f2ee4d3f21c0ec85db4eb55d00b3ecc55fbd9d9b" }
+
+[[model]]
+id = "opus-mt-tc-big-en-hu"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["hu"]
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT tc-big en-hu, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 500
+disk_mb = 450
+dir = "ct2/opus-mt-tc-big-en-hu"
+convert = { repo = "Helsinki-NLP/opus-mt-tc-big-en-hu", revision = "26a12a751fa08f3ea33d690a7bd0acd48971ed24" }
+
+[[model]]
+id = "opus-mt-en-hy"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["hy"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-hy, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-hy"
+convert = { repo = "Helsinki-NLP/opus-mt-en-hy", revision = "b2c0859636704eda4686589e3acda6405c5e6339" }
+
+[[model]]
+id = "opus-mt-en-id"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["id"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-id, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-id"
+convert = { repo = "Helsinki-NLP/opus-mt-en-id", revision = "6e4c52d61a6b16fe3509b0267cbfec65011b860b" }
+
+[[model]]
+id = "opus-mt-en-ig"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["ig"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-ig, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-ig"
+convert = { repo = "Helsinki-NLP/opus-mt-en-ig", revision = "0657b968cb9068ab59fe68e8b7dbc89eb21a2a20" }
+
+[[model]]
+id = "opus-mt-en-is"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["is"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-is, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-is"
+convert = { repo = "Helsinki-NLP/opus-mt-en-is", revision = "5fd990e8cfe41bcf3169ff12d0ffbe5910a3b897" }
+
+[[model]]
+id = "opus-mt-en-it"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["it"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-it, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-it"
+convert = { repo = "Helsinki-NLP/opus-mt-en-it", revision = "be5a254d936f1a8c8da080406ca582a6615e6658" }
+
+[[model]]
+id = "opus-mt-tc-big-en-it"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["it"]
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT tc-big en-it, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 500
+disk_mb = 450
+dir = "ct2/opus-mt-tc-big-en-it"
+convert = { repo = "Helsinki-NLP/opus-mt-tc-big-en-it", revision = "592d2cfb0797867f1dd223e49141de051faa65c7" }
+
+[[model]]
+id = "opus-mt-en-kg"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["kg"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-kg, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-kg"
+convert = { repo = "Helsinki-NLP/opus-mt-en-kg", revision = "b061c8ed547c256869806098f77c63ec442b99a8" }
+
+[[model]]
+id = "opus-mt-en-kj"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["kj"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-kj, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-kj"
+convert = { repo = "Helsinki-NLP/opus-mt-en-kj", revision = "8b62faea82e9f7b3c983ccdffc2cdfa04b134ff6" }
+
+[[model]]
+id = "opus-mt-tc-big-en-ko"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["ko"]
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT tc-big en-ko, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 500
+disk_mb = 450
+dir = "ct2/opus-mt-tc-big-en-ko"
+convert = { repo = "Helsinki-NLP/opus-mt-tc-big-en-ko", revision = "ae8606b7b29a495f31ce679cee2007f536a3a5ce" }
+
+[[model]]
+id = "opus-mt-en-lg"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["lg"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-lg, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-lg"
+convert = { repo = "Helsinki-NLP/opus-mt-en-lg", revision = "f83e1d2ddaee499d863e1ae66f7970cd42f33286" }
+
+[[model]]
+id = "opus-mt-en-ln"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["ln"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-ln, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-ln"
+convert = { repo = "Helsinki-NLP/opus-mt-en-ln", revision = "80f16312468611b39b2afed2a4ae0741eaef1d47" }
+
+[[model]]
+id = "opus-mt-tc-big-en-lt"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["lt"]
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT tc-big en-lt, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 500
+disk_mb = 450
+dir = "ct2/opus-mt-tc-big-en-lt"
+convert = { repo = "Helsinki-NLP/opus-mt-tc-big-en-lt", revision = "2e08d64d805b30cdcf8e31ad8158f4f9b30da230" }
+
+[[model]]
+id = "opus-mt-en-lu"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["lu"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-lu, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-lu"
+convert = { repo = "Helsinki-NLP/opus-mt-en-lu", revision = "47b010c52d75b2e3c75faddb37dbbb4a307412da" }
+
+[[model]]
+id = "opus-mt-tc-big-en-lv"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["lv"]
+target_token = ">>lav<<"
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT tc-big en-lv, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 500
+disk_mb = 450
+dir = "ct2/opus-mt-tc-big-en-lv"
+convert = { repo = "Helsinki-NLP/opus-mt-tc-big-en-lv", revision = "ab7643b9b00a02b4495ad5925ba5e3d0d0f938e5" }
+
+[[model]]
+id = "opus-mt-en-mg"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["mg"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-mg, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-mg"
+convert = { repo = "Helsinki-NLP/opus-mt-en-mg", revision = "19162a29183c46a0bbd7e6d24fa398f4e7d651b7" }
+
+[[model]]
+id = "opus-mt-en-mh"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["mh"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-mh, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-mh"
+convert = { repo = "Helsinki-NLP/opus-mt-en-mh", revision = "92addad117527ac0ba5fc765416646125c16613b" }
+
+[[model]]
+id = "opus-mt-en-mk"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["mk"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-mk, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-mk"
+convert = { repo = "Helsinki-NLP/opus-mt-en-mk", revision = "24245504cfac992ddce76a26e7bfdeb3c248e99f" }
+
+[[model]]
+id = "opus-mt-en-ml"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["ml"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-ml, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-ml"
+convert = { repo = "Helsinki-NLP/opus-mt-en-ml", revision = "c31fa33320302c9cacd561792bb0d6b27d116cf4" }
+
+[[model]]
+id = "opus-mt-en-mr"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["mr"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-mr, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-mr"
+convert = { repo = "Helsinki-NLP/opus-mt-en-mr", revision = "278873c7c6d7ef71072f8af040c91d1b5422ad88" }
+
+[[model]]
+id = "opus-mt-en-mt"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["mt"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-mt, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-mt"
+convert = { repo = "Helsinki-NLP/opus-mt-en-mt", revision = "c0ce1eed30f6c419955730df41faffb3f0b1119c" }
+
+[[model]]
+id = "opus-mt-en-ng"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["ng"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-ng, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-ng"
+convert = { repo = "Helsinki-NLP/opus-mt-en-ng", revision = "8734944db71e87674081955674095ded59775d57" }
+
+[[model]]
+id = "opus-mt-en-nl"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["nl"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-nl, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-nl"
+convert = { repo = "Helsinki-NLP/opus-mt-en-nl", revision = "8aad73b34ff36c090e7fc8a2eb7e2e7cca235d31" }
+
+[[model]]
+id = "opus-mt-en-ny"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["ny"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-ny, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-ny"
+convert = { repo = "Helsinki-NLP/opus-mt-en-ny", revision = "b15534958111196e4bd6abf1e1573e5a80e45806" }
+
+[[model]]
+id = "opus-mt-en-om"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["om"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-om, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-om"
+convert = { repo = "Helsinki-NLP/opus-mt-en-om", revision = "e321b18f8c9def1c9aebf9e83926ea99fac90c75" }
+
+[[model]]
+id = "opus-mt-en-rn"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["rn"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-rn, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-rn"
+convert = { repo = "Helsinki-NLP/opus-mt-en-rn", revision = "3b1113cc16fdb27c46a8486f118cf5714de76d2f" }
+
+[[model]]
+id = "opus-mt-en-ro"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["ro"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-ro, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-ro"
+convert = { repo = "Helsinki-NLP/opus-mt-en-ro", revision = "96e8fea9e44dae942c2e8a9078dc1615dd871ed9" }
+
+[[model]]
+id = "opus-mt-tc-big-en-ro"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["ro"]
+target_token = ">>ron<<"
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT tc-big en-ro, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 500
+disk_mb = 450
+dir = "ct2/opus-mt-tc-big-en-ro"
+convert = { repo = "Helsinki-NLP/opus-mt-tc-big-en-ro", revision = "3853a10c485323cbcd870553e846071052c0c070" }
+
+[[model]]
+id = "opus-mt-en-ru"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["ru"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-ru, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-ru"
+convert = { repo = "Helsinki-NLP/opus-mt-en-ru", revision = "bb09c99d180016eac6819df3dae68edb1690fdee" }
+
+[[model]]
+id = "opus-mt-en-rw"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["rw"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-rw, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-rw"
+convert = { repo = "Helsinki-NLP/opus-mt-en-rw", revision = "958a15ecacbd5c1d34986f70c69cf55164b63216" }
+
+[[model]]
+id = "opus-mt-en-sg"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["sg"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-sg, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-sg"
+convert = { repo = "Helsinki-NLP/opus-mt-en-sg", revision = "b1ee58bf47b9585780ec534fe89d3d7327c5a74f" }
+
+[[model]]
+id = "opus-mt-en-sk"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["sk"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-sk, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-sk"
+convert = { repo = "Helsinki-NLP/opus-mt-en-sk", revision = "04d19ccd4566720bceeff93623d5cf93be659816" }
+
+[[model]]
+id = "opus-mt-en-sm"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["sm"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-sm, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-sm"
+convert = { repo = "Helsinki-NLP/opus-mt-en-sm", revision = "5203cb95158dd7d500230adcbb35fe4f1fb51ebf" }
+
+[[model]]
+id = "opus-mt-en-sn"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["sn"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-sn, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-sn"
+convert = { repo = "Helsinki-NLP/opus-mt-en-sn", revision = "7313e969b1783060740e1ea49cf5ad0876e4792e" }
+
+[[model]]
+id = "opus-mt-en-sq"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["sq"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-sq, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-sq"
+convert = { repo = "Helsinki-NLP/opus-mt-en-sq", revision = "3fb16c7fae5d3293060997dff628656de259d46e" }
+
+[[model]]
+id = "opus-mt-en-ss"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["ss"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-ss, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-ss"
+convert = { repo = "Helsinki-NLP/opus-mt-en-ss", revision = "35b704501dcb7a6cc4eaad2eee7468554bf64bd4" }
+
+[[model]]
+id = "opus-mt-en-st"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["st"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-st, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-st"
+convert = { repo = "Helsinki-NLP/opus-mt-en-st", revision = "38f5c02c804772fd38c723df2cc6ac645fb1ec56" }
+
+[[model]]
+id = "opus-mt-en-sv"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["sv"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-sv, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-sv"
+convert = { repo = "Helsinki-NLP/opus-mt-en-sv", revision = "cec444c9ac08a87fcfcd172f2e6be8e112fda53c" }
+
+[[model]]
+id = "opus-mt-en-sw"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["sw"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-sw, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-sw"
+convert = { repo = "Helsinki-NLP/opus-mt-en-sw", revision = "28780399d37e1161afc94577a717d7fcfa54fecc" }
+
+[[model]]
+id = "opus-mt-en-ti"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["ti"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-ti, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-ti"
+convert = { repo = "Helsinki-NLP/opus-mt-en-ti", revision = "72f1e40b4b60ff4863407f90792b4fac517562ec" }
+
+[[model]]
+id = "opus-mt-en-tl"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["tl"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-tl, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-tl"
+convert = { repo = "Helsinki-NLP/opus-mt-en-tl", revision = "e46e1761492cb6a6fb9515a72bb55ca654815ca5" }
+
+[[model]]
+id = "opus-mt-en-tn"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["tn"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-tn, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-tn"
+convert = { repo = "Helsinki-NLP/opus-mt-en-tn", revision = "adaf6aebad6f871274e0980f4e5185b9b5661f8f" }
+
+[[model]]
+id = "opus-mt-en-to"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["to"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-to, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-to"
+convert = { repo = "Helsinki-NLP/opus-mt-en-to", revision = "802d3c0439cd9619c1cb75ef699582b7a9bf4ef7" }
+
+[[model]]
+id = "opus-mt-tc-big-en-tr"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["tr"]
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT tc-big en-tr, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 500
+disk_mb = 450
+dir = "ct2/opus-mt-tc-big-en-tr"
+convert = { repo = "Helsinki-NLP/opus-mt-tc-big-en-tr", revision = "e539fc16a8a1a0ea5950eb339b595bfcce990e90" }
+
+[[model]]
+id = "opus-mt-en-ts"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["ts"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-ts, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-ts"
+convert = { repo = "Helsinki-NLP/opus-mt-en-ts", revision = "1baa05f9ffce9b8308319c16577f262390e9bb3e" }
+
+[[model]]
+id = "opus-mt-en-tw"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["tw"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-tw, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-tw"
+convert = { repo = "Helsinki-NLP/opus-mt-en-tw", revision = "d75a505a96de52043b9d57d19b4992564769d6dd" }
+
+[[model]]
+id = "opus-mt-en-ty"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["ty"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-ty, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-ty"
+convert = { repo = "Helsinki-NLP/opus-mt-en-ty", revision = "7cc5c078e2373121a1dcf2705f31d7e7069de32f" }
+
+[[model]]
+id = "opus-mt-en-uk"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["uk"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-uk, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-uk"
+convert = { repo = "Helsinki-NLP/opus-mt-en-uk", revision = "634fdc4b28bf0c8a1d4359cbbcfb29190a09dc0e" }
+
+[[model]]
+id = "opus-mt-en-ur"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["ur"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-ur, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-ur"
+convert = { repo = "Helsinki-NLP/opus-mt-en-ur", revision = "ceb6e22b680f55eda918c3612200ace766898456" }
+
+[[model]]
+id = "opus-mt-en-vi"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["vi"]
+target_token = ">>vie<<"
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-vi, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-vi"
+convert = { repo = "Helsinki-NLP/opus-mt-en-vi", revision = "989c9fb9ec63987901022baf0182dcec3e149be6" }
+
+[[model]]
+id = "opus-mt-en-xh"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["xh"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-xh, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-xh"
+convert = { repo = "Helsinki-NLP/opus-mt-en-xh", revision = "2dac5576cc2d08a6b157491b1279c226bb72ce6d" }
+
+[[model]]
+id = "opus-mt-en-zh"
+kind = "mt"
+backend = "ctranslate2"
+source = "en"
+targets = ["zh"]
+target_token = ">>cmn_Hans<<"
+licence = "Apache-2.0"
+attribution = "OPUS-MT en-zh, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-en-zh"
+convert = { repo = "Helsinki-NLP/opus-mt-en-zh", revision = "408d9bc410a388e1d9aef112a2daba955b945255" }
+
+[[model]]
+id = "opus-mt-ar-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "ar"
+targets = ["en"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT ar-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-ar-en"
+convert = { repo = "Helsinki-NLP/opus-mt-ar-en", revision = "c5b2a50db78d6be98ae207223f8d4f63bc7a0ff1" }
+
+[[model]]
+id = "opus-mt-tc-big-ar-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "ar"
+targets = ["en"]
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT tc-big ar-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 500
+disk_mb = 450
+dir = "ct2/opus-mt-tc-big-ar-en"
+convert = { repo = "Helsinki-NLP/opus-mt-tc-big-ar-en", revision = "bcb4acd39ee8e3552e171653a8e31a10729b4330" }
+
+[[model]]
+id = "opus-mt-bg-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "bg"
+targets = ["en"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT bg-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-bg-en"
+convert = { repo = "Helsinki-NLP/opus-mt-bg-en", revision = "8a944b4e892d77f7442095cb960d5c1a794766a5" }
+
+[[model]]
+id = "opus-mt-tc-big-bg-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "bg"
+targets = ["en"]
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT tc-big bg-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 500
+disk_mb = 450
+dir = "ct2/opus-mt-tc-big-bg-en"
+convert = { repo = "Helsinki-NLP/opus-mt-tc-big-bg-en", revision = "97e1267dfb71b5bd8cab7288cd36d8d899229a54" }
+
+[[model]]
+id = "opus-mt-cs-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "cs"
+targets = ["en"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT cs-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-cs-en"
+convert = { repo = "Helsinki-NLP/opus-mt-cs-en", revision = "577d2053d249b476aefec9524a37ec945ccbd331" }
+
+[[model]]
+id = "opus-mt-da-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "da"
+targets = ["en"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT da-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-da-en"
+convert = { repo = "Helsinki-NLP/opus-mt-da-en", revision = "0960cff506758772cf23186b941305e0afeb43c5" }
+
+[[model]]
+id = "opus-mt-de-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "de"
+targets = ["en"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT de-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-de-en"
+convert = { repo = "Helsinki-NLP/opus-mt-de-en", revision = "1a922f3b32a8e809e17a47d4b32142d8105924e5" }
+
+[[model]]
+id = "opus-mt-es-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "es"
+targets = ["en"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT es-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-es-en"
+convert = { repo = "Helsinki-NLP/opus-mt-es-en", revision = "c96e2c5399ebfae4fc43d9669556b9afa74bb69d" }
+
+[[model]]
+id = "opus-mt-et-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "et"
+targets = ["en"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT et-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-et-en"
+convert = { repo = "Helsinki-NLP/opus-mt-et-en", revision = "8affd1fe86798b57bc7c63ee9d7ead91c02ba090" }
+
+[[model]]
+id = "opus-mt-tc-big-et-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "et"
+targets = ["en"]
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT tc-big et-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 500
+disk_mb = 450
+dir = "ct2/opus-mt-tc-big-et-en"
+convert = { repo = "Helsinki-NLP/opus-mt-tc-big-et-en", revision = "e06044c24abb0dbc267813fc95626aec1b1bede0" }
+
+[[model]]
+id = "opus-mt-fi-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "fi"
+targets = ["en"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT fi-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-fi-en"
+convert = { repo = "Helsinki-NLP/opus-mt-fi-en", revision = "c4d8fff0f8f00b637f0578666f35cdacef354778" }
+
+[[model]]
+id = "opus-mt-tc-big-fi-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "fi"
+targets = ["en"]
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT tc-big fi-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 500
+disk_mb = 450
+dir = "ct2/opus-mt-tc-big-fi-en"
+convert = { repo = "Helsinki-NLP/opus-mt-tc-big-fi-en", revision = "956e13710061738d21f677e4ed16a56546511c0f" }
+
+[[model]]
+id = "opus-mt-fr-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "fr"
+targets = ["en"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT fr-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-fr-en"
+convert = { repo = "Helsinki-NLP/opus-mt-fr-en", revision = "c4aed37b318c763fd177aa449b44e3b783cc6c02" }
+
+[[model]]
+id = "opus-mt-tc-big-fr-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "fr"
+targets = ["en"]
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT tc-big fr-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 500
+disk_mb = 450
+dir = "ct2/opus-mt-tc-big-fr-en"
+convert = { repo = "Helsinki-NLP/opus-mt-tc-big-fr-en", revision = "5fa3b3c9fa3bcd65fbf31206c3ec7419c9d9cd7d" }
+
+[[model]]
+id = "opus-mt-hi-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "hi"
+targets = ["en"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT hi-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-hi-en"
+convert = { repo = "Helsinki-NLP/opus-mt-hi-en", revision = "a7d96a16729f812578bd55e7366147beda625d86" }
+
+[[model]]
+id = "opus-mt-hu-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "hu"
+targets = ["en"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT hu-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-hu-en"
+convert = { repo = "Helsinki-NLP/opus-mt-hu-en", revision = "cdf0ec884dc05cf435cef756dbf05a91c877f105" }
+
+[[model]]
+id = "opus-mt-tc-big-hu-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "hu"
+targets = ["en"]
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT tc-big hu-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 500
+disk_mb = 450
+dir = "ct2/opus-mt-tc-big-hu-en"
+convert = { repo = "Helsinki-NLP/opus-mt-tc-big-hu-en", revision = "c184817a80146c4e315c97ae18e59d1fe84972bb" }
+
+[[model]]
+id = "opus-mt-it-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "it"
+targets = ["en"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT it-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-it-en"
+convert = { repo = "Helsinki-NLP/opus-mt-it-en", revision = "42556a0848fc726f4d27399f20b19ff6f01afe11" }
+
+[[model]]
+id = "opus-mt-tc-big-it-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "it"
+targets = ["en"]
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT tc-big it-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 500
+disk_mb = 450
+dir = "ct2/opus-mt-tc-big-it-en"
+convert = { repo = "Helsinki-NLP/opus-mt-tc-big-it-en", revision = "5009c4525f89c23e195873e918ba6827777d1a27" }
+
+[[model]]
+id = "opus-mt-ja-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "ja"
+targets = ["en"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT ja-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-ja-en"
+convert = { repo = "Helsinki-NLP/opus-mt-ja-en", revision = "0770961a39ba6bd66305b149c3f4110bcafca2e6" }
+
+[[model]]
+id = "opus-mt-ko-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "ko"
+targets = ["en"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT ko-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-ko-en"
+convert = { repo = "Helsinki-NLP/opus-mt-ko-en", revision = "e42d1f41b66194e6d10512f8a27bebc1f4f5097e" }
+
+[[model]]
+id = "opus-mt-tc-big-ko-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "ko"
+targets = ["en"]
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT tc-big ko-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 500
+disk_mb = 450
+dir = "ct2/opus-mt-tc-big-ko-en"
+convert = { repo = "Helsinki-NLP/opus-mt-tc-big-ko-en", revision = "fa26583a41d95346933f26b4cb8f9b700da0d445" }
+
+[[model]]
+id = "opus-mt-nl-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "nl"
+targets = ["en"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT nl-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-nl-en"
+convert = { repo = "Helsinki-NLP/opus-mt-nl-en", revision = "48af999f2c59b10c05ca6e008dcedc07677a9b15" }
+
+[[model]]
+id = "opus-mt-pl-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "pl"
+targets = ["en"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT pl-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-pl-en"
+convert = { repo = "Helsinki-NLP/opus-mt-pl-en", revision = "7f2bb874fdfb6139f9842b91a9b75c4a6c93401c" }
+
+[[model]]
+id = "opus-mt-ru-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "ru"
+targets = ["en"]
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT ru-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-ru-en"
+convert = { repo = "Helsinki-NLP/opus-mt-ru-en", revision = "fbd6dc73284f95536648512cc21d57f19191961a" }
+
+[[model]]
+id = "opus-mt-sk-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "sk"
+targets = ["en"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT sk-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-sk-en"
+convert = { repo = "Helsinki-NLP/opus-mt-sk-en", revision = "dd1de0d53e787147ac621680946dd55966049354" }
+
+[[model]]
+id = "opus-mt-sv-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "sv"
+targets = ["en"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT sv-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-sv-en"
+convert = { repo = "Helsinki-NLP/opus-mt-sv-en", revision = "202cf6240046bd8b6d08c207ee751ffd630d7ba8" }
+
+[[model]]
+id = "opus-mt-tr-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "tr"
+targets = ["en"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT tr-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-tr-en"
+convert = { repo = "Helsinki-NLP/opus-mt-tr-en", revision = "19c65427cc2af5f191337d4899e0348c4af25902" }
+
+[[model]]
+id = "opus-mt-tc-big-tr-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "tr"
+targets = ["en"]
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT tc-big tr-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 500
+disk_mb = 450
+dir = "ct2/opus-mt-tc-big-tr-en"
+convert = { repo = "Helsinki-NLP/opus-mt-tc-big-tr-en", revision = "2261c8fc7b1af59caee87f8ff0ecf3fbccfe8391" }
+
+[[model]]
+id = "opus-mt-uk-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "uk"
+targets = ["en"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT uk-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-uk-en"
+convert = { repo = "Helsinki-NLP/opus-mt-uk-en", revision = "1b9a2a0d1aa2a329d8476d2be5c7b0b27d5397b0" }
+
+[[model]]
+id = "opus-mt-vi-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "vi"
+targets = ["en"]
+licence = "Apache-2.0"
+attribution = "OPUS-MT vi-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020); converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-vi-en"
+convert = { repo = "Helsinki-NLP/opus-mt-vi-en", revision = "c8d2853e77f5fae31124d993e0b35176b1c8914e" }
+
+[[model]]
+id = "opus-mt-zh-en"
+kind = "mt"
+backend = "ctranslate2"
+source = "zh"
+targets = ["en"]
+licence = "CC-BY-4.0"
+attribution = "OPUS-MT zh-en, Language Technology Research Group at the University of Helsinki (Tiedemann & Thottingal, 2020), CC-BY-4.0; converted to CTranslate2 float16"
+vram_mb = 200
+disk_mb = 150
+dir = "ct2/opus-mt-zh-en"
+convert = { repo = "Helsinki-NLP/opus-mt-zh-en", revision = "cf109095479db38d6df799875e34039d4938aaa6" }

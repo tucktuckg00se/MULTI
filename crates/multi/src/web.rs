@@ -38,7 +38,7 @@ use axum::http::{HeaderMap, HeaderValue, Method, StatusCode, header};
 use axum::middleware::{self, Next};
 use axum::response::sse::{Event as SseEvent, KeepAlive, Sse};
 use axum::response::{Html, IntoResponse, Redirect, Response};
-use axum::routing::{get, post};
+use axum::routing::{delete, get, post};
 use axum::{Extension, Json, Router};
 use futures_util::StreamExt;
 use multi_core::Config;
@@ -50,6 +50,8 @@ use tracing::{info, warn};
 
 #[path = "web_hls.rs"]
 mod hls;
+#[path = "web_models.rs"]
+mod models_api;
 #[path = "web_outputs.rs"]
 mod outputs;
 
@@ -84,6 +86,7 @@ pub struct AppState {
     sessions: Arc<Sessions>,
     limiter: Arc<Limiter>,
     shutdown: watch::Receiver<bool>,
+    models: models_api::SharedHub,
 }
 
 impl AppState {
@@ -117,6 +120,7 @@ impl AppState {
     ) -> Self {
         let web = (config.web.bind, config.web.port);
         let tls = config.web.tls_enabled();
+        let models = Arc::new(models_api::Hub::new(service.models_dir(), None));
         Self {
             service,
             store: Arc::new(Mutex::new(config)),
@@ -127,7 +131,18 @@ impl AppState {
             sessions: Arc::new(Sessions::new(clock.clone())),
             limiter: Arc::new(Limiter::new(clock)),
             shutdown,
+            models,
         }
+    }
+
+    /// Uses `catalogue` as the user model catalogue (tests; `multi serve`
+    /// takes `--catalogue`).
+    pub fn with_catalogue(mut self, catalogue: PathBuf) -> Self {
+        self.models = Arc::new(models_api::Hub::new(
+            self.service.models_dir(),
+            Some(catalogue),
+        ));
+        self
     }
 
     fn config(&self) -> Config {
@@ -169,6 +184,11 @@ pub fn router(state: AppState) -> Router {
         .route("/watch.js", get(hls::watch_js))
         .route("/hls.min.js", get(hls::hls_js))
         .route("/hls/{name}/{file}", get(hls::file))
+        .route("/api/models", get(models_api::list))
+        .route("/api/models/events", get(models_api::events))
+        .route("/api/models/{id}/pull", post(models_api::pull))
+        .route("/api/models/{id}/verify", post(models_api::verify))
+        .route("/api/models/{id}", delete(models_api::remove))
         .layer(middleware::from_fn_with_state(state.clone(), guard))
         .with_state(state)
 }
@@ -266,7 +286,7 @@ fn access(state: &AppState, headers: &HeaderMap, peer: Option<IpAddr>) -> Option
 async fn guard(State(state): State<AppState>, mut req: Request, next: Next) -> Response {
     let path = req.uri().path().to_string();
     let api = path.starts_with("/api/");
-    let write = matches!(*req.method(), Method::POST | Method::PUT);
+    let write = matches!(*req.method(), Method::POST | Method::PUT | Method::DELETE);
     if api && write && req.headers().get("x-multi").is_none_or(|v| v != "1") {
         return ApiError(StatusCode::FORBIDDEN, "missing X-Multi: 1 header".into()).into_response();
     }

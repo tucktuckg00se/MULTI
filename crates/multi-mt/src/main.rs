@@ -46,6 +46,10 @@ struct Args {
     /// `--models`; repeatable. `multi run` passes these from the registry.
     #[arg(long = "model", value_name = "LANG=DIR")]
     model: Vec<String>,
+    /// Token put before each sentence for one language (`LANG=TOKEN`, e.g.
+    /// `pt=>>por<<`), for multi-target models; repeatable.
+    #[arg(long = "prefix", value_name = "LANG=TOKEN")]
+    prefix: Vec<String>,
     #[arg(long, value_enum, default_value_t = Device::Auto)]
     device: Device,
     /// Target languages, comma-separated.
@@ -125,11 +129,24 @@ fn run(args: &Args, hb: &Arc<Heartbeat>) -> Result<()> {
     for lang in &args.langs {
         let (tx, rx) = std::sync::mpsc::sync_channel(args.queue.max(1));
         let dir = explicit_dir(&args.model, lang).unwrap_or_else(|| model_dir(&args.models, lang));
+        let prefix = lookup(&args.prefix, lang);
         let (device, threads) = (args.device, args.threads);
         let (lang2, ready, hb2) = (lang.clone(), ready_tx.clone(), Arc::clone(hb));
         let thread = std::thread::Builder::new()
             .name(format!("mt-{lang}"))
-            .spawn(move || lane(&lang2, dir, device, threads, deadline, &ready, rx, &hb2))?;
+            .spawn(move || {
+                lane(
+                    &lang2,
+                    dir,
+                    prefix.as_deref(),
+                    device,
+                    threads,
+                    deadline,
+                    &ready,
+                    rx,
+                    &hb2,
+                )
+            })?;
         starting.insert(lang.clone(), Lane { tx, thread });
     }
     drop(ready_tx);
@@ -225,9 +242,14 @@ fn serve(lanes: &BTreeMap<String, Lane>) -> Result<()> {
 }
 
 fn explicit_dir(pairs: &[String], lang: &str) -> Option<PathBuf> {
+    lookup(pairs, lang).map(PathBuf::from)
+}
+
+/// The value of `LANG=VALUE` for `lang`.
+fn lookup(pairs: &[String], lang: &str) -> Option<String> {
     pairs.iter().find_map(|p| {
-        let (l, dir) = p.split_once('=')?;
-        (l == lang).then(|| PathBuf::from(dir))
+        let (l, v) = p.split_once('=')?;
+        (l == lang).then(|| v.to_string())
     })
 }
 
@@ -277,8 +299,16 @@ fn load(lang: &str, dir: &Path, device: Device, threads: usize) -> Result<Transl
     Ok(tr)
 }
 
-fn translate(tr: &Translator<SpTokenizer>, text: &str, until: Instant) -> Result<String> {
-    let parts = text::sentences(text);
+fn translate(
+    tr: &Translator<SpTokenizer>,
+    text: &str,
+    prefix: Option<&str>,
+    until: Instant,
+) -> Result<String> {
+    let parts: Vec<String> = text::sentences(text)
+        .into_iter()
+        .map(|s| prefix.map_or_else(|| s.to_string(), |p| format!("{p} {s}")))
+        .collect();
     if parts.is_empty() {
         return Ok(String::new());
     }
@@ -304,6 +334,7 @@ fn translate(tr: &Translator<SpTokenizer>, text: &str, until: Instant) -> Result
 fn lane(
     lang: &str,
     dir: PathBuf,
+    prefix: Option<&str>,
     device: Device,
     threads: usize,
     deadline: Duration,
@@ -314,7 +345,7 @@ fn lane(
     let t = Instant::now();
     let tr = {
         let loaded = load(lang, &dir, device, threads).and_then(|tr| {
-            translate(&tr, "Hello, world.", Instant::now() + STALL_LIMIT)?; // warm-up
+            translate(&tr, "Hello, world.", prefix, Instant::now() + STALL_LIMIT)?; // warm-up
             Ok(tr)
         });
         match loaded {
@@ -337,7 +368,7 @@ fn lane(
         }
         let res = {
             let _busy = hb.busy();
-            translate(&tr, &job.clause.text, until)
+            translate(&tr, &job.clause.text, prefix, until)
         };
         let elapsed = job.arrived.elapsed();
         match res {

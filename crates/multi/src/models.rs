@@ -8,13 +8,14 @@
 
 use anyhow::{Context, Result, bail};
 use multi_core::config::{Config, Issue};
-use multi_core::models::{self, File, MANIFEST, Model, Registry, Source};
+use multi_core::models::{self, File, MANIFEST, Model, Origin, Registry, Source};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::fs;
 use std::io::{self, Read, Write};
 use std::path::{Component, Path, PathBuf};
 use std::process::Command;
+use std::sync::OnceLock;
 use std::time::Duration;
 
 /// Conversion script, embedded so installed binaries don't need the source tree.
@@ -41,8 +42,64 @@ pub fn resolve_dir(cli: Option<&Path>) -> PathBuf {
     cli.map_or_else(default_dir, Path::to_path_buf)
 }
 
+// ---------------------------------------------------------------- catalogue
+
+static CATALOGUE: OnceLock<PathBuf> = OnceLock::new();
+
+/// Sets the user catalogue file for this process (`--catalogue`); first call wins.
+pub fn set_catalogue(path: PathBuf) {
+    let _ = CATALOGUE.set(path);
+}
+
+/// The user catalogue file: `--catalogue`, else `$MULTI_CATALOGUE`, else
+/// `$XDG_CONFIG_HOME/multi/models.toml`, else `~/.config/multi/models.toml`.
+/// The second value says whether it was named explicitly (then a missing
+/// file is reported).
+pub fn catalogue_path() -> (PathBuf, bool) {
+    if let Some(p) = CATALOGUE.get() {
+        return (p.clone(), true);
+    }
+    if let Some(p) = std::env::var_os("MULTI_CATALOGUE").filter(|p| !p.is_empty()) {
+        return (PathBuf::from(p), true);
+    }
+    let base = std::env::var_os("XDG_CONFIG_HOME")
+        .filter(|d| !d.is_empty())
+        .map(PathBuf::from)
+        .unwrap_or_else(|| {
+            std::env::var_os("HOME")
+                .map(PathBuf::from)
+                .unwrap_or_default()
+                .join(".config")
+        });
+    (base.join("multi/models.toml"), false)
+}
+
+/// The built-in registry merged with the user catalogue at `path` (or
+/// [`catalogue_path`]), plus a message per skipped user entry.
+pub fn load_catalogue(path: Option<&Path>) -> Result<(Registry, Vec<String>)> {
+    let mut reg = Registry::builtin().map_err(anyhow::Error::msg)?;
+    let (path, explicit) = match path {
+        Some(p) => (p.to_path_buf(), true),
+        None => catalogue_path(),
+    };
+    let warnings = match fs::read_to_string(&path) {
+        Ok(text) => reg
+            .merge_user(&text)
+            .into_iter()
+            .map(|w| format!("{}: {w}", path.display()))
+            .collect(),
+        Err(e) if e.kind() == io::ErrorKind::NotFound && !explicit => Vec::new(),
+        Err(e) => vec![format!("user catalogue {} not read: {e}", path.display())],
+    };
+    Ok((reg, warnings))
+}
+
 fn registry() -> Result<Registry> {
-    Registry::builtin().map_err(anyhow::Error::msg)
+    let (reg, warnings) = load_catalogue(None)?;
+    for w in warnings {
+        tracing::warn!("{w}");
+    }
+    Ok(reg)
 }
 
 fn pull_hint(id: &str) -> String {
@@ -117,17 +174,31 @@ fn source_lang(config: &Config) -> String {
         .map_or_else(|| "en".into(), |l| l.code.clone())
 }
 
-/// `(language, model folder)` for every target language.
-pub fn mt_paths(config: &Config, root: &Path) -> Result<Vec<(String, PathBuf)>> {
+/// The translation model for one target language.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MtModel {
+    pub lang: String,
+    pub dir: PathBuf,
+    /// `>>id<<` token to put before each sentence.
+    pub prefix: Option<String>,
+}
+
+/// The translation model for every target language.
+pub fn mt_paths(config: &Config, root: &Path) -> Result<Vec<MtModel>> {
     let reg = registry()?;
     mt_paths_in(&reg, config, root)
 }
 
-pub fn mt_paths_in(reg: &Registry, config: &Config, root: &Path) -> Result<Vec<(String, PathBuf)>> {
+/// Translation model for `src -> target`, preferring an installed one.
+fn mt_model<'a>(reg: &'a Registry, src: &str, target: &str, root: &Path) -> Option<&'a Model> {
+    reg.mt_with(src, target, |m| m.installed(root))
+}
+
+pub fn mt_paths_in(reg: &Registry, config: &Config, root: &Path) -> Result<Vec<MtModel>> {
     let src = source_lang(config);
     let mut out = Vec::new();
     for l in config.languages.iter().filter(|l| !l.source) {
-        let Some(m) = reg.mt(&src, &l.code) else {
+        let Some(m) = mt_model(reg, &src, &l.code, root) else {
             bail!(
                 "no translation model for {src}->{} in the model registry; remove the language or see `multi models list`",
                 l.code
@@ -142,9 +213,37 @@ pub fn mt_paths_in(reg: &Registry, config: &Config, root: &Path) -> Result<Vec<(
                 pull_hint(&m.id)
             );
         }
-        out.push((l.code.clone(), m.path(root)));
+        out.push(MtModel {
+            lang: l.code.clone(),
+            dir: m.path(root),
+            prefix: m.target_token.clone(),
+        });
     }
     Ok(out)
+}
+
+/// Ids of the installed models the default workers would use for `config`
+/// (ASR or its CPU variant, VAD, one translation model per target).
+pub fn in_use(reg: &Registry, config: &Config, root: &Path) -> Vec<String> {
+    let mut ids = Vec::new();
+    if let Some(m) = reg.asr(&config.asr.model, config.asr.chunk_ms) {
+        let variant = m.cpu_variant.as_deref().and_then(|v| reg.get(v));
+        if m.installed(root) {
+            ids.push(m.id.clone());
+        } else if let Some(v) = variant.filter(|v| v.installed(root)) {
+            ids.push(v.id.clone());
+        }
+    }
+    if let Some(v) = reg.vad() {
+        ids.push(v.id.clone());
+    }
+    let src = source_lang(config);
+    for l in config.languages.iter().filter(|l| !l.source) {
+        if let Some(m) = mt_model(reg, &src, &l.code, root) {
+            ids.push(m.id.clone());
+        }
+    }
+    ids
 }
 
 /// One warning per model the configuration needs that is missing from
@@ -207,7 +306,7 @@ pub fn missing_models_in(reg: &Registry, config: &Config, root: &Path) -> Vec<Is
             continue;
         }
         let path = format!("languages[{i}].code");
-        match reg.mt(&src, &l.code) {
+        match mt_model(reg, &src, &l.code, root) {
             None => push(
                 path,
                 format!("no translation model for {src}->{} in the registry", l.code),
@@ -224,26 +323,60 @@ pub fn missing_models_in(reg: &Registry, config: &Config, root: &Path) -> Vec<Is
 
 // ---------------------------------------------------------------- list
 
+/// `installed`, `partial` (a folder without a finished model) or `missing`.
+pub fn status(m: &Model, root: &Path) -> &'static str {
+    if m.installed(root) {
+        "installed"
+    } else if m.path(root).exists() && !matches!(m.source(), Source::Files) {
+        "partial"
+    } else {
+        "missing"
+    }
+}
+
+/// Bytes on disk of an installed model: its registry files, or every file
+/// in a converted model's folder.
+pub fn size_on_disk(m: &Model, root: &Path) -> u64 {
+    let dir = m.path(root);
+    match m.source() {
+        Source::Convert(_) => fs::read_dir(&dir)
+            .map(|rd| {
+                rd.filter_map(|e| e.ok())
+                    .filter_map(|e| e.metadata().ok())
+                    .filter(|md| md.is_file())
+                    .map(|md| md.len())
+                    .sum()
+            })
+            .unwrap_or(0),
+        _ => m
+            .files
+            .iter()
+            .filter_map(|f| fs::metadata(dir.join(&f.path)).ok())
+            .map(|md| md.len())
+            .sum(),
+    }
+}
+
 pub fn list(reg: &Registry, root: &Path) {
     println!("models directory: {}", root.display());
+    println!("user catalogue: {}", catalogue_path().0.display());
     println!(
-        "{:<36} {:<5} {:<9} {:>8} {:>8}  {:<12} languages",
-        "id", "kind", "status", "disk MB", "VRAM MB", "licence"
+        "{:<36} {:<5} {:<7} {:<9} {:>8} {:>8}  {:<12} languages",
+        "id", "kind", "from", "status", "disk MB", "VRAM MB", "licence"
     );
     for m in &reg.models {
-        let status = if m.installed(root) {
-            "installed"
-        } else if m.path(root).exists() && !matches!(m.source(), Source::Files) {
-            "partial"
-        } else {
-            "missing"
+        let status = status(m, root);
+        let from = match m.origin {
+            Origin::Builtin => "builtin",
+            Origin::User => "user",
         };
         let kind = format!("{:?}", m.kind).to_lowercase();
         let mark = if m.default { "*" } else { " " };
         println!(
-            "{:<36} {:<5} {:<9} {:>8} {:>8}  {:<12} {}",
+            "{:<36} {:<5} {:<7} {:<9} {:>8} {:>8}  {:<12} {}",
             format!("{}{mark}", m.id),
             kind,
+            from,
             status,
             m.disk_mb,
             m.vram_mb,
@@ -304,6 +437,21 @@ pub fn pull(reg: &Registry, ids: &[String], root: &Path) -> Result<()> {
     }
 }
 
+/// What a pull is doing, for progress reports.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Phase {
+    Download,
+    Extract,
+    Convert,
+    Verify,
+}
+
+/// Progress callback: phase, bytes done, bytes total (0 when unknown).
+pub type Report<'a> = &'a (dyn Fn(Phase, u64, u64) + Sync);
+
+fn quiet(_: Phase, _: u64, _: u64) {}
+
 fn tmp_dir(root: &Path) -> Result<PathBuf> {
     let t = root.join(".tmp");
     fs::create_dir_all(&t).with_context(|| format!("cannot create {}", t.display()))?;
@@ -311,33 +459,46 @@ fn tmp_dir(root: &Path) -> Result<PathBuf> {
 }
 
 fn pull_one(m: &Model, root: &Path) -> Result<()> {
+    pull_one_with(m, root, &quiet)
+}
+
+/// Downloads (or converts) one model, reporting progress. The CLI prints as
+/// well; the web GUI (`web_models`) uses the reports.
+pub fn pull_one_with(m: &Model, root: &Path, report: Report<'_>) -> Result<()> {
     let dir = m.path(root);
     match m.source() {
         Source::Files => {
             fs::create_dir_all(&dir).with_context(|| format!("cannot create {}", dir.display()))?;
+            let total: u64 = m.files.iter().map(|f| f.size).sum();
+            let mut base = 0;
             for f in &m.files {
                 let dest = dir.join(&f.path);
-                if file_ok(&dest, f)? {
-                    continue;
+                report(Phase::Verify, base, total);
+                if !file_ok(&dest, f)? {
+                    let url = m.file_url(f).context("file without a URL")?;
+                    if let Some(p) = dest.parent() {
+                        fs::create_dir_all(p)?;
+                    }
+                    let offset = |p: Phase, d: u64, _: u64| report(p, base + d, total);
+                    download_with(&url, &dest, &f.sha256, f.size, &offset)?;
                 }
-                let url = m.file_url(f).context("file without a URL")?;
-                if let Some(p) = dest.parent() {
-                    fs::create_dir_all(p)?;
-                }
-                download(&url, &dest, &f.sha256, f.size)?;
+                base += f.size;
             }
+            report(Phase::Verify, total, total);
             Ok(())
         }
         Source::Archive(a) => {
             let tmp = tmp_dir(root)?;
             let file = tmp.join(format!("{}.tar.bz2", m.id));
             if !file.is_file() {
-                download(&a.url, &file, &a.sha256, a.size)?;
+                download_with(&a.url, &file, &a.sha256, a.size, report)?;
             }
             let staging = tmp.join(format!("{}.extract", m.id));
             remove_path(&staging)?;
             println!("  extracting");
+            report(Phase::Extract, 0, 0);
             extract_tar_bz2(&file, &staging)?;
+            report(Phase::Verify, 0, 0);
             for f in &m.files {
                 if !file_ok(&staging.join(&f.path), f)? {
                     bail!("{} is missing or wrong in the archive", f.path);
@@ -351,7 +512,9 @@ fn pull_one(m: &Model, root: &Path) -> Result<()> {
             let tmp = tmp_dir(root)?;
             let out = tmp.join(&m.id);
             remove_path(&out)?;
+            report(Phase::Convert, 0, 0);
             convert(root, &tmp, &c.repo, &c.revision, &out)?;
+            report(Phase::Verify, 0, 0);
             write_manifest(m, &c.repo, &c.revision, &out)?;
             install_dir(&out, &dir)
         }
@@ -416,6 +579,17 @@ fn url_allowed(url: &str) -> bool {
 /// (HTTP Range), retries broken transfers, checks size and SHA-256, and
 /// renames into place. On a checksum mismatch nothing is left behind.
 pub fn download(url: &str, dest: &Path, sha256: &str, size: u64) -> Result<()> {
+    download_with(url, dest, sha256, size, &quiet)
+}
+
+/// [`download`] with progress reports.
+pub fn download_with(
+    url: &str,
+    dest: &Path,
+    sha256: &str,
+    size: u64,
+    report: Report<'_>,
+) -> Result<()> {
     if !url_allowed(url) {
         bail!("refusing non-HTTPS download {url}");
     }
@@ -431,7 +605,7 @@ pub fn download(url: &str, dest: &Path, sha256: &str, size: u64) -> Result<()> {
     println!("  downloading {name} ({:.1} MB)", size as f64 / 1e6);
     let mut attempt = 1;
     loop {
-        match fetch(&agent, url, &part, size) {
+        match fetch(&agent, url, &part, size, report) {
             Ok(()) => break,
             Err(e) if attempt < ATTEMPTS => {
                 eprintln!("  {name}: {e:#}; retrying ({attempt}/{})", ATTEMPTS - 1);
@@ -441,6 +615,7 @@ pub fn download(url: &str, dest: &Path, sha256: &str, size: u64) -> Result<()> {
             Err(e) => return Err(e.context(format!("downloading {url}"))),
         }
     }
+    report(Phase::Verify, size, size);
     let got = sha256_file(&part)?;
     if got != sha256 {
         fs::remove_file(&part).ok();
@@ -450,7 +625,7 @@ pub fn download(url: &str, dest: &Path, sha256: &str, size: u64) -> Result<()> {
     Ok(())
 }
 
-fn fetch(agent: &ureq::Agent, url: &str, part: &Path, size: u64) -> Result<()> {
+fn fetch(agent: &ureq::Agent, url: &str, part: &Path, size: u64, report: Report<'_>) -> Result<()> {
     let mut have = fs::metadata(part).map(|m| m.len()).unwrap_or(0);
     if have > size {
         fs::remove_file(part)?;
@@ -486,7 +661,12 @@ fn fetch(agent: &ureq::Agent, url: &str, part: &Path, size: u64) -> Result<()> {
         fs::File::create(part)?
     };
     let mut reader = resp.into_reader().take(size - have);
-    let mut writer = Progress::new(io::BufWriter::with_capacity(1 << 20, &mut file), have, size);
+    let mut writer = Progress::new(
+        io::BufWriter::with_capacity(1 << 20, &mut file),
+        have,
+        size,
+        report,
+    );
     let copied = io::copy(&mut reader, &mut writer);
     writer.flush()?;
     drop(writer);
@@ -499,21 +679,24 @@ fn fetch(agent: &ureq::Agent, url: &str, part: &Path, size: u64) -> Result<()> {
     Ok(())
 }
 
-/// Prints a line every 10% for large files.
-struct Progress<W> {
+/// Prints a line every 10% for large files, and reports every write.
+struct Progress<'a, W> {
     inner: W,
     done: u64,
     total: u64,
     next: u64,
+    report: Report<'a>,
 }
 
-impl<W: Write> Progress<W> {
-    fn new(inner: W, done: u64, total: u64) -> Self {
+impl<'a, W: Write> Progress<'a, W> {
+    fn new(inner: W, done: u64, total: u64, report: Report<'a>) -> Self {
         let step = total / 10;
+        report(Phase::Download, done, total);
         Self {
             inner,
             done,
             total,
+            report,
             next: if total < 50_000_000 {
                 u64::MAX
             } else {
@@ -523,10 +706,11 @@ impl<W: Write> Progress<W> {
     }
 }
 
-impl<W: Write> Write for Progress<W> {
+impl<W: Write> Write for Progress<'_, W> {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         let n = self.inner.write(buf)?;
         self.done += n as u64;
+        (self.report)(Phase::Download, self.done, self.total);
         if self.done >= self.next {
             eprintln!("    {}%", self.done * 100 / self.total.max(1));
             self.next += self.total / 10;

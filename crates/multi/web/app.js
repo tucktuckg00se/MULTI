@@ -69,7 +69,8 @@ const LANG_NAMES = {
 const SECTIONS = [
   { id: "input", title: "Input", lede: "Where the program feed comes from. H.264 or HEVC in MPEG-TS; video is never re-encoded.", custom: renderInput },
   { id: "outputs", title: "Outputs", lede: "Where the captioned stream goes. Each output runs and restarts on its own; adding, removing, starting or stopping one never interrupts the others.", custom: renderOutputs },
-  { id: "languages", title: "Languages", lede: "One spoken (source) language; every other language is a translation. Each language needs a CEA-608 channel, a CEA-708 service, or both.", custom: renderLanguages },
+  { id: "languages", title: "Languages", lede: "One spoken (source) language; every other language is a translation. Each language needs a CEA-608 channel, a CEA-708 service, or both. Only languages with an installed model are offered.", custom: renderLanguages },
+  { id: "models", title: "Models", lede: "Installed models and the catalogue (built-in plus your models.toml). Pulls run one at a time in the background.", custom: renderModels },
   {
     id: "captions", title: "Captions", lede: "How captions look on screen.",
     fields: [
@@ -335,17 +336,206 @@ function renderOutputs(card) {
     h("button", { type: "button", onclick: () => { S.draft.outputs.push({ url: "udp://127.0.0.1:5000", enabled: true }); onChange(); renderSettings(); } }, "+ Add output"));
 }
 
+// ------------------------------------------------------------ models (M2-1)
+
+const M = { list: null, error: "", filter: "", checks: {}, busy: {} };
+
+const langInfo = (code) => (M.list && M.list.languages.find((l) => l.code === code)) || null;
+const langName = (code) => (langInfo(code) || {}).name || LANG_NAMES[code] || "";
+const FORMAT_LABEL = { "608": "608", "708": "708", webvtt: "WebVTT" };
+
+// Caption formats that can carry a language (unknown script: WebVTT only).
+function formatBadges(code) {
+  const info = langInfo(code);
+  const fmts = info ? info.formats : ["webvtt"];
+  const box = h("span", { class: "fmts", title: info ? info.script + " script" : "unknown script" },
+    fmts.map((f) => h("span", { class: "fmt" }, FORMAT_LABEL[f] || f)));
+  if (info && info.note) box.append(h("span", { class: "fmt warn", title: info.note }, "608: some letters"));
+  return box;
+}
+
+const installedModels = () => (M.list ? M.list.models.filter((m) => m.status === "installed") : []);
+const sourceCode = () => ((S.draft && S.draft.languages.find((l) => l.source)) || {}).code || "en";
+
+// Languages the installed ASR models can transcribe.
+function asrLanguages() {
+  const set = new Set();
+  installedModels().filter((m) => m.kind === "asr").forEach((m) => m.languages.forEach((l) => set.add(l)));
+  return [...set];
+}
+// Targets of installed translation models from the spoken language.
+function targetLanguages(src) {
+  const set = new Set();
+  installedModels().filter((m) => m.kind === "mt" && m.source === src).forEach((m) => m.targets.forEach((l) => set.add(l)));
+  return [...set].sort((a, b) => langName(a).localeCompare(langName(b)));
+}
+// Catalogue entry that would add `code` (prefers the default set).
+function catalogueFor(src, code) {
+  if (!M.list) return null;
+  const c = M.list.models.filter((m) => m.kind === "mt" && m.source === src && m.targets.includes(code));
+  return c.find((m) => m.default) || c[0] || null;
+}
+function showModel(id) {
+  M.filter = id;
+  OPEN_GROUPS.add("models");
+  renderSettings();
+  const row = document.getElementById("model-" + id);
+  if (row) row.scrollIntoView({ block: "center" });
+}
+
+async function loadModels() {
+  try {
+    const r = await api("GET", "/api/models");
+    if (r.ok) { M.list = r.data; M.error = ""; } else M.error = (r.data && r.data.error) || "cannot list models";
+  } catch (e) { M.error = String(e); }
+  redrawGroups(["models", "languages"]);
+}
+
+// Re-renders some settings groups in place (keeps focus on the filter box).
+function redrawGroups(ids) {
+  const form = $("#settings-form");
+  if (!form || !S.draft) return;
+  const focusId = document.activeElement && document.activeElement.id;
+  const caret = document.activeElement && document.activeElement.selectionStart;
+  for (const id of ids) {
+    const card = $("#sec-" + id);
+    const sec = SECTIONS.find((s) => s.id === id);
+    if (!card || !sec) continue;
+    [...card.children].forEach((c) => { if (c.tagName !== "SUMMARY") c.remove(); });
+    sec.custom(card);
+  }
+  const el = focusId && document.getElementById(focusId);
+  if (el) { el.focus(); if (caret != null && el.setSelectionRange) el.setSelectionRange(caret, caret); }
+}
+
+const mb = (bytes) => (bytes / 1e6).toFixed(bytes < 1e7 ? 1 : 0) + " MB";
+const modelLangs = (m) => (m.kind === "mt" ? `${m.source} → ${m.targets.join(", ")}` : m.languages.length > 6 ? m.languages.length + " languages" : m.languages.join(", ") || "—");
+
+async function modelAction(method, id, action) {
+  M.busy[id] = action;
+  redrawGroups(["models"]);
+  const path = "/api/models/" + encodeURIComponent(id) + (action === "remove" ? "" : "/" + action);
+  const r = await api(method, path);
+  delete M.busy[id];
+  if (action === "verify") M.checks[id] = r.ok ? r.data : { result: "error", problems: [(r.data && r.data.error) || "failed"] };
+  else if (!r.ok) M.checks[id] = { result: "error", problems: [(r.data && r.data.error) || "failed"] };
+  else delete M.checks[id];
+  await loadModels();
+}
+
+function renderModels(card) {
+  if (!M.list) {
+    card.append(h("p", { class: "help" }, M.error ? "Models: " + M.error : "Loading models…"));
+    return;
+  }
+  const L = M.list;
+  const active = L.active;
+  const progressOf = (m) => {
+    if (active && active.id === m.id) {
+      const pct = active.total ? Math.floor((active.done * 100) / active.total) : null;
+      return h("span", { class: "pull-progress" },
+        h("progress", { id: "prog-" + m.id, max: 100, value: pct == null ? undefined : pct, "aria-label": `Pulling ${m.id}` }),
+        h("span", { class: "help", id: "progtext-" + m.id }, active.phase + (pct == null ? "…" : ` ${pct}%`)));
+    }
+    if (L.queue.includes(m.id)) return h("span", { class: "help" }, "Queued");
+    return null;
+  };
+  const check = (m) => {
+    const c = M.checks[m.id];
+    if (!c) return null;
+    const cls = c.result === "ok" ? "ok" : c.result === "unverified" ? "warn" : "err";
+    return h("span", { class: "pill " + cls, title: (c.problems || []).join("\n") }, c.result === "ok" ? "Verified" : c.result);
+  };
+  const inst = L.models.filter((m) => m.status !== "missing");
+  const instRows = inst.map((m) => h("tr", { id: "model-" + m.id },
+    h("td", {}, h("span", { class: "mono" }, m.id), m.in_use ? h("span", { class: "pill ok" }, "in use") : null, m.status === "partial" ? h("span", { class: "pill warn" }, "partial") : null,
+      m.origin === "user" ? h("span", { class: "help" }, " (your catalogue)") : null),
+    h("td", {}, modelLangs(m)),
+    h("td", {}, mb(m.size)),
+    h("td", {}, h("span", { title: m.attribution }, m.licence)),
+    h("td", {},
+      h("button", { type: "button", class: "icon", disabled: !!M.busy[m.id], onclick: () => modelAction("POST", m.id, "verify") }, M.busy[m.id] === "verify" ? "Verifying…" : "Verify"), " ",
+      h("button", { type: "button", class: "icon", disabled: !!M.busy[m.id] || m.in_use, title: m.in_use ? "In use by the running pipeline" : "", "aria-label": `Remove model ${m.id}`,
+        onclick: () => { if (confirm(`Remove ${m.id} from ${L.models_dir}?`)) modelAction("DELETE", m.id, "remove"); } }, "Remove"),
+      " ", check(m), progressOf(m))));
+  const filter = h("input", { type: "search", id: "model-filter", placeholder: "Filter: id, language code or name, licence", "aria-label": "Filter the catalogue", autocomplete: "off" });
+  filter.value = M.filter;
+  filter.addEventListener("input", () => { M.filter = filter.value; redrawGroups(["models"]); });
+  const q = M.filter.trim().toLowerCase();
+  const match = (m) => !q || [m.id, m.licence, m.kind, ...(m.targets || []), ...(m.targets || []).map(langName), m.source || ""].join(" ").toLowerCase().includes(q);
+  const avail = L.models.filter((m) => m.status === "missing" && match(m));
+  const shown = avail.slice(0, 60);
+  const catRows = shown.map((m) => h("tr", { id: "model-" + m.id },
+    h("td", {}, h("span", { class: "mono" }, m.id), m.origin === "user" ? h("span", { class: "help" }, " (your catalogue)") : null),
+    h("td", {}, m.kind === "mt" ? [m.targets.map(langName).join(", ") + ` (${m.source} → ${m.targets.join(", ")}) `, formatBadges(m.targets[0])] : modelLangs(m)),
+    h("td", {}, "~" + m.disk_mb + " MB"),
+    h("td", {}, h("details", { class: "licence" }, h("summary", {}, m.licence), h("p", { class: "help" }, m.attribution))),
+    h("td", {}, progressOf(m) || h("button", { type: "button", "aria-label": `Pull model ${m.id}`, title: `Licence ${m.licence}. ${m.attribution}`,
+      onclick: () => modelAction("POST", m.id, "pull") }, "Pull"), check(m), m.error ? h("p", { class: "err-msg" }, m.error) : null)));
+  card.append(
+    h("p", { class: "help" }, "Folder: ", h("span", { class: "mono" }, L.models_dir), " · your catalogue: ", h("span", { class: "mono" }, L.catalogue)),
+    ...L.warnings.map((w) => h("div", { class: "banner warn", role: "status" }, h("p", {}, w))),
+    h("h3", {}, "Installed"),
+    inst.length ? h("div", { class: "table-wrap" }, h("table", {},
+      h("thead", {}, h("tr", {}, h("th", {}, "Model"), h("th", {}, "Languages"), h("th", {}, "Size"), h("th", {}, "Licence"), h("th", {}, h("span", { class: "sr-only" }, "Actions")))),
+      h("tbody", {}, instRows))) : h("p", { class: "help" }, "No models installed yet."),
+    h("h3", {}, "Catalogue"),
+    filter,
+    h("div", { class: "table-wrap" }, h("table", {},
+      h("thead", {}, h("tr", {}, h("th", {}, "Model"), h("th", {}, "Languages and caption formats"), h("th", {}, "Download"), h("th", {}, "Licence (read before pulling)"), h("th", {}, h("span", { class: "sr-only" }, "Actions")))),
+      h("tbody", {}, catRows))),
+    h("p", { class: "help" }, avail.length > shown.length ? `Showing ${shown.length} of ${avail.length}; filter to see more. ` : "",
+      "Translation models are converted locally to CTranslate2 (needs Python 3). CC-BY-4.0 models need their attribution in your credits."));
+}
+
+function connectModelEvents() {
+  const es = new EventSource("/api/models/events");
+  es.onmessage = (m) => {
+    let ev;
+    try { ev = JSON.parse(m.data); } catch (_) { return; }
+    if (ev.type === "progress" && M.list) {
+      M.list.active = ev;
+      const bar = document.getElementById("prog-" + ev.id);
+      const pct = ev.total ? Math.floor((ev.done * 100) / ev.total) : null;
+      if (bar) {
+        if (pct == null) bar.removeAttribute("value"); else bar.value = pct;
+        const txt = document.getElementById("progtext-" + ev.id);
+        if (txt) txt.textContent = ev.phase + (pct == null ? "…" : ` ${pct}%`);
+      } else redrawGroups(["models"]);
+    } else loadModels();
+  };
+}
+
 function renderLanguages(card) {
+  const src = sourceCode();
+  const known = !!M.list;
   const rows = S.draft.languages.map((l, i) => {
     const at = (f) => `languages[${i}].${f}`;
-    const code = h("input", { type: "text", maxlength: 2, size: 3, class: "mono", "aria-label": `Language ${i + 1} code` });
-    code.value = l.code;
-    bindInput(code, at("code"), "text");
-    code.addEventListener("input", () => { name.textContent = LANG_NAMES[code.value] || ""; });
-    const name = h("span", { class: "help" }, LANG_NAMES[l.code] || "");
-    const src = h("input", { type: "radio", name: "source-lang", "aria-label": `Language ${i + 1} is the spoken language` });
-    src.checked = l.source;
-    src.addEventListener("change", () => { S.draft.languages.forEach((x, j) => (x.source = j === i)); onChange(); });
+    // Spoken: what the installed ASR model transcribes; others: installed translation targets.
+    const offered = l.source ? asrLanguages() : targetLanguages(src);
+    let code;
+    let missing = null;
+    if (known) {
+      const opts = offered.includes(l.code) || !l.code ? offered : [l.code, ...offered];
+      code = h("select", { id: "f-" + at("code"), "aria-label": `Language ${i + 1}` },
+        (l.code ? [] : [h("option", { value: "" }, "Choose…")]).concat(opts.map((c) =>
+          h("option", { value: c, selected: c === l.code }, `${langName(c) || c} (${c})` + (offered.includes(c) ? "" : " — not installed")))));
+      code.addEventListener("change", () => { l.code = code.value; onChange(); redrawGroups(["languages"]); });
+      code.dataset.path = at("code");
+      if (l.code && !offered.includes(l.code)) {
+        const entry = l.source ? null : catalogueFor(src, l.code);
+        missing = entry
+          ? h("a", { href: "#model-" + entry.id, class: "install", onclick: (e) => { e.preventDefault(); showModel(entry.id); } }, "Install model")
+          : h("span", { class: "help" }, l.source ? " No installed ASR model for this language." : ` No ${src}→${l.code} model in the catalogue.`);
+      }
+    } else {
+      code = h("input", { type: "text", maxlength: 2, size: 3, class: "mono", "aria-label": `Language ${i + 1} code` });
+      code.value = l.code;
+      bindInput(code, at("code"), "text");
+    }
+    const src_ = h("input", { type: "radio", name: "source-lang", "aria-label": `Language ${i + 1} is the spoken language` });
+    src_.checked = l.source;
+    src_.addEventListener("change", () => { S.draft.languages.forEach((x, j) => (x.source = j === i)); onChange(); redrawGroups(["languages"]); });
     const cc = h("select", { "aria-label": `Language ${i + 1} CEA-608 channel` },
       [["", "—"], ["cc1", "CC1"], ["cc2", "CC2"], ["cc3", "CC3"], ["cc4", "CC4"]].map(([v, t]) => h("option", { value: v, selected: (l.cc608 || "") === v }, t)));
     cc.addEventListener("change", () => { l.cc608 = cc.value || null; onChange(); });
@@ -359,19 +549,29 @@ function renderLanguages(card) {
     bindInput(pri, at("priority"), "number");
     const del = h("button", { type: "button", class: "icon", "aria-label": `Remove language ${l.code}`, onclick: () => { S.draft.languages.splice(i, 1); onChange(); renderSettings(); } }, "Remove");
     return h("tr", {},
-      h("td", {}, code, " ", name, errSlot(at("code"))),
-      h("td", {}, src),
+      h("td", {}, code, " ", missing, errSlot(at("code"))),
+      h("td", {}, l.code ? formatBadges(l.code) : null),
+      h("td", {}, src_),
       h("td", {}, cc, errSlot(at("cc608"))),
       h("td", {}, svc, errSlot(at("cea708_service"))),
       h("td", {}, pri),
       h("td", {}, del));
   });
+  const used = new Set(S.draft.languages.map((l) => l.code));
+  const addable = known ? targetLanguages(src).filter((c) => !used.has(c)) : [];
+  const addSel = h("select", { id: "add-language", "aria-label": "Language to add" },
+    addable.length ? addable.map((c) => h("option", { value: c }, `${langName(c)} (${c})`)) : [h("option", { value: "" }, known ? "No other installed languages" : "…")]);
+  const add = (code) => { S.draft.languages.push({ code, source: false, cc608: null, cea708_service: null, priority: S.draft.languages.length }); onChange(); renderSettings(); };
   card.append(h("div", { class: "table-wrap" }, h("table", {},
-    h("thead", {}, h("tr", {}, h("th", {}, "Code"), h("th", {}, "Spoken"), h("th", {}, "CEA-608"), h("th", {}, "CEA-708"), h("th", {}, "Priority"), h("th", {}, h("span", { class: "sr-only" }, "Actions")))),
+    h("thead", {}, h("tr", {}, h("th", {}, "Language"), h("th", {}, "Can go on"), h("th", {}, "Spoken"), h("th", {}, "CEA-608"), h("th", {}, "CEA-708"), h("th", {}, "Priority"), h("th", {}, h("span", { class: "sr-only" }, "Actions")))),
     h("tbody", {}, rows))),
-  h("p", { class: "help" }, "Priority: lower numbers are kept longest when shedding load. CC1/CC3 are the usual 608 channels (field 1 and 2)."),
+  h("p", { class: "help" }, "Priority: lower numbers are kept longest when shedding load. CC1/CC3 are the usual 608 channels (field 1 and 2). Non-Latin scripts need WebVTT output."),
   errSlot("languages"),
-  h("button", { type: "button", onclick: () => { S.draft.languages.push({ code: "", source: false, cc608: null, cea708_service: null, priority: S.draft.languages.length }); onChange(); renderSettings(); } }, "+ Add language"));
+  known
+    ? h("div", { class: "add-lang" }, addSel, " ",
+        h("button", { type: "button", disabled: !addable.length, onclick: () => addSel.value && add(addSel.value) }, "+ Add language"), " ",
+        h("a", { href: "#sec-models", onclick: (e) => { e.preventDefault(); showModel(""); } }, "More languages: install models"))
+    : h("button", { type: "button", onclick: () => add("") }, "+ Add language"));
 }
 
 const OPEN_GROUPS = new Set();
@@ -730,10 +930,13 @@ $$(".startstop").forEach((b) => b.addEventListener("click", startStop));
 $("#clear-captions").addEventListener("click", () => $$(".lane-body").forEach((l) => l.replaceChildren()));
 window.addEventListener("beforeunload", (e) => { if (S.draft && dirty()) e.preventDefault(); });
 
+// A link to a group (`#sec-models`, or several: `#sec-languages,models`) opens it.
+if (location.hash.startsWith("#sec-")) location.hash.slice(5).split(",").forEach((id) => OPEN_GROUPS.add(id));
 buildSideNav();
 updateSavebar();
-loadConfig().then(refreshStatus);
+loadConfig().then(refreshStatus).then(loadModels);
 connectEvents();
+connectModelEvents();
 
 // ------------------------------------------------------------ sign-in (WP9)
 api("GET", "/api/me").then((r) => {

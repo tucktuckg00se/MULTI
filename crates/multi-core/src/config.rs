@@ -456,15 +456,16 @@ impl Default for Degrade {
 
 /// Languages written in non-Latin scripts, which CEA-608 can't carry and
 /// MULTI's 708 path doesn't support.
-const NON_LATIN: &[&str] = &[
+pub(crate) const NON_LATIN: &[&str] = &[
     "am", "ar", "be", "bg", "bn", "el", "fa", "gu", "he", "hi", "hy", "ja", "ka", "kk", "km", "kn",
-    "ko", "lo", "mk", "ml", "mr", "my", "ne", "pa", "ru", "si", "sr", "ta", "te", "th", "uk", "ur",
-    "yi", "zh",
+    "ko", "lo", "mk", "ml", "mr", "my", "ne", "pa", "ru", "si", "sr", "ta", "te", "th", "ti", "uk",
+    "ur", "yi", "zh",
 ];
 
 /// Latin-script languages with letters outside CEA-608's character sets.
-const LATIN_EXTENDED: &[&str] = &[
-    "cs", "et", "hr", "hu", "lt", "lv", "pl", "ro", "sk", "sl", "tr", "vi",
+pub(crate) const LATIN_EXTENDED: &[&str] = &[
+    "az", "cs", "cy", "ee", "eo", "et", "ha", "hr", "hu", "ig", "is", "lt", "ln", "lv", "mh", "mt",
+    "pl", "ro", "sg", "sk", "sl", "tr", "tw", "vi",
 ];
 
 /// A single validation problem, keyed by the setting's dotted path.
@@ -684,7 +685,7 @@ impl Config {
             let message = if NON_LATIN.contains(&code) {
                 "this language's script can't be carried in CEA-608/708 captions; carry it as WebVTT only (no 608 channel or 708 service) and add an hls:// output"
             } else if LATIN_EXTENDED.contains(&code) && l.cc608.is_some() {
-                "CEA-608 can't show every letter of this language; some accented letters will be replaced with plain ones (708 is unaffected)"
+                crate::models::LATIN_EXTENDED_NOTE
             } else {
                 continue;
             };
